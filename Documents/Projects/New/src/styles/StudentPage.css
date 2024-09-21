@@ -1,0 +1,276 @@
+/* StudentPage.css */
+
+.student-page {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+}
+
+.chart-info-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.student-info {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  flex: 1;
+  min-width: 300px;
+  margin-right: 20px;
+}
+
+.chart-container {
+  flex: 2;
+  min-width: 300px;
+  margin-bottom: 20px;
+}
+
+.chart-wrapper {
+  width: 100%;
+  height: 400px;
+}
+
+.student-info h2 {
+  margin-bottom: 10px;
+}
+
+.student-info p {
+  margin: 5px 0;
+}
+
+.forms-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .forms-container {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+form {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+form h3 {
+  margin-bottom: 10px;
+}
+
+form div {
+  margin-bottom: 10px;
+}
+
+form label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+form input,
+form select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.add-payment-button,
+.add-lesson-button {
+  background-color: #4caf50;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  align-self: flex-end; /* Align buttons at the bottom */
+}
+
+.add-payment-button:hover,
+.add-lesson-button:hover {
+  background-color: #45a049;
+}
+
+.transactions-container {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.transactions-list {
+  flex: 1;
+  margin-right: 20px;
+}
+
+.completed-lessons {
+  flex: 1;
+}
+
+.transactions-list h3 {
+  text-align: center;
+}
+
+.transactions-list ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.transaction-item {
+  background-color: #f1f1f1;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.transaction-item .button-group {
+  display: flex;
+  gap: 10px;
+}
+
+.button-group button {
+  background-color: #2196f3;
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.button-group button:hover {
+  background-color: #0b7dda;
+}
+
+.remove-button {
+  background-color: #f44336;
+}
+
+.remove-button:hover {
+  background-color: #e53935;
+}
+
+.error-message {
+  color: #f44336;
+  margin-bottom: 10px;
+}
+
+/* New styles for subdivided lists */
+.transactions-list .sub-list {
+  margin-left: 20px;
+}
+
+.transactions-list .sub-list h4 {
+  margin-bottom: 10px;
+}
+
+.transactions-list .sub-list ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+@media (max-width: 768px) {
+  .chart-info-container {
+    flex-direction: column;
+  }
+
+  .student-info {
+    margin-right: 0;
+    margin-bottom: 20px;
+  }
+
+  .chart-container {
+    margin-bottom: 20px;
+  }
+
+  .transactions-container {
+    flex-direction: column;
+  }
+
+  .transactions-list {
+    margin-right: 0;
+    margin-bottom: 20px;
+  }
+}
+.info-card {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.grid-cols-1 {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.sm\:grid-cols-2 {
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.md\:grid-cols-3 {
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.p-4 {
+  padding: 1rem;
+}
+
+.border {
+  border-width: 1px;
+}
+
+.border-gray-200 {
+  border-color: #e5e7eb;
+}
+
+.rounded-lg {
+  border-radius: 0.5rem;
+}
+
+.shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.text-lg {
+  font-size: 1.125rem;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.text-2xl {
+  font-size: 1.5rem;
+}
+
+.my-8 {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}

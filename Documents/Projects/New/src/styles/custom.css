@@ -1,0 +1,7 @@
+/* custom.css */
+@media (max-width: 320px) {
+  .nav-item {
+    width: 100%;
+    text-align: center;
+  }
+}
