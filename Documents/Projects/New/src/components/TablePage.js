@@ -6,6 +6,8 @@ import { GlobalStateContext } from '@/context/GlobalStateContext';
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db } from '../firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import '../styles/TablePage.css';
+
 
 const TablePage = ({ studentId, tableData, onSaveTableData }) => {
   const { courses, addCourse, updateCourse, deleteCourse, loading, error } = useContext(GlobalStateContext);
@@ -18,7 +20,8 @@ const TablePage = ({ studentId, tableData, onSaveTableData }) => {
   const [selectedHomeworks, setSelectedHomeworks] = useState(() => JSON.parse(localStorage.getItem(`selectedHomeworks_${studentId}`)) || {});
   const [localTableData, setLocalTableData] = useState(() => JSON.parse(localStorage.getItem(`tableData_${studentId}`)) || tableData);
   const newItemRef = useRef(null);
-  
+  const [showLibrary, setShowLibrary] = useState(false);
+
   
 
   useEffect(() => {
@@ -47,15 +50,6 @@ const TablePage = ({ studentId, tableData, onSaveTableData }) => {
     fetchTableData();
   }, [studentId]);
 
-  const handleSave = async () => {
-    try {
-      const tableDataDoc = doc(db, 'tableData', studentId);
-      await updateDoc(tableDataDoc, { data: localTableData });
-      onSaveTableData(localTableData);
-    } catch (error) {
-      console.error("Error updating table data", error);
-    }
-  };
 
   const toggleBranch = (id) => {
     setExpandedBranches(prev => ({ ...prev, [id]: !prev[id] }));
@@ -417,103 +411,129 @@ const TablePage = ({ studentId, tableData, onSaveTableData }) => {
     });
   };
 
-  const renderLibrary = () => (
-    <div>
-      {courses.sort((a, b) => a.ordinal - b.ordinal).map(course => (
-        <div key={course.id} className="mb-4">
-          <div className="flex">
-            <div className="flex flex-col mr-4">
-              <Button onClick={() => toggleBranch(course.id)} className="mb-2">
-                {expandedBranches[course.id] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-              </Button>
-              <Button onClick={() => startEdit(course)} className="mb-2">
-                <Edit2 className="h-4 w-4" />
-              </Button>
-              <Button onClick={() => addChapter(course.id)} className="mb-2">
-                <PlusCircle className="h-4 w-4" /> Chapter
-              </Button>
-              <Button onClick={() => confirmDelete({ type: 'course', courseId: course.id })} className="mb-2 bg-red-500 hover:bg-red-600">
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-            <div>
-              <span className="font-bold">{course.name}</span>
-              {expandedBranches[course.id] && course.chapters?.sort((a, b) => a.ordinal - b.ordinal).map(chapter => (
-                <div key={chapter.id} className="ml-4 mt-2" id={`chapter-${chapter.id}`}>
-                  <div className="flex">
-                    <div className="flex flex-col mr-4">
-                      <Button onClick={() => toggleBranch(chapter.id)} className="mb-2">
-                        {expandedBranches[chapter.id] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+  const renderLibrary = () => {
+    const { addCourse } = useContext(GlobalStateContext);
+  
+    const handleAddCourse = () => {
+      const newCourse = {
+        id: Date.now().toString(), // Example ID, replace with your ID generation logic
+        name: 'New Course',
+        ordinal: courses.length + 1,
+        chapters: []
+      };
+      addCourse(newCourse);
+    };
+  
+    return (
+      <div>
+        <Button onClick={() => setShowLibrary(!showLibrary)} style={{ marginBottom: '1rem' }}>
+          {showLibrary ? 'Hide Library' : 'Show Library'}
+        </Button>
+        {showLibrary && (
+          <div>
+            <Button onClick={handleAddCourse} style={{ marginBottom: '1rem' }}>
+              <PlusCircle style={{ height: '1rem', width: '1rem' }} /> Add Course
+            </Button>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+              {courses.sort((a, b) => a.ordinal - b.ordinal).map(course => (
+                <div key={course.id} style={{ marginBottom: '1rem', flex: '1 1 calc(33.333% - 1rem)', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', marginRight: '1rem' }}>
+                      <Button onClick={() => toggleBranch(course.id)} style={{ marginBottom: '0.5rem' }}>
+                        {expandedBranches[course.id] ? <ChevronDown style={{ height: '1rem', width: '1rem' }} /> : <ChevronRight style={{ height: '1rem', width: '1rem' }} />}
                       </Button>
-                      <Button onClick={() => startEdit(chapter)} className="mb-2">
-                        <Edit2 className="h-4 w-4" />
+                      <Button onClick={() => startEdit(course)} style={{ marginBottom: '0.5rem' }}>
+                        <Edit2 style={{ height: '1rem', width: '1rem' }} />
                       </Button>
-                      <Button onClick={() => addLesson(course.id, chapter.id)} className="mb-2">
-                        <PlusCircle className="h-4 w-4" /> Lesson
+                      <Button onClick={() => addChapter(course.id)} style={{ marginBottom: '0.5rem' }}>
+                        <PlusCircle style={{ height: '1rem', width: '1rem' }} /> Chapter
                       </Button>
-                      <Button onClick={() => confirmDelete({ type: 'chapter', courseId: course.id, chapterId: chapter.id })} className="mb-2 bg-red-500 hover:bg-red-600">
-                        <Trash2 className="h-4 w-4" />
+                      <Button onClick={() => confirmDelete({ type: 'course', courseId: course.id })} style={{ marginBottom: '0.5rem', backgroundColor: '#EF4444', hover: { backgroundColor: '#DC2626' } }}>
+                        <Trash2 style={{ height: '1rem', width: '1rem' }} />
                       </Button>
                     </div>
                     <div>
-                      <span>{chapter.ordinal}. {chapter.name}</span>
-                      {expandedBranches[chapter.id] && chapter.lessons?.sort((a, b) => a.ordinal - b.ordinal).map(lesson => (
-                        <div key={lesson.id} className="ml-4 mt-2" id={`lesson-${lesson.id}`}>
-                          <div className="flex">
-                            <div className="flex flex-col mr-4">
-                              <Button onClick={() => toggleBranch(lesson.id)} className="mb-2">
-                                {expandedBranches[lesson.id] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                      <span style={{ fontWeight: 'bold' }}>{course.name}</span>
+                      {expandedBranches[course.id] && course.chapters?.sort((a, b) => a.ordinal - b.ordinal).map(chapter => (
+                        <div key={chapter.id} style={{ marginLeft: '1rem', marginTop: '0.5rem' }} id={`chapter-${chapter.id}`}>
+                          <div style={{ display: 'flex' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', marginRight: '1rem' }}>
+                              <Button onClick={() => toggleBranch(chapter.id)} style={{ marginBottom: '0.5rem' }}>
+                                {expandedBranches[chapter.id] ? <ChevronDown style={{ height: '1rem', width: '1rem' }} /> : <ChevronRight style={{ height: '1rem', width: '1rem' }} />}
                               </Button>
-                              <Button onClick={() => startEdit(lesson)} className="mb-2">
-                                <Edit2 className="h-4 w-4" />
+                              <Button onClick={() => startEdit(chapter)} style={{ marginBottom: '0.5rem' }}>
+                                <Edit2 style={{ height: '1rem', width: '1rem' }} />
                               </Button>
-                              <Button onClick={() => addHomework(course.id, chapter.id, lesson.id)} className="mb-2">
-                                <PlusCircle className="h-4 w-4" /> Homework
+                              <Button onClick={() => addLesson(course.id, chapter.id)} style={{ marginBottom: '0.5rem' }}>
+                                <PlusCircle style={{ height: '1rem', width: '1rem' }} /> Lesson
                               </Button>
-                              <Button onClick={() => confirmDelete({ type: 'lesson', courseId: course.id, chapterId: chapter.id, lessonId: lesson.id })} className="mb-2 bg-red-500 hover:bg-red-600">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                onClick={() => handleLessonCheck(course.id, chapter.id, lesson.id)} 
-                                className={`mb-2 ${selectedLessons.some(item => 
-                                  item.courseId === course.id && 
-                                  item.chapterId === chapter.id && 
-                                  item.lessonId === lesson.id
-                                ) ? 'bg-green-600' : 'bg-green-500 hover:bg-green-600'}`}
-                              >
-                                <CheckSquare className="h-4 w-4" />
+                              <Button onClick={() => confirmDelete({ type: 'chapter', courseId: course.id, chapterId: chapter.id })} style={{ marginBottom: '0.5rem', backgroundColor: '#EF4444', hover: { backgroundColor: '#DC2626' } }}>
+                                <Trash2 style={{ height: '1rem', width: '1rem' }} />
                               </Button>
                             </div>
                             <div>
-                              <span>{lesson.ordinal}. {lesson.name}</span>
-                              <div className="ml-4">
-                                <p>{lesson.description}</p>
-                                {expandedBranches[lesson.id] && (
-                                  <div>
-                                    <h4>Homeworks:</h4>
-                                    {Array.isArray(lesson.homeworks) && lesson.homeworks.map((hw) => (
-                                      <div key={hw.id} id={`homework-${hw.id}`} className="ml-4 mt-2 p-4 border rounded shadow">
-                                        <div className="flex items-center mb-2">
-                                          <Checkbox
-                                            id={`homework-checkbox-${hw.id}`}
-                                            checked={selectedHomeworks[lesson.id]?.[hw.id] || false}
-                                            onChange={(e) => handleHomeworkCheck(lesson.id, hw.id, e.target.checked)}
-                                          />
-                                          <label htmlFor={`homework-checkbox-${hw.id}`} className="ml-2">
-                                            {hw.text}
-                                          </label>
-                                        </div>
-                                        {hw.files.map((file, fileIndex) => (
-                                          <div key={fileIndex} className="flex items-center">
-                                            <Button onClick={() => window.open(file, '_blank')} className="mr-2">View File</Button>
-                                            <Button onClick={() => removeFileFromTree(course.id, chapter.id, lesson.id, hw.id, fileIndex)} className="bg-red-500 hover:bg-red-600">Delete File</Button>
+                              <span>{chapter.ordinal}. {chapter.name}</span>
+                              {expandedBranches[chapter.id] && chapter.lessons?.sort((a, b) => a.ordinal - b.ordinal).map(lesson => (
+                                <div key={lesson.id} style={{ marginLeft: '1rem', marginTop: '0.5rem' }} id={`lesson-${lesson.id}`}>
+                                  <div style={{ display: 'flex' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', marginRight: '1rem' }}>
+                                      <Button onClick={() => toggleBranch(lesson.id)} style={{ marginBottom: '0.5rem' }}>
+                                        {expandedBranches[lesson.id] ? <ChevronDown style={{ height: '1rem', width: '1rem' }} /> : <ChevronRight style={{ height: '1rem', width: '1rem' }} />}
+                                      </Button>
+                                      <Button onClick={() => startEdit(lesson)} style={{ marginBottom: '0.5rem' }}>
+                                        <Edit2 style={{ height: '1rem', width: '1rem' }} />
+                                      </Button>
+                                      <Button onClick={() => addHomework(course.id, chapter.id, lesson.id)} style={{ marginBottom: '0.5rem' }}>
+                                        <PlusCircle style={{ height: '1rem', width: '1rem' }} /> Homework
+                                      </Button>
+                                      <Button onClick={() => confirmDelete({ type: 'lesson', courseId: course.id, chapterId: chapter.id, lessonId: lesson.id })} style={{ marginBottom: '0.5rem', backgroundColor: '#EF4444', hover: { backgroundColor: '#DC2626' } }}>
+                                        <Trash2 style={{ height: '1rem', width: '1rem' }} />
+                                      </Button>
+                                      <Button 
+                                        onClick={() => handleLessonCheck(course.id, chapter.id, lesson.id)} 
+                                        style={{ marginBottom: '0.5rem', backgroundColor: selectedLessons.some(item => 
+                                          item.courseId === course.id && 
+                                          item.chapterId === chapter.id && 
+                                          item.lessonId === lesson.id
+                                        ) ? '#059669' : '#10B981', hover: { backgroundColor: '#047857' } }}
+                                      >
+                                        <CheckSquare style={{ height: '1rem', width: '1rem' }} />
+                                      </Button>
+                                    </div>
+                                    <div>
+                                      <span>{lesson.ordinal}. {lesson.name}</span>
+                                      <div style={{ marginLeft: '1rem' }}>
+                                        <p>{lesson.description}</p>
+                                        {expandedBranches[lesson.id] && (
+                                          <div>
+                                            <h4>Homeworks:</h4>
+                                            {Array.isArray(lesson.homeworks) && lesson.homeworks.map((hw) => (
+                                              <div key={hw.id} id={`homework-${hw.id}`} style={{ marginLeft: '1rem', marginTop: '0.5rem', padding: '1rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                                  <Checkbox
+                                                    id={`homework-checkbox-${hw.id}`}
+                                                    checked={selectedHomeworks[lesson.id]?.[hw.id] || false}
+                                                    onChange={(e) => handleHomeworkCheck(lesson.id, hw.id, e.target.checked)}
+                                                  />
+                                                  <label htmlFor={`homework-checkbox-${hw.id}`} style={{ marginLeft: '0.5rem' }}>
+                                                    {hw.text}
+                                                  </label>
+                                                </div>
+                                                {hw.files.map((file, fileIndex) => (
+                                                  <div key={fileIndex} style={{ display: 'flex', alignItems: 'center' }}>
+                                                    <Button onClick={() => window.open(file, '_blank')} style={{ marginRight: '0.5rem' }}>View File</Button>
+                                                    <Button onClick={() => removeFileFromTree(course.id, chapter.id, lesson.id, hw.id, fileIndex)} style={{ backgroundColor: '#EF4444', hover: { backgroundColor: '#DC2626' } }}>Delete File</Button>
+                                                  </div>
+                                                ))}
+                                              </div>
+                                            ))}
                                           </div>
-                                        ))}
+                                        )}
                                       </div>
-                                    ))}
+                                    </div>
                                   </div>
-                                )}
-                              </div>
+                                </div>
+                              ))}
                             </div>
                           </div>
                         </div>
@@ -524,10 +544,10 @@ const TablePage = ({ studentId, tableData, onSaveTableData }) => {
               ))}
             </div>
           </div>
-        </div>
-      ))}
-    </div>
-  );
+        )}
+      </div>
+    );
+  };
 
 // Function to handle file input change for handing in homework
 const handleHandInHomeworkFileChange = (lessonId, homeworkId, event, fileType) => {
@@ -734,6 +754,27 @@ const handleHomeworkResultChange = (lessonId, homeworkId, event) => {
   }));
 };
 
+const renderDeleteConfirmation = () => {
+  if (!itemToDelete) return null;
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      backgroundColor: 'white',
+      padding: '2rem',
+      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+      zIndex: 1000
+    }}>
+      <p>Are you sure you want to delete this item?</p>
+      <Button onClick={handleDelete} style={{ backgroundColor: '#EF4444', marginRight: '1rem' }}>Yes</Button>
+      <Button onClick={() => setItemToDelete(null)} style={{ backgroundColor: '#10B981' }}>No</Button>
+    </div>
+  );
+};
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
@@ -743,7 +784,6 @@ const handleHomeworkResultChange = (lessonId, homeworkId, event) => {
       {editMode && renderEditForm()}
       {itemToDelete && renderDeleteConfirmation()}
       {renderTable()}
-      <Button onClick={handleSave} className="mt-4">Save Table Data</Button>
     </div>
   );
 };

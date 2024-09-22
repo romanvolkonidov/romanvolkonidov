@@ -5,7 +5,7 @@ import { GlobalStateContext } from '../context/GlobalStateContext';
 import 'chart.js/auto';
 import { db } from '../firebase';
 import { collection, addDoc, deleteDoc, doc, updateDoc, getDoc } from 'firebase/firestore';
-import StudentProgressBar from './ProgressBar/StudentProgressBar';
+import CircularProgress from './ProgressBar/CircularProgress';
 import KidsProgressTracker from './ProgressBar/KidsProgressTracker';
 import TablePage from './TablePage'; // Adjust the path if necessary
 import Button from '@/components/ui/Button';
@@ -410,7 +410,7 @@ const StudentPage = () => {
           </div>
         </div>
       </div>
-      <StudentProgressBar studentId={id} progress={progress} onProgressChange={handleSaveProgress} />
+      <CircularProgress studentId={id} progress={progress} onProgressChange={handleSaveProgress} />
       <TablePage studentId={id} tableData={studentTableData} onSaveTableData={handleSaveTableData} />
     </div>
   );
