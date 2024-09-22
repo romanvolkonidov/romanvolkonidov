@@ -1,8 +1,6 @@
-// src/components/ui/Checkbox.js
-
 import React from 'react';
 
-const Checkbox = ({ checked, onChange, className }) => {
+export const Checkbox = ({ checked, onChange, className }) => {
   return (
     <input
       type="checkbox"
@@ -12,5 +10,3 @@ const Checkbox = ({ checked, onChange, className }) => {
     />
   );
 };
-
-export default Checkbox;
