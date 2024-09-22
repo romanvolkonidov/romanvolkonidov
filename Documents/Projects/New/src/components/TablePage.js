@@ -16,9 +16,10 @@ const TablePage = ({ studentId, tableData, onSaveTableData }) => {
   const [itemToDelete, setItemToDelete] = useState(null);
   const [selectedLessons, setSelectedLessons] = useState(() => JSON.parse(localStorage.getItem(`selectedLessons_${studentId}`)) || []);
   const [selectedHomeworks, setSelectedHomeworks] = useState(() => JSON.parse(localStorage.getItem(`selectedHomeworks_${studentId}`)) || {});
-  const [localTableData, setLocalTableData] = useState(tableData);
+  const [localTableData, setLocalTableData] = useState(() => JSON.parse(localStorage.getItem(`tableData_${studentId}`)) || tableData);
   const newItemRef = useRef(null);
-
+  
+  
 
   useEffect(() => {
     if (newItemRef.current) {
@@ -27,11 +28,11 @@ const TablePage = ({ studentId, tableData, onSaveTableData }) => {
   }, [courses]);
 
   useEffect(() => {
-    localStorage.setItem('selectedLessons', JSON.stringify(selectedLessons));
+    localStorage.setItem(`selectedLessons_${studentId}`, JSON.stringify(selectedLessons));
   }, [selectedLessons]);
 
   useEffect(() => {
-    localStorage.setItem('selectedHomeworks', JSON.stringify(selectedHomeworks));
+    localStorage.setItem(`selectedHomeworks_${studentId}`, JSON.stringify(selectedHomeworks));
   }, [selectedHomeworks]);
 
   useEffect(() => {
@@ -527,108 +528,211 @@ const TablePage = ({ studentId, tableData, onSaveTableData }) => {
       ))}
     </div>
   );
-  
 
-  const renderTable = () => (
-    <table className="min-w-full bg-white border border-gray-300 mt-4">
-      <thead>
-        <tr>
-          <th className="border-b p-2">Дата</th>
-          <th className="border-b p-2">Курс</th>
-          <th className="border-b p-2">Тема</th>
-          <th className="border-b p-2">Урок</th>
-          <th className="border-b p-2">Прогресс</th>
-          <th className="border-b p-2">Домашняя работа</th>
-          <th className="border-b p-2">Сдать домашнюю работу</th>
-          <th className="border-b p-2">Результаты домашней работы</th>
-          <th className="border-b p-2">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {selectedLessons.map((selectedLesson, index) => {
-          const course = courses.find(c => c.id === selectedLesson.courseId);
-          const chapter = course?.chapters.find(ch => ch.id === selectedLesson.chapterId);
-          const lesson = chapter?.lessons.find(l => l.id === selectedLesson.lessonId);
-          const homeworkCount = lesson?.homeworks?.length || 0;
-          const completedHomeworkCount = Object.values(selectedHomeworks[lesson.id] || {}).filter(hw => hw.isChecked).length;
-  
-          return (
-            <tr key={index}>
-              <td className="border-b p-2">{new Date().toLocaleDateString()}</td>
-              <td className="border-b p-2">{course?.name}</td>
-              <td className="border-b p-2">{chapter?.name}</td>
-              <td className="border-b p-2">{lesson?.name}</td>
-              <td className="border-b p-2">
-                <input
-                  type="number"
-                  value={selectedLesson.progress || 0}
-                  onChange={(e) => handleProgressChange(selectedLesson.lessonId, e)}
-                  className="p-2 border w-full"
-                />
-                <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
-                  <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${selectedLesson.progress || 0}%` }}></div>
-                </div>
-              </td>
-              <td className="border-b p-2">
-                {lesson?.homeworks?.map(hw => (
-                  <div key={hw.id}>
-                    {hw.files.map((file, index) => (
-                      <a key={index} href={file} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline mr-2">
-                        File {index + 1}
-                      </a>
-                    ))}
+// Function to handle file input change for handing in homework
+const handleHandInHomeworkFileChange = (lessonId, homeworkId, event, fileType) => {
+  const newFiles = Array.from(event.target.files);
+  setSelectedHomeworks(prevSelectedHomeworks => {
+    const existingFiles = prevSelectedHomeworks[lessonId]?.[homeworkId]?.[fileType] || [];
+    return {
+      ...prevSelectedHomeworks,
+      [lessonId]: {
+        ...prevSelectedHomeworks[lessonId],
+        [homeworkId]: {
+          ...prevSelectedHomeworks[lessonId][homeworkId],
+          [fileType]: [...existingFiles, ...newFiles]
+        }
+      }
+    };
+  });
+};
+
+// Example usage in renderTable function
+// Function to handle file deletion
+// Function to handle file deletion
+
+
+// Modified renderFileLinks function
+// Function to handle progress change
+const handleProgressChange = (lessonId, event) => {
+  const newProgress = event.target.value;
+  setSelectedLessons(prevSelectedLessons => prevSelectedLessons.map(lesson => 
+    lesson.lessonId === lessonId ? { ...lesson, progress: newProgress } : lesson
+  ));
+};
+
+// Example usage in renderTable function
+const renderTable = () => {
+  // Sort selected lessons by date, latest on top
+  const sortedLessons = [...selectedLessons].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="min-w-full bg-white border border-gray-300 mt-4">
+        <thead>
+          <tr>
+            <th className="border-b p-2">Дата</th>
+            <th className="border-b p-2">Курс</th>
+            <th className="border-b p-2">Тема</th>
+            <th className="border-b p-2">Урок</th>
+            <th className="border-b p-2">Урок закончен на %</th>
+            <th className="border-b p-2">Домашняя работа</th>
+            <th className="border-b p-2">Сдать домашнюю работу</th>
+            <th className="border-b p-2">Результаты домашней работы 0-100</th>
+            <th className="border-b p-2">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sortedLessons.map((selectedLesson, index) => {
+            const course = courses.find(c => c.id === selectedLesson.courseId);
+            const chapter = course?.chapters.find(ch => ch.id === selectedLesson.chapterId);
+            const lesson = chapter?.lessons.find(l => l.id === selectedLesson.lessonId);
+
+            if (!course || !chapter || !lesson) {
+              return null; // Skip rendering if any of the objects are undefined
+            }
+
+            const selectedHomeworksForLesson = lesson.homeworks?.filter(hw => selectedHomeworks[lesson.id]?.[hw.id]);
+
+            return (
+              <tr key={index}>
+                <td className="border-b p-2">
+                  <input
+                    type="date"
+                    value={selectedLesson.date || new Date().toISOString().split('T')[0]}
+                    onChange={(e) => handleDateChange(selectedLesson.lessonId, e)}
+                    className="p-2 border w-full"
+                  />
+                </td>
+                <td className="border-b p-2">{course.name}</td>
+                <td className="border-b p-2">{chapter.name}</td>
+                <td className="border-b p-2">{lesson.name}</td>
+                <td className="border-b p-2">
+                  <input
+                    type="number"
+                    value={selectedLesson.progress || 0}
+                    onChange={(e) => handleProgressChange(selectedLesson.lessonId, e)}
+                    className="p-2 border w-full mb-2"
+                  />
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${selectedLesson.progress || 0}%` }}></div>
                   </div>
-                ))}
-              </td>
-              <td className="border-b p-2">
-                {lesson?.homeworks?.map(hw => (
-                  <div key={hw.id}>
-                    <input
-                      type="file"
-                      multiple
-                      onChange={(e) => handleHandInHomeworkFileChange(lesson.id, hw.id, e)}
-                      className="mt-2 p-2 border w-full"
-                    />
-                    {selectedHomeworks[lesson.id]?.[hw.id]?.handInFiles?.map((file, index) => (
-                      <a key={index} href={file} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline mr-2">
-                        Hand In File {index + 1}
-                      </a>
-                    ))}
-                  </div>
-                ))}
-              </td>
-              <td className="border-b p-2">
-                {lesson?.homeworks?.map(hw => (
-                  <div key={hw.id}>
-                    <input
-                      type="number"
-                      value={selectedHomeworks[lesson.id]?.[hw.id]?.result || 0}
-                      onChange={(e) => handleHomeworkResultChange(lesson.id, hw.id, e)}
-                      className="p-2 border w-full"
-                    />
-                    <input
-                      type="file"
-                      multiple
-                      onChange={(e) => handleHomeworkResultFileChange(lesson.id, hw.id, e)}
-                      className="mt-2 p-2 border w-full"
-                    />
-                    {selectedHomeworks[lesson.id]?.[hw.id]?.resultFiles?.map((file, index) => (
-                      <a key={index} href={file} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline mr-2">
-                        Result File {index + 1}
-                      </a>
-                    ))}
-                  </div>
-                ))}
-              </td>
-              <td className="border-b p-2">
-                <Button onClick={() => confirmDelete({ type: 'lesson', courseId: course.id, chapterId: chapter.id, lessonId: lesson.id })} className="bg-red-500 hover:bg-red-600">Delete</Button>
-              </td>
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
+                </td>
+                <td className="border-b p-2">
+                  {selectedHomeworksForLesson?.map(hw => (
+                    <div key={hw.id}>
+                      {hw.text && <p>{hw.text}</p>}
+                      {renderFileLinks(hw.files, 'File', lesson.id, hw.id, 'files')}
+                    </div>
+                  ))}
+                </td>
+                <td className="border-b p-2">
+                  {selectedHomeworksForLesson?.map(hw => (
+                    <div key={hw.id}>
+                      <input
+                        type="file"
+                        multiple
+                        onChange={(e) => handleHandInHomeworkFileChange(lesson.id, hw.id, e, 'handInFiles')}
+                        className="mb-2 p-2 border w-full"
+                      />
+                      {renderFileLinks(selectedHomeworks[lesson.id]?.[hw.id]?.handInFiles || [], 'Hand In File', lesson.id, hw.id, 'handInFiles')}
+                    </div>
+                  ))}
+                </td>
+                <td className="border-b p-2">
+                  {selectedHomeworksForLesson?.map(hw => (
+                    <div key={hw.id}>
+                      <input
+                        type="number"
+                        value={selectedHomeworks[lesson.id]?.[hw.id]?.result || 0}
+                        onChange={(e) => handleHomeworkResultChange(lesson.id, hw.id, e)}
+                        className="mb-2 p-2 border w-full"
+                      />
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div className="bg-green-600 h-2.5 rounded-full" style={{ width: `${selectedHomeworks[lesson.id]?.[hw.id]?.result || 0}%` }}></div>
+                      </div>
+                      <input
+                        type="file"
+                        multiple
+                        onChange={(e) => handleHandInHomeworkFileChange(lesson.id, hw.id, e, 'resultFiles')}
+                        className="mb-2 p-2 border w-full"
+                      />
+                      {renderFileLinks(selectedHomeworks[lesson.id]?.[hw.id]?.resultFiles || [], 'Result File', lesson.id, hw.id, 'resultFiles')}
+                    </div>
+                  ))}
+                </td>
+                <td className="border-b p-2">
+                  <Button onClick={() => handleLessonUncheck(course.id, chapter.id, lesson.id)} className="bg-yellow-500 hover:bg-yellow-600">Uncheck</Button>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
+};
+
+const handleDateChange = (lessonId, event) => {
+  const newDate = event.target.value;
+  setSelectedLessons(prevSelectedLessons => prevSelectedLessons.map(lesson => 
+    lesson.lessonId === lessonId ? { ...lesson, date: newDate } : lesson
+  ));
+};
+
+// Function to handle file deletion
+const handleDeleteFile = (lessonId, homeworkId, fileIndex, fileType) => {
+  setSelectedHomeworks(prevSelectedHomeworks => {
+    const updatedFiles = prevSelectedHomeworks[lessonId][homeworkId][fileType].filter((_, index) => index !== fileIndex);
+    return {
+      ...prevSelectedHomeworks,
+      [lessonId]: {
+        ...prevSelectedHomeworks[lessonId],
+        [homeworkId]: {
+          ...prevSelectedHomeworks[lessonId][homeworkId],
+          [fileType]: updatedFiles
+        }
+      }
+    };
+  });
+};
+
+// Modified renderFileLinks function
+const renderFileLinks = (files, prefix, lessonId, homeworkId, fileType) => (
+  <div className="flex flex-wrap gap-2">
+    {files.map((file, index) => (
+      <div key={index} className="flex items-center">
+        <a href={file} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+          {prefix} {index + 1}
+        </a>
+        <button onClick={() => handleDeleteFile(lessonId, homeworkId, index, fileType)} className="ml-2 text-red-500 hover:text-red-700">
+          &times;
+        </button>
+      </div>
+    ))}
+  </div>
+);
+
+// Function to handle unchecking a lesson
+const handleLessonUncheck = (courseId, chapterId, lessonId) => {
+  setSelectedLessons(prevSelectedLessons => prevSelectedLessons.filter(
+    item => !(item.courseId === courseId && item.chapterId === chapterId && item.lessonId === lessonId)
+  ));
+};
+
+const handleHomeworkResultChange = (lessonId, homeworkId, event) => {
+  const newResult = event.target.value;
+  setSelectedHomeworks(prevSelectedHomeworks => ({
+    ...prevSelectedHomeworks,
+    [lessonId]: {
+      ...prevSelectedHomeworks[lessonId],
+      [homeworkId]: {
+        ...prevSelectedHomeworks[lessonId][homeworkId],
+        result: newResult
+      }
+    }
+  }));
+};
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
