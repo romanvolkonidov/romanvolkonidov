@@ -37,11 +37,11 @@ const CircularProgress = ({ viewOnly, studentId, name }) => {
   const circumference = normalizedRadius * 2 * Math.PI;
 
   return (
-    <div className="flex flex-wrap items-center justify-center bg-gray-100 p-8 rounded-lg shadow-md">
+    <div className="relative flex flex-wrap items-center justify-center bg-gray-100 p-8 rounded-lg shadow-md">
       {circles.map((circle, index) => {
         const strokeDashoffset = circumference - (circle.progress / 100) * circumference;
         return (
-          <div key={index} className="mb-8 w-1/2 p-4"> {/* Increased card size to w-1/2 */}
+          <div key={index} className="mb-8 w-full md:w-1/2 p-4"> {/* Adjusted card size to w-full for small screens and w-1/2 for medium and larger screens */}
             <div className="relative">
               <svg height={radius * 2} width={radius * 2} className="transform -rotate-90 mx-auto">
                 <circle
@@ -98,7 +98,10 @@ const CircularProgress = ({ viewOnly, studentId, name }) => {
         );
       })}
       {!viewOnly && (
-        <button onClick={addCircle} className="mt-4 p-2 bg-blue-500 text-white rounded">
+        <button
+          onClick={addCircle}
+          className="absolute bottom-4 right-4 p-2 bg-blue-500 text-white rounded"
+        >
           Add Circle
         </button>
       )}
