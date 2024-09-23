@@ -1,414 +1,453 @@
-import React, { useContext, useEffect, useState, useRef } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
+import { GlobalStateContext } from '../context/GlobalStateContext';
 import { PlusCircle, Edit2, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { GlobalStateContext } from '@/context/GlobalStateContext';
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 const Library = () => {
-  const { courses, addCourse, updateCourse, deleteCourse, loading, error } = useContext(GlobalStateContext);
+  const { courses, addCourse, updateCourse, deleteCourse } = useContext(GlobalStateContext);
 
-  const [editMode, setEditMode] = useState(false);
-  const [editItem, setEditItem] = useState(null);
+  const [newCourse, setNewCourse] = useState('');
+  const [newChapter, setNewChapter] = useState('');
+  const [newLesson, setNewLesson] = useState('');
+  const [newHomework, setNewHomework] = useState('');
+  const [homeworkFiles, setHomeworkFiles] = useState([]);
   const [expandedBranches, setExpandedBranches] = useState({});
-  const [itemToDelete, setItemToDelete] = useState(null);
-  const newItemRef = useRef(null);
-
-  useEffect(() => {
-    if (newItemRef.current) {
-      newItemRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }, [courses]);
+  const [editingItem, setEditingItem] = useState(null);
+  const [editingValue, setEditingValue] = useState('');
 
   const toggleBranch = (id) => {
     setExpandedBranches(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const expandBranch = (id) => {
-    setExpandedBranches(prev => ({ ...prev, [id]: true })); 
+  const handleAddCourse = async (e) => {
+    e.preventDefault();
+    if (newCourse) {
+      await addCourse({ id: Date.now().toString(), name: newCourse, chapters: [] });
+      setNewCourse('');
+    }
   };
 
-  const addChapter = (courseId) => {
-    const course = courses.find(c => c.id === courseId);
-    const newChapter = { id: Date.now(), name: 'New Chapter', ordinal: (course.chapters?.length || 0) + 1, lessons: [] };
-    const updatedCourse = { ...course, chapters: [...(course.chapters || []), newChapter] };
-    updateCourse(courseId, updatedCourse);
-    expandBranch(courseId);
-    newItemRef.current = document.getElementById(`chapter-${newChapter.id}`);
+  const handleAddChapter = async (courseId) => {
+    if (newChapter) {
+      const course = courses.find(course => course.id === courseId);
+      const updatedCourse = {
+        ...course,
+        chapters: [...course.chapters, { id: Date.now().toString(), name: newChapter, lessons: [] }]
+      };
+      await updateCourse(courseId, updatedCourse);
+      setNewChapter('');
+    }
   };
 
-  const addLesson = (courseId, chapterId) => {
-    const course = courses.find(c => c.id === courseId);
-    let newLesson;
+  const handleAddLesson = async (courseId, chapterId) => {
+    if (newLesson) {
+      const course = courses.find(course => course.id === courseId);
+      const chapter = course.chapters.find(ch => ch.id === chapterId);
+      const updatedChapter = {
+        ...chapter,
+        lessons: [...chapter.lessons, { id: Date.now().toString(), name: newLesson, homework: { text: '', files: [] } }]
+      };
+      const updatedCourse = {
+        ...course,
+        chapters: course.chapters.map(ch => ch.id === chapterId ? updatedChapter : ch)
+      };
+      await updateCourse(courseId, updatedCourse);
+      setNewLesson('');
+    }
+  };
+
+  const handleAddHomework = async (courseId, chapterId, lessonId) => {
+    if (newHomework) {
+      const course = courses.find(course => course.id === courseId);
+      const chapter = course.chapters.find(ch => ch.id === chapterId);
+      const lesson = chapter.lessons.find(l => l.id === lessonId);
+      const updatedLesson = {
+        ...lesson,
+        homework: { text: newHomework, files: homeworkFiles.map(file => ({ name: file.name, url: URL.createObjectURL(file) })) }
+      };
+      const updatedChapter = {
+        ...chapter,
+        lessons: chapter.lessons.map(l => l.id === lessonId ? updatedLesson : l)
+      };
+      const updatedCourse = {
+        ...course,
+        chapters: course.chapters.map(ch => ch.id === chapterId ? updatedChapter : ch)
+      };
+      await updateCourse(courseId, updatedCourse);
+      setNewHomework('');
+      setHomeworkFiles([]);
+    }
+  };
+
+  const handleFileUpload = (e) => {
+    const newFiles = Array.from(e.target.files);
+    setHomeworkFiles(prevFiles => [...prevFiles, ...newFiles]);
+  };
+
+  const handleRemoveFile = (index) => {
+    setHomeworkFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
+  };
+
+  const handleDeleteCourse = async (courseId) => {
+    console.log(`Deleting course with id: ${courseId}`); // Debugging log
+    await deleteCourse(courseId);
+    console.log(`Course with id: ${courseId} deleted`); // Debugging log
+  };
+
+  const handleDeleteAllCourses = async () => {
+    for (const course of courses) {
+      await deleteCourse(course.id);
+    }
+    console.log('All courses deleted'); // Debugging log
+  };
+
+  const handleRemoveHomeworkFile = async (courseId, chapterId, lessonId, fileIndex) => {
+    const course = courses.find(course => course.id === courseId);
+    const chapter = course.chapters.find(ch => ch.id === chapterId);
+    const lesson = chapter.lessons.find(l => l.id === lessonId);
+    const updatedLesson = {
+      ...lesson,
+      homework: {
+        ...lesson.homework,
+        files: lesson.homework.files.filter((_, i) => i !== fileIndex)
+      }
+    };
+    const updatedChapter = {
+      ...chapter,
+      lessons: chapter.lessons.map(l => l.id === lessonId ? updatedLesson : l)
+    };
     const updatedCourse = {
       ...course,
-      chapters: course.chapters.map(chapter => {
-        if (chapter.id === chapterId) {
-          newLesson = {
-            id: Date.now(),
-            name: 'New Lesson',
-            ordinal: (chapter.lessons?.length || 0) + 1,
-            description: '',
-            homeworks: []
-          };
-          return { ...chapter, lessons: [...(chapter.lessons || []), newLesson] };
-        }
-        return chapter;
-      })
+      chapters: course.chapters.map(ch => ch.id === chapterId ? updatedChapter : ch)
     };
-    updateCourse(courseId, updatedCourse);
-    expandBranch(courseId);
-    expandBranch(chapterId);
-    newItemRef.current = document.getElementById(`lesson-${newLesson.id}`);
+    await updateCourse(courseId, updatedCourse);
   };
 
-  const confirmDelete = (item) => {
-    setItemToDelete(item);
+  const startEditing = (item, value) => {
+    setEditingItem(item);
+    setEditingValue(value);
   };
 
-  const handleDelete = () => {
-    const { type, courseId, chapterId, lessonId } = itemToDelete;
+  const cancelEditing = () => {
+    setEditingItem(null);
+    setEditingValue('');
+  };
+
+  const saveEditing = async () => {
+    const { type, courseId, chapterId, lessonId } = editingItem;
     if (type === 'course') {
-      deleteCourse(courseId);
+      const course = courses.find(c => c.id === courseId);
+      const updatedCourse = { ...course, name: editingValue };
+      await updateCourse(courseId, updatedCourse);
     } else if (type === 'chapter') {
       const course = courses.find(c => c.id === courseId);
       const updatedCourse = {
         ...course,
-        chapters: course.chapters.filter(chapter => chapter.id !== chapterId)
+        chapters: course.chapters.map(ch => ch.id === chapterId ? { ...ch, name: editingValue } : ch)
       };
-      updateCourse(courseId, updatedCourse);
+      await updateCourse(courseId, updatedCourse);
     } else if (type === 'lesson') {
       const course = courses.find(c => c.id === courseId);
+      const chapter = course.chapters.find(ch => ch.id === chapterId);
+      const updatedChapter = {
+        ...chapter,
+        lessons: chapter.lessons.map(l => l.id === lessonId ? { ...l, name: editingValue } : l)
+      };
       const updatedCourse = {
         ...course,
-        chapters: course.chapters.map(chapter => {
-          if (chapter.id === chapterId) {
-            return {
-              ...chapter,
-              lessons: chapter.lessons.filter(lesson => lesson.id !== lessonId)
-            };
-          }
-          return chapter;
-        })
+        chapters: course.chapters.map(ch => ch.id === chapterId ? updatedChapter : ch)
       };
-      updateCourse(courseId, updatedCourse);
-    }
-    setItemToDelete(null);
-  };
-
-  const startEdit = (item) => {
-    setEditMode(true);
-    setEditItem(item);
-  };
-
-  const handleEditChange = (e) => {
-    const { name, value } = e.target;
-    setEditItem((prevState) => ({
-      ...prevState,
-      [name]: value
-    }));
-  };
-
-  const handleHomeworkChange = (homeworkId, e) => {
-    const { name, value, files } = e.target;
-    setEditItem((prevState) => {
-      const updatedHomeworks = prevState.homeworks.map(hw => {
-        if (hw.id === homeworkId) {
-          if (name === 'text') {
-            return { ...hw, text: value };
-          } else if (name === 'files') {
-            const currentFiles = hw.files || [];
-            const newFiles = Array.from(files);
-            const totalFiles = currentFiles.length + newFiles.length;
-            if (totalFiles > 10) {
-              alert('You can only upload up to 10 files.');
-              return { ...hw, files: [...currentFiles, ...newFiles.slice(0, 10 - currentFiles.length)] };
-            }
-            return { ...hw, files: [...currentFiles, ...newFiles] };
-          }
-        }
-        return hw;
-      });
-      return { ...prevState, homeworks: updatedHomeworks };
-    });
-  };
-
-  const addHomework = (courseId, chapterId, lessonId) => {
-    const newHomework = { id: Date.now(), text: '', files: [] };
-    const course = courses.find(c => c.id === courseId);
-    const updatedCourse = {
-      ...course,
-      chapters: course.chapters.map(chapter => {
-        if (chapter.id === chapterId) {
-          return {
-            ...chapter,
-            lessons: chapter.lessons.map(lesson => {
-              if (lesson.id === lessonId) {
-                return { ...lesson, homeworks: [...(lesson.homeworks || []), newHomework] };
-              }
-              return lesson;
-            })
-          };
-        }
-        return chapter;
-      })
-    };
-    updateCourse(courseId, updatedCourse);
-    expandBranch(courseId);
-    expandBranch(chapterId);
-    expandBranch(lessonId);
-    newItemRef.current = document.getElementById(`homework-${newHomework.id}`);
-  };
-
-  const addHomeworkEntry = () => {
-    setEditItem((prevState) => ({
-      ...prevState,
-      homeworks: [...prevState.homeworks, { id: Date.now(), text: '', files: [] }]
-    }));
-  };
-
-  const removeHomeworkEntry = (homeworkId) => {
-    setEditItem((prevState) => ({
-      ...prevState,
-      homeworks: prevState.homeworks.filter(hw => hw.id !== homeworkId)
-    }));
-  };
-
-  const uploadFilesToFirebase = async (files) => {
-    const storage = getStorage();
-    const uploadPromises = files.map(file => {
-      const storageRef = ref(storage, `homework/${file.name}`);
-      return uploadBytes(storageRef, file).then(snapshot => getDownloadURL(snapshot.ref));
-    });
-    return Promise.all(uploadPromises);
-  };
-
-  const saveEdit = async () => {
-    if (editItem.homeworks) {
-      for (let homework of editItem.homeworks) {
-        if (homework.files.length > 0) {
-          const newFiles = homework.files.filter(file => typeof file !== 'string'); // Filter out already uploaded files
-          if (newFiles.length > 0) {
-            const fileUrls = await uploadFilesToFirebase(newFiles);
-            homework.files = [...homework.files.filter(file => typeof file === 'string'), ...fileUrls]; // Merge existing and new file URLs
-          }
-        }
-      }
-    }
-  
-    if (editItem.chapters) {
-      updateCourse(editItem.id, editItem);
-    } else if (editItem.lessons) {
-      const course = courses.find(c => c.chapters.some(ch => ch.id === editItem.id));
+      await updateCourse(courseId, updatedCourse);
+    } else if (type === 'homework') {
+      const course = courses.find(c => c.id === courseId);
+      const chapter = course.chapters.find(ch => ch.id === chapterId);
+      const lesson = chapter.lessons.find(l => l.id === lessonId);
+      const updatedLesson = {
+        ...lesson,
+        homework: { ...lesson.homework, text: editingValue }
+      };
+      const updatedChapter = {
+        ...chapter,
+        lessons: chapter.lessons.map(l => l.id === lessonId ? updatedLesson : l)
+      };
       const updatedCourse = {
         ...course,
-        chapters: course.chapters.map(ch => ch.id === editItem.id ? editItem : ch)
+        chapters: course.chapters.map(ch => ch.id === chapterId ? updatedChapter : ch)
       };
-      updateCourse(course.id, updatedCourse);
-    } else {
-      const course = courses.find(c => c.chapters.some(ch => ch.lessons.some(l => l.id === editItem.id)));
-      const updatedCourse = {
-        ...course,
-        chapters: course.chapters.map(ch => ({
-          ...ch,
-          lessons: ch.lessons.map(l => l.id === editItem.id ? editItem : l)
-        }))
-      };
-      updateCourse(course.id, updatedCourse);
+      await updateCourse(courseId, updatedCourse);
     }
-    setEditMode(false);
-    setEditItem(null);
+    cancelEditing();
   };
 
-  const renderEditForm = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white p-4 rounded max-h-[80vh] overflow-y-auto">
-        <h2 className="text-xl font-bold mb-4">Edit Item</h2>
-        <input
-          name="name"
-          value={editItem?.name || ''}
-          onChange={handleEditChange}
-          className="mb-2 p-2 border w-full"
-          placeholder="Name"
-        />
-        {editItem?.ordinal !== undefined && (
+  const renderTree = () => {
+    console.log('Rendering courses:', courses); // Debugging log
+    return (
+      <div>
+        <form onSubmit={handleAddCourse} style={{ marginBottom: '1rem' }}>
           <input
-            name="ordinal"
-            type="number"
-            value={editItem?.ordinal || ''}
-            onChange={handleEditChange}
-            className="mb-2 p-2 border w-full"
-            placeholder="Ordinal"
+            type="text"
+            value={newCourse}
+            onChange={(e) => setNewCourse(e.target.value)}
+            placeholder="New Course"
           />
-        )}
-        {editItem?.description !== undefined && (
-          <textarea
-            name="description"
-            value={editItem?.description || ''}
-            onChange={handleEditChange}
-            className="mb-2 p-2 border w-full"
-            placeholder="Description"
-            rows="4"
-          />
-        )}
-        {Array.isArray(editItem?.homeworks) && (
-          <div>
-            <h3 className="font-bold mb-2">Homeworks</h3>
-            {editItem.homeworks.map((hw) => (
-              <div key={hw.id} className="mb-4 p-2 border rounded">
-                <textarea
-                  name="text"
-                  value={hw.text || ''}
-                  onChange={(e) => handleHomeworkChange(hw.id, e)}
-                  className="mb-2 p-2 border w-full"
-                  placeholder="Homework Text"
-                  rows="2"
-                />
-                {hw.files && hw.files.map((file, index) => (
-                  <div key={index} className="mb-2 flex items-center">
-                    <Button onClick={() => window.open(file, '_blank')} className="mr-2">View File</Button>
-                    <Button onClick={() => removeFile(hw.id, index)} className="bg-red-500 hover:bg-red-600">Delete File</Button>
-                  </div>
-                ))}
-                <input
-                  name="files"
-                  type="file"
-                  multiple
-                  onChange={(e) => handleHomeworkChange(hw.id, e)}
-                  className="mb-2 p-2 border w-full"
-                />
-                <Button onClick={() => removeHomeworkEntry(hw.id)} className="mb-2 bg-red-500 hover:bg-red-600">
-                  Remove Homework
+          <Button type="submit">
+            <PlusCircle style={{ height: '1rem', width: '1rem' }} /> Add Course
+          </Button>
+        </form>
+        <Button onClick={handleDeleteAllCourses} style={{ marginBottom: '1rem', backgroundColor: '#EF4444', hover: { backgroundColor: '#DC2626' } }}>
+          <Trash2 style={{ height: '1rem', width: '1rem' }} /> Delete All Courses
+        </Button>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+          {courses.sort((a, b) => a.ordinal - b.ordinal).map(course => (
+            <div key={course.id} style={{ marginBottom: '1rem', flex: '1 1 calc(33.333% - 1rem)', boxSizing: 'border-box' }}>
+              <div style={{ display: 'flex' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', marginRight: '1rem' }}>
+                  <Button onClick={() => toggleBranch(course.id)} style={{ marginBottom: '0.5rem' }}>
+                    {expandedBranches[course.id] ? <ChevronDown style={{ height: '1rem', width: '1rem' }} /> : <ChevronRight style={{ height: '1rem', width: '1rem' }} />}
+                  </Button>
+                  <Button onClick={() => startEditing({ type: 'course', courseId: course.id }, course.name)} style={{ marginBottom: '0.5rem' }}>
+                    <Edit2 style={{ height: '1rem', width: '1rem' }} />
+                  </Button>
+                  <Button onClick={() => handleAddChapter(course.id)} style={{ marginBottom: '0.5rem' }}>
+                    <PlusCircle style={{ height: '1rem', width: '1rem' }} /> Chapter
+                  </Button>
+                  <Button onClick={() => handleDeleteCourse(course.id)} style={{ marginBottom: '0.5rem', backgroundColor: '#EF4444', hover: { backgroundColor: '#DC2626' } }}>
+                    <Trash2 style={{ height: '1rem', width: '1rem' }} />
+                  </Button>
+                </div>
+                <div>
+                  {editingItem?.type === 'course' && editingItem.courseId === course.id ? (
+                    <div>
+                      <input
+                        type="text"
+                        value={editingValue}
+                        onChange={(e) => setEditingValue(e.target.value)}
+                      />
+                      <Button onClick={saveEditing}>Update</Button>
+                      <Button onClick={cancelEditing}>Cancel</Button>
+                    </div>
+                  ) : (
+                    <span style={{ fontWeight: 'bold' }}>{course.name}</span>
+                  )}
+                  {expandedBranches[course.id] && course.chapters?.sort((a, b) => a.ordinal - b.ordinal).map(chapter => (
+                    <div key={chapter.id} style={{ marginLeft: '1rem', marginTop: '0.5rem' }} id={`chapter-${chapter.id}`}>
+                      <div style={{ display: 'flex' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', marginRight: '1rem' }}>
+                          <Button onClick={() => toggleBranch(chapter.id)} style={{ marginBottom: '0.5rem' }}>
+                            {expandedBranches[chapter.id] ? <ChevronDown style={{ height: '1rem', width: '1rem' }} /> : <ChevronRight style={{ height: '1rem', width: '1rem' }} />}
+                          </Button>
+                          <Button onClick={() => startEditing({ type: 'chapter', courseId: course.id, chapterId: chapter.id }, chapter.name)} style={{ marginBottom: '0.5rem' }}>
+                            <Edit2 style={{ height: '1rem', width: '1rem' }} />
+                          </Button>
+                          <Button onClick={() => handleAddLesson(course.id, chapter.id)} style={{ marginBottom: '0.5rem' }}>
+                            <PlusCircle style={{ height: '1rem', width: '1rem' }} /> Lesson
+                          </Button>
+                          <Button onClick={() => handleDeleteCourse(course.id)} style={{ marginBottom: '0.5rem', backgroundColor: '#EF4444', hover: { backgroundColor: '#DC2626' } }}>
+                            <Trash2 style={{ height: '1rem', width: '1rem' }} />
+                          </Button>
+                        </div>
+                        <div>
+                          {editingItem?.type === 'chapter' && editingItem.chapterId === chapter.id ? (
+                            <div>
+                              <input
+                                type="text"
+                                value={editingValue}
+                                onChange={(e) => setEditingValue(e.target.value)}
+                              />
+                              <Button onClick={saveEditing}>Update</Button>
+                              <Button onClick={cancelEditing}>Cancel</Button>
+                            </div>
+                          ) : (
+                            <span>{chapter.ordinal}. {chapter.name}</span>
+                          )}
+                          {expandedBranches[chapter.id] && chapter.lessons?.sort((a, b) => a.ordinal - b.ordinal).map(lesson => (
+                            <div key={lesson.id} style={{ marginLeft: '1rem', marginTop: '0.5rem' }} id={`lesson-${lesson.id}`}>
+                              <div style={{ display: 'flex' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', marginRight: '1rem' }}>
+                                  <Button onClick={() => toggleBranch(lesson.id)} style={{ marginBottom: '0.5rem' }}>
+                                    {expandedBranches[lesson.id] ? <ChevronDown style={{ height: '1rem', width: '1rem' }} /> : <ChevronRight style={{ height: '1rem', width: '1rem' }} />}
+                                  </Button>
+                                  <Button onClick={() => startEditing({ type: 'lesson', courseId: course.id, chapterId: chapter.id, lessonId: lesson.id }, lesson.name)} style={{ marginBottom: '0.5rem' }}>
+                                    <Edit2 style={{ height: '1rem', width: '1rem' }} />
+                                  </Button>
+                                  <Button onClick={() => handleAddHomework(course.id, chapter.id, lesson.id)} style={{ marginBottom: '0.5rem' }}>
+                                    <PlusCircle style={{ height: '1rem', width: '1rem' }} /> Homework
+                                  </Button>
+                                  <Button onClick={() => handleDeleteCourse(course.id)} style={{ marginBottom: '0.5rem', backgroundColor: '#EF4444', hover: { backgroundColor: '#DC2626' } }}>
+                                    <Trash2 style={{ height: '1rem', width: '1rem' }} />
+                                  </Button>
+                                </div>
+                                <div>
+                                  {editingItem?.type === 'lesson' && editingItem.lessonId === lesson.id ? (
+                                    <div>
+                                      <input
+                                        type="text"
+                                        value={editingValue}
+                                        onChange={(e) => setEditingValue(e.target.value)}
+                                      />
+                                      <Button onClick={saveEditing}>Update</Button>
+                                      <Button onClick={cancelEditing}>Cancel</Button>
+                                    </div>
+                                  ) : (
+                                    <span>{lesson.ordinal}. {lesson.name}</span>
+                                  )}
+                                  {expandedBranches[lesson.id] && (
+                                    <div>
+                                      <h4>Homeworks:</h4>
+                                      {Array.isArray(lesson.homework.files) && lesson.homework.files.map((file, index) => (
+                                        <div key={index} style={{ marginLeft: '1rem', marginTop: '0.5rem', padding: '1rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)' }}>
+                                          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                            <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                                              {file.name}
+                                            </a>
+                                            <button onClick={() => handleRemoveHomeworkFile(course.id, chapter.id, lesson.id, index)} className="ml-2 text-red-500 hover:text-red-700">
+                                              &times;
+                                            </button>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="library-container">
+      <form onSubmit={handleAddCourse} style={{ marginBottom: '1rem' }}>
+        <input
+          type="text"
+          value={newCourse}
+          onChange={(e) => setNewCourse(e.target.value)}
+          placeholder="New Course"
+        />
+        <Button type="submit">
+          <PlusCircle style={{ height: '1rem', width: '1rem' }} /> Add Course
+        </Button>
+      </form>
+      <Button onClick={handleDeleteAllCourses} style={{ marginBottom: '1rem', backgroundColor: '#EF4444', hover: { backgroundColor: '#DC2626' } }}>
+        <Trash2 style={{ height: '1rem', width: '1rem' }} /> Delete All Courses
+      </Button>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+        {courses.sort((a, b) => a.ordinal - b.ordinal).map(course => (
+          <div key={course.id} style={{ marginBottom: '1rem', flex: '1 1 calc(33.333% - 1rem)', boxSizing: 'border-box' }}>
+            <div style={{ display: 'flex' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', marginRight: '1rem' }}>
+                <Button onClick={() => toggleBranch(course.id)} style={{ marginBottom: '0.5rem' }}>
+                  {expandedBranches[course.id] ? <ChevronDown style={{ height: '1rem', width: '1rem' }} /> : <ChevronRight style={{ height: '1rem', width: '1rem' }} />}
+                </Button>
+                <Button onClick={() => startEditing({ type: 'course', courseId: course.id }, course.name)} style={{ marginBottom: '0.5rem' }}>
+                  <Edit2 style={{ height: '1rem', width: '1rem' }} />
+                </Button>
+                <Button onClick={() => handleAddChapter(course.id)} style={{ marginBottom: '0.5rem' }}>
+                  <PlusCircle style={{ height: '1rem', width: '1rem' }} /> Chapter
+                </Button>
+                <Button onClick={() => handleDeleteCourse(course.id)} style={{ marginBottom: '0.5rem', backgroundColor: '#EF4444', hover: { backgroundColor: '#DC2626' } }}>
+                  <Trash2 style={{ height: '1rem', width: '1rem' }} />
                 </Button>
               </div>
-            ))}
-            <Button onClick={addHomeworkEntry} className="mb-2">
-              Add Homework Entry
-            </Button>
-          </div>
-        )}
-        <Button onClick={saveEdit} className="mr-2">Save</Button>
-        <Button onClick={() => setEditMode(false)}>Cancel</Button>
-      </div>
-    </div>
-  );
-
-  const removeFile = (homeworkId, fileIndex) => {
-    setEditItem((prevState) => {
-      const updatedHomeworks = prevState.homeworks.map(hw => {
-        if (hw.id === homeworkId) {
-          const updatedFiles = hw.files.filter((_, index) => index !== fileIndex);
-          return { ...hw, files: updatedFiles };
-        }
-        return hw;
-      });
-      return { ...prevState, homeworks: updatedHomeworks };
-    });
-  };
-
-  const removeFileFromTree = (courseId, chapterId, lessonId, homeworkId, fileIndex) => {
-    const course = courses.find(c => c.id === courseId);
-    const updatedCourse = {
-      ...course,
-      chapters: course.chapters.map(chapter => {
-        if (chapter.id === chapterId) {
-          return {
-            ...chapter,
-            lessons: chapter.lessons.map(lesson => {
-              if (lesson.id === lessonId) {
-                return {
-                  ...lesson,
-                  homeworks: lesson.homeworks.map(hw => {
-                    if (hw.id === homeworkId) {
-                      const updatedFiles = hw.files.filter((_, index) => index !== fileIndex);
-                      return { ...hw, files: updatedFiles };
-                    }
-                    return hw;
-                  })
-                };
-              }
-              return lesson;
-            })
-          };
-        }
-        return chapter;
-      })
-    };
-    updateCourse(courseId, updatedCourse);
-  };
-
-  const renderLibrary = () => (
-    <div>
-      {courses.sort((a, b) => a.ordinal - b.ordinal).map(course => (
-        <div key={course.id} className="mb-4">
-          <div className="flex">
-            <div className="flex flex-col mr-4">
-              <Button onClick={() => toggleBranch(course.id)} className="mb-2">
-                {expandedBranches[course.id] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-              </Button>
-              <Button onClick={() => startEdit(course)} className="mb-2">
-                <Edit2 className="h-4 w-4" />
-              </Button>
-              <Button onClick={() => addChapter(course.id)} className="mb-2">
-                <PlusCircle className="h-4 w-4" /> Chapter
-              </Button>
-              <Button onClick={() => confirmDelete({ type: 'course', courseId: course.id })} className="mb-2 bg-red-500 hover:bg-red-600">
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-            <div>
-              <span className="font-bold">{course.name}</span>
-              {expandedBranches[course.id] && course.chapters?.sort((a, b) => a.ordinal - b.ordinal).map(chapter => (
-                <div key={chapter.id} className="ml-4 mt-2" id={`chapter-${chapter.id}`}>
-                  <div className="flex">
-                    <div className="flex flex-col mr-4">
-                      <Button onClick={() => toggleBranch(chapter.id)} className="mb-2">
-                        {expandedBranches[chapter.id] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                      </Button>
-                      <Button onClick={() => startEdit(chapter)} className="mb-2">
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                      <Button onClick={() => addLesson(course.id, chapter.id)} className="mb-2">
-                        <PlusCircle className="h-4 w-4" /> Lesson
-                      </Button>
-                      <Button onClick={() => confirmDelete({ type: 'chapter', courseId: course.id, chapterId: chapter.id })} className="mb-2 bg-red-500 hover:bg-red-600">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <div>
-                      <span>{chapter.ordinal}. {chapter.name}</span>
-                      {expandedBranches[chapter.id] && chapter.lessons?.sort((a, b) => a.ordinal - b.ordinal).map(lesson => (
-                        <div key={lesson.id} className="ml-4 mt-2" id={`lesson-${lesson.id}`}>
-                          <div className="flex">
-                            <div className="flex flex-col mr-4">
-                              <Button onClick={() => toggleBranch(lesson.id)} className="mb-2">
-                                {expandedBranches[lesson.id] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                              </Button>
-                              <Button onClick={() => startEdit(lesson)} className="mb-2">
-                                <Edit2 className="h-4 w-4" />
-                              </Button>
-                              <Button onClick={() => addHomework(course.id, chapter.id, lesson.id)} className="mb-2">
-                                <PlusCircle className="h-4 w-4" /> Homework
-                              </Button>
-                              <Button onClick={() => confirmDelete({ type: 'lesson', courseId: course.id, chapterId: chapter.id, lessonId: lesson.id })} className="mb-2 bg-red-500 hover:bg-red-600">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                            <div>
-                              <span>{lesson.ordinal}. {lesson.name}</span>
-                              <div className="ml-4">
-                                <p>{lesson.description}</p>
+              <div>
+                {editingItem?.type === 'course' && editingItem.courseId === course.id ? (
+                  <div>
+                    <input
+                      type="text"
+                      value={editingValue}
+                      onChange={(e) => setEditingValue(e.target.value)}
+                    />
+                    <Button onClick={saveEditing}>Update</Button>
+                    <Button onClick={cancelEditing}>Cancel</Button>
+                  </div>
+                ) : (
+                  <span style={{ fontWeight: 'bold' }}>{course.name}</span>
+                )}
+                {expandedBranches[course.id] && course.chapters?.sort((a, b) => a.ordinal - b.ordinal).map(chapter => (
+                  <div key={chapter.id} style={{ marginLeft: '1rem', marginTop: '0.5rem' }} id={`chapter-${chapter.id}`}>
+                    <div style={{ display: 'flex' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', marginRight: '1rem' }}>
+                        <Button onClick={() => toggleBranch(chapter.id)} style={{ marginBottom: '0.5rem' }}>
+                          {expandedBranches[chapter.id] ? <ChevronDown style={{ height: '1rem', width: '1rem' }} /> : <ChevronRight style={{ height: '1rem', width: '1rem' }} />}
+                        </Button>
+                        <Button onClick={() => startEditing({ type: 'chapter', courseId: course.id, chapterId: chapter.id }, chapter.name)} style={{ marginBottom: '0.5rem' }}>
+                          <Edit2 style={{ height: '1rem', width: '1rem' }} />
+                        </Button>
+                        <Button onClick={() => handleAddLesson(course.id, chapter.id)} style={{ marginBottom: '0.5rem' }}>
+                          <PlusCircle style={{ height: '1rem', width: '1rem' }} /> Lesson
+                        </Button>
+                        <Button onClick={() => handleDeleteCourse(course.id)} style={{ marginBottom: '0.5rem', backgroundColor: '#EF4444', hover: { backgroundColor: '#DC2626' } }}>
+                          <Trash2 style={{ height: '1rem', width: '1rem' }} />
+                        </Button>
+                      </div>
+                      <div>
+                        {editingItem?.type === 'chapter' && editingItem.chapterId === chapter.id ? (
+                          <div>
+                            <input
+                              type="text"
+                              value={editingValue}
+                              onChange={(e) => setEditingValue(e.target.value)}
+                            />
+                            <Button onClick={saveEditing}>Update</Button>
+                            <Button onClick={cancelEditing}>Cancel</Button>
+                          </div>
+                        ) : (
+                          <span>{chapter.ordinal}. {chapter.name}</span>
+                        )}
+                        {expandedBranches[chapter.id] && chapter.lessons?.sort((a, b) => a.ordinal - b.ordinal).map(lesson => (
+                          <div key={lesson.id} style={{ marginLeft: '1rem', marginTop: '0.5rem' }} id={`lesson-${lesson.id}`}>
+                            <div style={{ display: 'flex' }}>
+                              <div style={{ display: 'flex', flexDirection: 'column', marginRight: '1rem' }}>
+                                <Button onClick={() => toggleBranch(lesson.id)} style={{ marginBottom: '0.5rem' }}>
+                                  {expandedBranches[lesson.id] ? <ChevronDown style={{ height: '1rem', width: '1rem' }} /> : <ChevronRight style={{ height: '1rem', width: '1rem' }} />}
+                                </Button>
+                                <Button onClick={() => startEditing({ type: 'lesson', courseId: course.id, chapterId: chapter.id, lessonId: lesson.id }, lesson.name)} style={{ marginBottom: '0.5rem' }}>
+                                  <Edit2 style={{ height: '1rem', width: '1rem' }} />
+                                </Button>
+                                <Button onClick={() => handleAddHomework(course.id, chapter.id, lesson.id)} style={{ marginBottom: '0.5rem' }}>
+                                  <PlusCircle style={{ height: '1rem', width: '1rem' }} /> Homework
+                                </Button>
+                                <Button onClick={() => handleDeleteCourse(course.id)} style={{ marginBottom: '0.5rem', backgroundColor: '#EF4444', hover: { backgroundColor: '#DC2626' } }}>
+                                  <Trash2 style={{ height: '1rem', width: '1rem' }} />
+                                </Button>
+                              </div>
+                              <div>
+                                {editingItem?.type === 'lesson' && editingItem.lessonId === lesson.id ? (
+                                  <div>
+                                    <input
+                                      type="text"
+                                      value={editingValue}
+                                      onChange={(e) => setEditingValue(e.target.value)}
+                                    />
+                                    <Button onClick={saveEditing}>Update</Button>
+                                    <Button onClick={cancelEditing}>Cancel</Button>
+                                  </div>
+                                ) : (
+                                  <span>{lesson.ordinal}. {lesson.name}</span>
+                                )}
                                 {expandedBranches[lesson.id] && (
                                   <div>
                                     <h4>Homeworks:</h4>
-                                    {Array.isArray(lesson.homeworks) && lesson.homeworks.map((hw) => (
-                                      <div key={hw.id} id={`homework-${hw.id}`} className="ml-4 mt-2 p-4 border rounded shadow">
-                                        <p>{hw.text}</p>
-                                        {hw.files.map((file, fileIndex) => (
-                                          <div key={fileIndex} className="flex items-center">
-                                            <Button onClick={() => window.open(file, '_blank')} className="mr-2">View File</Button>
-                                            <Button onClick={() => removeFileFromTree(course.id, chapter.id, lesson.id, hw.id, fileIndex)} className="bg-red-500 hover:bg-red-600">Delete File</Button>
-                                          </div>
-                                        ))}
+                                    {Array.isArray(lesson.homework.files) && lesson.homework.files.map((file, index) => (
+                                      <div key={index} style={{ marginLeft: '1rem', marginTop: '0.5rem', padding: '1rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                          <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                                            {file.name}
+                                          </a>
+                                          <button onClick={() => handleRemoveHomeworkFile(course.id, chapter.id, lesson.id, index)} className="ml-2 text-red-500 hover:text-red-700">
+                                            &times;
+                                          </button>
+                                        </div>
                                       </div>
                                     ))}
                                   </div>
@@ -416,40 +455,16 @@ const Library = () => {
                               </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      ))}
-    </div>
-  );
-
-  const renderDeleteConfirmation = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white p-4 rounded">
-        <h2 className="text-xl font-bold mb-4">Confirm Deletion</h2>
-        <div className="mb-4">Are you sure you want to delete this item?</div>
-        <div className="flex justify-end">
-          <Button onClick={handleDelete} className="mr-2 bg-red-500 hover:bg-red-600">Delete</Button>
-          <Button onClick={() => setItemToDelete(null)}>Cancel</Button>
-        </div>
+        ))}
       </div>
-    </div>
-  );
-
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
-
-  return (
-    <div>
-      {renderLibrary()}
-      {editMode && renderEditForm()}
-      {itemToDelete && renderDeleteConfirmation()}
     </div>
   );
 };

@@ -90,3 +90,6 @@ const renderLibrary = () => (
     ))}
   </div>
 );
+
+<CircularProgress studentId={id} progress={progress} onProgressChange={handleSaveProgress} />
+<TablePage studentId={id} tableData={studentTableData} onSaveTableData={handleSaveTableData} />

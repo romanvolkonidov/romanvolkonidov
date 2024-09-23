@@ -3,17 +3,17 @@ import { useParams } from 'react-router-dom';
 import { Bar } from 'react-chartjs-2';
 import { GlobalStateContext } from '../context/GlobalStateContext';
 import 'chart.js/auto';
-import { db } from '../firebase';
-import { collection, addDoc, deleteDoc, doc, updateDoc, getDoc } from 'firebase/firestore';
 import CircularProgress from './ProgressBar/CircularProgress';
-import KidsProgressTracker from './ProgressBar/KidsProgressTracker';
-import TablePage from './TablePage'; // Adjust the path if necessary
 import Button from '@/components/ui/Button';
+
+import { getDoc, doc, collection, addDoc, deleteDoc, updateDoc } from 'firebase/firestore'; // Import Firestore functions
+import { db } from '../firebase'; // Adjust the path to your Firebase configuration
+
 
 const currencies = ['USD', 'KES', 'RUB', 'EUR'];
 
 const StudentPage = () => {
-  const { students, transactions, setTransactions, exchangeRates, tableData, setTableData } = useContext(GlobalStateContext);
+  const { students, transactions, setTransactions, exchangeRates, tableData, updateStudentProgress, updateStudentTableData } = useContext(GlobalStateContext);
   const { id } = useParams();
   const [student, setStudent] = useState(null);
   const [amount, setAmount] = useState('');
@@ -161,8 +161,7 @@ const StudentPage = () => {
   const handleSaveProgress = async (newProgress) => {
     setError(null);
     try {
-      const studentDoc = doc(db, 'students', id);
-      await updateDoc(studentDoc, { progress: newProgress });
+      await updateStudentProgress(id, newProgress);
       setProgress(newProgress);
       setPopupMessage('Progress updated successfully!');
       setShowPopup(true);
@@ -175,9 +174,7 @@ const StudentPage = () => {
   const handleSaveTableData = async (newTableData) => {
     setError(null);
     try {
-      const tableDataDoc = doc(db, 'tableData', id);
-      await updateDoc(tableDataDoc, { data: newTableData });
-      setTableData({ ...tableData, [id]: newTableData });
+      await updateStudentTableData(id, newTableData);
       setStudentTableData(newTableData);
       setPopupMessage('Table data updated successfully!');
       setShowPopup(true);
@@ -379,7 +376,7 @@ const StudentPage = () => {
           </ul>
         </div>
         <div className="transactions-list completed-lessons">
-        <h3 className="text-xl font-semibold mb-2">Completed Lessons</h3>
+          <h3 className="text-xl font-semibold mb-2">Completed Lessons</h3>
           <div className="subject-list mb-4">
             <h4 className="text-lg font-semibold mb-2">English</h4>
             <ul>
@@ -388,7 +385,7 @@ const StudentPage = () => {
                   {transaction.description} on {transaction.date}
                   <div className="button-group mt-2">
                     <button onClick={() => handleEditLesson(transaction.id)} className="bg-yellow-500 text-white p-2 rounded mr-2">Edit</button>
-                    <button onClick={() => handleRemoveTransaction(transaction.id)} className="bg-red-500 text-white p-2 rounded">Remove</button>
+                    <button onClick={() => handleRemoveTransaction(transaction                    .id)} className="bg-red-500 text-white p-2 rounded">Remove</button>
                   </div>
                 </li>
               ))}
@@ -410,8 +407,7 @@ const StudentPage = () => {
           </div>
         </div>
       </div>
-      <CircularProgress studentId={id} progress={progress} onProgressChange={handleSaveProgress} />
-      <TablePage studentId={id} tableData={studentTableData} onSaveTableData={handleSaveTableData} />
+      
     </div>
   );
 }

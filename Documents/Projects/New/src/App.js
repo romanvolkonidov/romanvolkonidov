@@ -13,7 +13,6 @@ import Progress from './components/Progress'; // Import the Progress component
 import Test from './components/Test'; // Import the Progress component
 import ViewOnlyProgressBars from './components/ViewOnlyProgressBars'; // Import the Progress component
 import Library from './components/Library'; // Import the Progress component
-import TablePage from './components/TablePage'; // Import the Progress component
 
 
 
@@ -75,7 +74,6 @@ function App() {
             <Route path="/test" element={<Test />} />
             <Route path="/ViewOnlyProgressBars" element={<ViewOnlyProgressBars />} />
             <Route path="/Library" element={<Library />} />
-            <Route path="/TablePage" element={<TablePage />} />
 
 
 
