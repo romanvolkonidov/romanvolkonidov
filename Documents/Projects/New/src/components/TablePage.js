@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { db } from '../firebase'; // Ensure you have the correct path to your firebase configuration
 
 const TablePage = () => {
   const [view, setView] = useState('completed'); // 'completed', 'homework', 'future'
@@ -14,17 +15,17 @@ const TablePage = () => {
   const [tableData, setTableData] = useState([]);
   const [loading, setLoading] = useState(true); // Add loading state
   const [isSubmitting, setIsSubmitting] = useState(false); // Add submitting state
-
+  
   useEffect(() => {
     const fetchLibraryAndTableData = async () => {
       try {
         setLoading(true);
         const librarySnapshot = await getDocs(collection(db, 'library'));
         const tableDataSnapshot = await getDocs(collection(db, 'tableData'));
-
+  
         const libraryData = librarySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         const tableData = tableDataSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
+  
         setLibrary(libraryData);
         setTableData(tableData);
       } catch (error) {
@@ -33,9 +34,22 @@ const TablePage = () => {
         setLoading(false);
       }
     };
-
+  
     fetchLibraryAndTableData();
   }, []);
+
+  const storage = getStorage();
+
+  const uploadFile = async (file) => {
+    const storageRef = ref(storage, `files/${file.name}`);
+    await uploadBytes(storageRef, file);
+    return await getDownloadURL(storageRef);
+  };
+
+  const deleteFile = async (fileURL) => {
+    const storageRef = ref(storage, fileURL);
+    await deleteObject(storageRef);
+  };
 
   const handleAddData = async () => {
     const selectedCourseData = library.find(course => course.id === selectedCourse);
@@ -56,8 +70,10 @@ const TablePage = () => {
       lesson: selectedLessonData.name || '',
       progress: view === 'completed' ? progress : '',
       homework: view === 'homework' ? selectedHomeworkData?.name || '' : '',
-      submit: view === 'homework' ? 'Submit' : '',
-      results: view === 'homework' ? 'Pending' : '',
+      homeworkFiles: view === 'homework' ? selectedHomeworkData?.fileURLs || [] : [], // Initialize with homework files
+      submit: view === 'homework' ? [] : '', // Initialize as an empty array for file attachments
+      results: view === 'homework' ? { percentage: '', files: [] } : '', // Initialize as an object for percentage and files
+      checkedHomework: view === 'homework' ? [] : '', // Initialize as an empty array for checked homework files
     };
 
     try {
@@ -78,6 +94,60 @@ const TablePage = () => {
       setTableData(tableData.filter(row => row.id !== id));
     } catch (error) {
       console.error("Error deleting document:", error);
+    }
+  };
+
+  const handleFileUpload = async (id, files, field) => {
+    const docRef = doc(db, 'tableData', id);
+    const updatedRow = tableData.find(row => row.id === id);
+  
+    // Ensure the field is an array before spreading
+    if (!Array.isArray(updatedRow[field])) {
+      updatedRow[field] = [];
+    }
+  
+    try {
+      const fileURLs = await Promise.all(files.map(file => uploadFile(file)));
+      updatedRow[field] = [...updatedRow[field], ...fileURLs];
+  
+      await updateDoc(docRef, { [field]: updatedRow[field] });
+      setTableData(tableData.map(row => (row.id === id ? updatedRow : row)));
+    } catch (error) {
+      console.error("Error updating document:", error);
+    }
+  };
+
+  const handleFileDelete = async (id, fileURL, field) => {
+    const docRef = doc(db, 'tableData', id);
+    const updatedRow = tableData.find(row => row.id === id);
+  
+    try {
+      await deleteFile(fileURL);
+      updatedRow[field] = updatedRow[field].filter(url => url !== fileURL);
+  
+      await updateDoc(docRef, { [field]: updatedRow[field] });
+      setTableData(tableData.map(row => (row.id === id ? updatedRow : row)));
+    } catch (error) {
+      console.error("Error deleting file:", error);
+    }
+  };
+
+  const handlePercentageChange = async (id, percentage) => {
+    const docRef = doc(db, 'tableData', id);
+    const updatedRow = tableData.find(row => row.id === id);
+  
+    // Ensure results.files is an array
+    if (!Array.isArray(updatedRow.results.files)) {
+      updatedRow.results.files = [];
+    }
+  
+    updatedRow.results.percentage = percentage;
+  
+    try {
+      await updateDoc(docRef, { results: updatedRow.results });
+      setTableData(tableData.map(row => (row.id === id ? updatedRow : row)));
+    } catch (error) {
+      console.error("Error updating document:", error);
     }
   };
 
@@ -148,7 +218,7 @@ const TablePage = () => {
         headers = ['Дата', 'Курс', 'Тема', 'Урок', 'Прогресс', 'Действия'];
         break;
       case 'homework':
-        headers = ['Дата', 'Домашняя работа', 'Сдать Домашнюю работу', 'Результаты', 'Действия'];
+        headers = ['Дата', 'Домашняя работа', 'Сдать Домашнюю работу', 'Проверенная домашняя работа', 'Результаты', 'Действия'];
         break;
       case 'future':
         headers = ['Курс', 'Тема', 'Урок', 'Действия'];
@@ -204,11 +274,89 @@ const TablePage = () => {
                           </div>
                         </div>
                       ) : header === 'Домашняя работа' ? (
-                        row.homework
+                        <>
+                          <div>{row.homework}</div>
+                          {row.homeworkFiles && row.homeworkFiles.map((fileURL, index) => (
+                            <div key={index} className="flex items-center">
+                              <a href={fileURL} download>
+                                <button className="px-2 py-1 rounded bg-blue-500 text-white">
+                                  {`File ${index + 1}`}
+                                </button>
+                              </a>
+                            </div>
+                          ))}
+                        </>
                       ) : header === 'Сдать Домашнюю работу' ? (
-                        row.submit
+                        <>
+                          <input
+                            type="file"
+                            multiple
+                            onChange={(e) => handleFileUpload(row.id, Array.from(e.target.files), 'submit')}
+                          />
+                          {Array.isArray(row.submit) && row.submit.map((fileURL, index) => (
+                            <div key={index} className="flex items-center">
+                              <a href={fileURL} download>
+                                <button className="px-2 py-1 rounded bg-blue-500 text-white">
+                                  {`File ${index + 1}`}
+                                </button>
+                              </a>
+                              <button
+                                onClick={() => handleFileDelete(row.id, fileURL, 'submit')}
+                                className="ml-2 px-2 py-1 rounded bg-red-500 text-white"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ))}
+                        </>
+                      ) : header === 'Проверенная домашняя работа' ? (
+                        <>
+                          <input
+                            type="file"
+                            multiple
+                            onChange={(e) => handleFileUpload(row.id, Array.from(e.target.files), 'checkedHomework')}
+                          />
+                          {Array.isArray(row.checkedHomework) && row.checkedHomework.map((fileURL, index) => (
+                            <div key={index} className="flex items-center">
+                              <a href={fileURL} download>
+                                <button className="px-2 py-1 rounded bg-blue-500 text-white">
+                                  {`File ${index + 1}`}
+                                </button>
+                              </a>
+                              <button
+                                onClick={() => handleFileDelete(row.id, fileURL, 'checkedHomework')}
+                                className="ml-2 px-2 py-1 rounded bg-red-500 text-white"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ))}
+                        </>
                       ) : header === 'Результаты' ? (
-                        row.results
+                        <>
+                          <input
+                            type="number"
+                            value={row.results.percentage}
+                            onChange={(e) => handlePercentageChange(row.id, e.target.value)}
+                            placeholder="Результаты (%)"
+                            className="p-2 border rounded"
+                          />
+                          {row.results.files && row.results.files.map((fileURL, index) => (
+                            <div key={index} className="flex items-center">
+                              <a href={fileURL} download>
+                                <button className="px-2 py-1 rounded bg-blue-500 text-white">
+                                  {`File ${index + 1}`}
+                                </button>
+                              </a>
+                              <button
+                                onClick={() => handleFileDelete(row.id, fileURL, 'results.files')}
+                                className="ml-2 px-2 py-1 rounded bg-red-500 text-white"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ))}
+                        </>
                       ) : null}
                     </td>
                   ))}
@@ -220,9 +368,8 @@ const TablePage = () => {
     );
   };
   
-
   if (loading) return <div>Loading...</div>;
-
+  
   return (
     <div className="p-4 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Таблица студента</h1>
@@ -232,9 +379,8 @@ const TablePage = () => {
         <button onClick={() => setView('homework')} className="p-2 border rounded ml-2">Homework</button>
         <button onClick={() => setView('future')} className="p-2 border rounded ml-2">Future</button>
       </div>
-
+  
       {renderDropdowns()}
-
       <div className="mb-4 flex flex-wrap gap-2">
         <input
           type="date"
@@ -242,15 +388,17 @@ const TablePage = () => {
           onChange={(e) => setDate(e.target.value)}
           className="p-2 border rounded"
         />
-        <input
-          type="number"
-          value={progress}
-          onChange={(e) => setProgress(e.target.value)}
-          placeholder="Прогресс (%)"
-          className="p-2 border rounded"
-        />
+        {view === 'completed' && (
+          <input
+            type="number"
+            value={progress}
+            onChange={(e) => setProgress(e.target.value)}
+            placeholder="Прогресс (%)"
+            className="p-2 border rounded"
+          />
+        )}
       </div>
-
+  
       <button
         onClick={handleAddData}
         disabled={isSubmitting}
@@ -258,7 +406,7 @@ const TablePage = () => {
       >
         {isSubmitting ? 'Submitting...' : 'Add Data'}
       </button>
-
+  
       {renderTable()}
     </div>
   );
