@@ -1,470 +1,415 @@
-import React, { useState, useContext, useEffect } from 'react';
-import { GlobalStateContext } from '../context/GlobalStateContext';
+import React, { useState, useEffect } from 'react';
 import { PlusCircle, Edit2, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { collection, getDocs, addDoc, updateDoc, doc, deleteDoc, getDoc } from 'firebase/firestore';
+import { db, storage } from '../firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const Library = () => {
-  const { courses, addCourse, updateCourse, deleteCourse } = useContext(GlobalStateContext);
+  const [library, setLibrary] = useState([]);
+  const [editMode, setEditMode] = useState(false);
+  const [editItem, setEditItem] = useState(null);
+  const [newHomework, setNewHomework] = useState({ name: '', files: [] });
+  const [expandedCourses, setExpandedCourses] = useState({});
+  const [expandedChapters, setExpandedChapters] = useState({});
+  const [expandedLessons, setExpandedLessons] = useState({});
 
-  const [newCourse, setNewCourse] = useState('');
-  const [newChapter, setNewChapter] = useState('');
-  const [newLesson, setNewLesson] = useState('');
-  const [newHomework, setNewHomework] = useState('');
-  const [homeworkFiles, setHomeworkFiles] = useState([]);
-  const [expandedBranches, setExpandedBranches] = useState({});
-  const [editingItem, setEditingItem] = useState(null);
-  const [editingValue, setEditingValue] = useState('');
+  useEffect(() => {
+    const fetchLibrary = async () => {
+      const querySnapshot = await getDocs(collection(db, 'library'));
+      const libraryData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setLibrary(libraryData);
+    };
 
-  const toggleBranch = (id) => {
-    setExpandedBranches(prev => ({ ...prev, [id]: !prev[id] }));
+    fetchLibrary();
+  }, []);
+
+  const addCourse = async () => {
+    const newCourse = { name: 'New Course', chapters: [] };
+    const docRef = await addDoc(collection(db, 'library'), newCourse);
+    setLibrary([...library, { id: docRef.id, ...newCourse }]);
   };
 
-  const handleAddCourse = async (e) => {
-    e.preventDefault();
-    if (newCourse) {
-      await addCourse({ id: Date.now().toString(), name: newCourse, chapters: [] });
-      setNewCourse('');
+  const addChapter = async (courseId) => {
+    const courseRef = doc(db, 'library', courseId);
+    const courseDoc = await getDoc(courseRef);
+    if (!courseDoc.exists()) {
+      console.error('Course does not exist:', courseId);
+      return;
     }
+    const courseData = courseDoc.data();
+    const newChapter = { id: Date.now().toString(), name: 'New Chapter', ordinal: (courseData.chapters?.length || 0) + 1, lessons: [] };
+    const updatedChapters = [...(courseData.chapters || []), newChapter];
+    await updateDoc(courseRef, { chapters: updatedChapters });
+    setLibrary(library.map(course => course.id === courseId ? { ...course, chapters: updatedChapters } : course));
   };
 
-  const handleAddChapter = async (courseId) => {
-    if (newChapter) {
-      const course = courses.find(course => course.id === courseId);
-      const updatedCourse = {
-        ...course,
-        chapters: [...course.chapters, { id: Date.now().toString(), name: newChapter, lessons: [] }]
-      };
-      await updateCourse(courseId, updatedCourse);
-      setNewChapter('');
+  const addLesson = async (courseId, chapterId) => {
+    const courseRef = doc(db, 'library', courseId);
+    const courseDoc = await getDoc(courseRef);
+    if (!courseDoc.exists()) {
+      console.error('Course does not exist:', courseId);
+      return;
     }
-  };
-
-  const handleAddLesson = async (courseId, chapterId) => {
-    if (newLesson) {
-      const course = courses.find(course => course.id === courseId);
-      const chapter = course.chapters.find(ch => ch.id === chapterId);
-      const updatedChapter = {
-        ...chapter,
-        lessons: [...chapter.lessons, { id: Date.now().toString(), name: newLesson, homework: { text: '', files: [] } }]
-      };
-      const updatedCourse = {
-        ...course,
-        chapters: course.chapters.map(ch => ch.id === chapterId ? updatedChapter : ch)
-      };
-      await updateCourse(courseId, updatedCourse);
-      setNewLesson('');
-    }
-  };
-
-  const handleAddHomework = async (courseId, chapterId, lessonId) => {
-    if (newHomework) {
-      const course = courses.find(course => course.id === courseId);
-      const chapter = course.chapters.find(ch => ch.id === chapterId);
-      const lesson = chapter.lessons.find(l => l.id === lessonId);
-      const updatedLesson = {
-        ...lesson,
-        homework: { text: newHomework, files: homeworkFiles.map(file => ({ name: file.name, url: URL.createObjectURL(file) })) }
-      };
-      const updatedChapter = {
-        ...chapter,
-        lessons: chapter.lessons.map(l => l.id === lessonId ? updatedLesson : l)
-      };
-      const updatedCourse = {
-        ...course,
-        chapters: course.chapters.map(ch => ch.id === chapterId ? updatedChapter : ch)
-      };
-      await updateCourse(courseId, updatedCourse);
-      setNewHomework('');
-      setHomeworkFiles([]);
-    }
-  };
-
-  const handleFileUpload = (e) => {
-    const newFiles = Array.from(e.target.files);
-    setHomeworkFiles(prevFiles => [...prevFiles, ...newFiles]);
-  };
-
-  const handleRemoveFile = (index) => {
-    setHomeworkFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
-  };
-
-  const handleDeleteCourse = async (courseId) => {
-    console.log(`Deleting course with id: ${courseId}`); // Debugging log
-    await deleteCourse(courseId);
-    console.log(`Course with id: ${courseId} deleted`); // Debugging log
-  };
-
-  const handleDeleteAllCourses = async () => {
-    for (const course of courses) {
-      await deleteCourse(course.id);
-    }
-    console.log('All courses deleted'); // Debugging log
-  };
-
-  const handleRemoveHomeworkFile = async (courseId, chapterId, lessonId, fileIndex) => {
-    const course = courses.find(course => course.id === courseId);
-    const chapter = course.chapters.find(ch => ch.id === chapterId);
-    const lesson = chapter.lessons.find(l => l.id === lessonId);
-    const updatedLesson = {
-      ...lesson,
-      homework: {
-        ...lesson.homework,
-        files: lesson.homework.files.filter((_, i) => i !== fileIndex)
+    const courseData = courseDoc.data();
+    const updatedChapters = courseData.chapters.map(chapter => {
+      if (chapter.id === chapterId) {
+        const newLesson = { id: Date.now().toString(), name: 'New Lesson', ordinal: (chapter.lessons?.length || 0) + 1, homeworks: [] };
+        return { ...chapter, lessons: [...(chapter.lessons || []), newLesson] };
       }
-    };
-    const updatedChapter = {
-      ...chapter,
-      lessons: chapter.lessons.map(l => l.id === lessonId ? updatedLesson : l)
-    };
-    const updatedCourse = {
-      ...course,
-      chapters: course.chapters.map(ch => ch.id === chapterId ? updatedChapter : ch)
-    };
-    await updateCourse(courseId, updatedCourse);
+      return chapter;
+    });
+    await updateDoc(courseRef, { chapters: updatedChapters });
+    setLibrary(library.map(course => course.id === courseId ? { ...course, chapters: updatedChapters } : course));
   };
 
-  const startEditing = (item, value) => {
-    setEditingItem(item);
-    setEditingValue(value);
-  };
-
-  const cancelEditing = () => {
-    setEditingItem(null);
-    setEditingValue('');
-  };
-
-  const saveEditing = async () => {
-    const { type, courseId, chapterId, lessonId } = editingItem;
-    if (type === 'course') {
-      const course = courses.find(c => c.id === courseId);
-      const updatedCourse = { ...course, name: editingValue };
-      await updateCourse(courseId, updatedCourse);
-    } else if (type === 'chapter') {
-      const course = courses.find(c => c.id === courseId);
-      const updatedCourse = {
-        ...course,
-        chapters: course.chapters.map(ch => ch.id === chapterId ? { ...ch, name: editingValue } : ch)
-      };
-      await updateCourse(courseId, updatedCourse);
-    } else if (type === 'lesson') {
-      const course = courses.find(c => c.id === courseId);
-      const chapter = course.chapters.find(ch => ch.id === chapterId);
-      const updatedChapter = {
-        ...chapter,
-        lessons: chapter.lessons.map(l => l.id === lessonId ? { ...l, name: editingValue } : l)
-      };
-      const updatedCourse = {
-        ...course,
-        chapters: course.chapters.map(ch => ch.id === chapterId ? updatedChapter : ch)
-      };
-      await updateCourse(courseId, updatedCourse);
-    } else if (type === 'homework') {
-      const course = courses.find(c => c.id === courseId);
-      const chapter = course.chapters.find(ch => ch.id === chapterId);
-      const lesson = chapter.lessons.find(l => l.id === lessonId);
-      const updatedLesson = {
-        ...lesson,
-        homework: { ...lesson.homework, text: editingValue }
-      };
-      const updatedChapter = {
-        ...chapter,
-        lessons: chapter.lessons.map(l => l.id === lessonId ? updatedLesson : l)
-      };
-      const updatedCourse = {
-        ...course,
-        chapters: course.chapters.map(ch => ch.id === chapterId ? updatedChapter : ch)
-      };
-      await updateCourse(courseId, updatedCourse);
+  const addHomework = async (courseId, chapterId, lessonId) => {
+    const { name, files } = newHomework;
+    if (!name || files.length === 0) {
+      console.error('Homework name or files missing');
+      return;
     }
-    cancelEditing();
+
+    const courseRef = doc(db, 'library', courseId);
+    const courseDoc = await getDoc(courseRef);
+    if (!courseDoc.exists()) {
+      console.error('Course does not exist:', courseId);
+      return;
+    }
+    const courseData = courseDoc.data();
+
+    // Upload files to Firebase Storage and get URLs
+    const fileURLs = await Promise.all(files.map(async (file) => {
+      const storageRef = ref(storage, `homeworks/${file.name}`);
+      await uploadBytes(storageRef, file);
+      return await getDownloadURL(storageRef);
+    }));
+
+    const newHomeworkData = { id: Date.now().toString(), name, fileURLs };
+    const updatedChapters = courseData.chapters.map(chapter => {
+      if (chapter.id === chapterId) {
+        const updatedLessons = chapter.lessons.map(lesson => {
+          if (lesson.id === lessonId) {
+            return { ...lesson, homeworks: [...(lesson.homeworks || []), newHomeworkData] };
+          }
+          return lesson;
+        });
+        return { ...chapter, lessons: updatedLessons };
+      }
+      return chapter;
+    });
+    await updateDoc(courseRef, { chapters: updatedChapters });
+    setLibrary(library.map(course => course.id === courseId ? { ...course, chapters: updatedChapters } : course));
+    setNewHomework({ name: '', files: [] }); // Reset new homework state
   };
 
-  const renderTree = () => {
-    console.log('Rendering courses:', courses); // Debugging log
-    return (
-      <div>
-        <form onSubmit={handleAddCourse} style={{ marginBottom: '1rem' }}>
-          <input
-            type="text"
-            value={newCourse}
-            onChange={(e) => setNewCourse(e.target.value)}
-            placeholder="New Course"
-          />
-          <Button type="submit">
-            <PlusCircle style={{ height: '1rem', width: '1rem' }} /> Add Course
-          </Button>
-        </form>
-        <Button onClick={handleDeleteAllCourses} style={{ marginBottom: '1rem', backgroundColor: '#EF4444', hover: { backgroundColor: '#DC2626' } }}>
-          <Trash2 style={{ height: '1rem', width: '1rem' }} /> Delete All Courses
-        </Button>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
-          {courses.sort((a, b) => a.ordinal - b.ordinal).map(course => (
-            <div key={course.id} style={{ marginBottom: '1rem', flex: '1 1 calc(33.333% - 1rem)', boxSizing: 'border-box' }}>
-              <div style={{ display: 'flex' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', marginRight: '1rem' }}>
-                  <Button onClick={() => toggleBranch(course.id)} style={{ marginBottom: '0.5rem' }}>
-                    {expandedBranches[course.id] ? <ChevronDown style={{ height: '1rem', width: '1rem' }} /> : <ChevronRight style={{ height: '1rem', width: '1rem' }} />}
-                  </Button>
-                  <Button onClick={() => startEditing({ type: 'course', courseId: course.id }, course.name)} style={{ marginBottom: '0.5rem' }}>
-                    <Edit2 style={{ height: '1rem', width: '1rem' }} />
-                  </Button>
-                  <Button onClick={() => handleAddChapter(course.id)} style={{ marginBottom: '0.5rem' }}>
-                    <PlusCircle style={{ height: '1rem', width: '1rem' }} /> Chapter
-                  </Button>
-                  <Button onClick={() => handleDeleteCourse(course.id)} style={{ marginBottom: '0.5rem', backgroundColor: '#EF4444', hover: { backgroundColor: '#DC2626' } }}>
-                    <Trash2 style={{ height: '1rem', width: '1rem' }} />
-                  </Button>
-                </div>
-                <div>
-                  {editingItem?.type === 'course' && editingItem.courseId === course.id ? (
-                    <div>
-                      <input
-                        type="text"
-                        value={editingValue}
-                        onChange={(e) => setEditingValue(e.target.value)}
-                      />
-                      <Button onClick={saveEditing}>Update</Button>
-                      <Button onClick={cancelEditing}>Cancel</Button>
-                    </div>
-                  ) : (
-                    <span style={{ fontWeight: 'bold' }}>{course.name}</span>
-                  )}
-                  {expandedBranches[course.id] && course.chapters?.sort((a, b) => a.ordinal - b.ordinal).map(chapter => (
-                    <div key={chapter.id} style={{ marginLeft: '1rem', marginTop: '0.5rem' }} id={`chapter-${chapter.id}`}>
-                      <div style={{ display: 'flex' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', marginRight: '1rem' }}>
-                          <Button onClick={() => toggleBranch(chapter.id)} style={{ marginBottom: '0.5rem' }}>
-                            {expandedBranches[chapter.id] ? <ChevronDown style={{ height: '1rem', width: '1rem' }} /> : <ChevronRight style={{ height: '1rem', width: '1rem' }} />}
-                          </Button>
-                          <Button onClick={() => startEditing({ type: 'chapter', courseId: course.id, chapterId: chapter.id }, chapter.name)} style={{ marginBottom: '0.5rem' }}>
-                            <Edit2 style={{ height: '1rem', width: '1rem' }} />
-                          </Button>
-                          <Button onClick={() => handleAddLesson(course.id, chapter.id)} style={{ marginBottom: '0.5rem' }}>
-                            <PlusCircle style={{ height: '1rem', width: '1rem' }} /> Lesson
-                          </Button>
-                          <Button onClick={() => handleDeleteCourse(course.id)} style={{ marginBottom: '0.5rem', backgroundColor: '#EF4444', hover: { backgroundColor: '#DC2626' } }}>
-                            <Trash2 style={{ height: '1rem', width: '1rem' }} />
-                          </Button>
-                        </div>
-                        <div>
-                          {editingItem?.type === 'chapter' && editingItem.chapterId === chapter.id ? (
-                            <div>
-                              <input
-                                type="text"
-                                value={editingValue}
-                                onChange={(e) => setEditingValue(e.target.value)}
-                              />
-                              <Button onClick={saveEditing}>Update</Button>
-                              <Button onClick={cancelEditing}>Cancel</Button>
-                            </div>
-                          ) : (
-                            <span>{chapter.ordinal}. {chapter.name}</span>
-                          )}
-                          {expandedBranches[chapter.id] && chapter.lessons?.sort((a, b) => a.ordinal - b.ordinal).map(lesson => (
-                            <div key={lesson.id} style={{ marginLeft: '1rem', marginTop: '0.5rem' }} id={`lesson-${lesson.id}`}>
-                              <div style={{ display: 'flex' }}>
-                                <div style={{ display: 'flex', flexDirection: 'column', marginRight: '1rem' }}>
-                                  <Button onClick={() => toggleBranch(lesson.id)} style={{ marginBottom: '0.5rem' }}>
-                                    {expandedBranches[lesson.id] ? <ChevronDown style={{ height: '1rem', width: '1rem' }} /> : <ChevronRight style={{ height: '1rem', width: '1rem' }} />}
-                                  </Button>
-                                  <Button onClick={() => startEditing({ type: 'lesson', courseId: course.id, chapterId: chapter.id, lessonId: lesson.id }, lesson.name)} style={{ marginBottom: '0.5rem' }}>
-                                    <Edit2 style={{ height: '1rem', width: '1rem' }} />
-                                  </Button>
-                                  <Button onClick={() => handleAddHomework(course.id, chapter.id, lesson.id)} style={{ marginBottom: '0.5rem' }}>
-                                    <PlusCircle style={{ height: '1rem', width: '1rem' }} /> Homework
-                                  </Button>
-                                  <Button onClick={() => handleDeleteCourse(course.id)} style={{ marginBottom: '0.5rem', backgroundColor: '#EF4444', hover: { backgroundColor: '#DC2626' } }}>
-                                    <Trash2 style={{ height: '1rem', width: '1rem' }} />
-                                  </Button>
-                                </div>
-                                <div>
-                                  {editingItem?.type === 'lesson' && editingItem.lessonId === lesson.id ? (
-                                    <div>
-                                      <input
-                                        type="text"
-                                        value={editingValue}
-                                        onChange={(e) => setEditingValue(e.target.value)}
-                                      />
-                                      <Button onClick={saveEditing}>Update</Button>
-                                      <Button onClick={cancelEditing}>Cancel</Button>
-                                    </div>
-                                  ) : (
-                                    <span>{lesson.ordinal}. {lesson.name}</span>
-                                  )}
-                                  {expandedBranches[lesson.id] && (
-                                    <div>
-                                      <h4>Homeworks:</h4>
-                                      {Array.isArray(lesson.homework.files) && lesson.homework.files.map((file, index) => (
-                                        <div key={index} style={{ marginLeft: '1rem', marginTop: '0.5rem', padding: '1rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)' }}>
-                                          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
-                                            <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                                              {file.name}
-                                            </a>
-                                            <button onClick={() => handleRemoveHomeworkFile(course.id, chapter.id, lesson.id, index)} className="ml-2 text-red-500 hover:text-red-700">
-                                              &times;
-                                            </button>
-                                          </div>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
+  const deleteCourse = async (courseId) => {
+    if (typeof courseId !== 'string') {
+      console.error('Invalid courseId:', courseId);
+      return;
+    }
+    await deleteDoc(doc(db, 'library', courseId));
+    setLibrary(library.filter(course => course.id !== courseId));
   };
+
+  const deleteChapter = async (courseId, chapterId) => {
+    if (typeof courseId !== 'string' || typeof chapterId !== 'string') {
+      console.error('Invalid courseId or chapterId:', courseId, chapterId);
+      return;
+    }
+    const courseRef = doc(db, 'library', courseId);
+    const courseDoc = await getDoc(courseRef);
+    if (!courseDoc.exists()) {
+      console.error('Course does not exist:', courseId);
+      return;
+    }
+    const courseData = courseDoc.data();
+    const updatedChapters = courseData.chapters.filter(chapter => chapter.id !== chapterId);
+    await updateDoc(courseRef, { chapters: updatedChapters });
+    setLibrary(library.map(course => course.id === courseId ? { ...course, chapters: updatedChapters } : course));
+  };
+
+  const deleteLesson = async (courseId, chapterId, lessonId) => {
+    if (typeof courseId !== 'string' || typeof chapterId !== 'string' || typeof lessonId !== 'string') {
+      console.error('Invalid courseId, chapterId, or lessonId:', courseId, chapterId, lessonId);
+      return;
+    }
+    const courseRef = doc(db, 'library', courseId);
+    const courseDoc = await getDoc(courseRef);
+    if (!courseDoc.exists()) {
+      console.error('Course does not exist:', courseId);
+      return;
+    }
+    const courseData = courseDoc.data();
+    const updatedChapters = courseData.chapters.map(chapter => {
+      if (chapter.id === chapterId) {
+        const updatedLessons = chapter.lessons.filter(lesson => lesson.id !== lessonId);
+        return { ...chapter, lessons: updatedLessons };
+      }
+      return chapter;
+    });
+    await updateDoc(courseRef, { chapters: updatedChapters });
+    setLibrary(library.map(course => course.id === courseId ? { ...course, chapters: updatedChapters } : course));
+  };
+
+  const deleteHomework = async (courseId, chapterId, lessonId, homeworkId) => {
+    if (typeof courseId !== 'string' || typeof chapterId !== 'string' || typeof lessonId !== 'string' || typeof homeworkId !== 'string') {
+      console.error('Invalid courseId, chapterId, lessonId, or homeworkId:', courseId, chapterId, lessonId, homeworkId);
+      return;
+    }
+    const courseRef = doc(db, 'library', courseId);
+    const courseDoc = await getDoc(courseRef);
+    if (!courseDoc.exists()) {
+      console.error('Course does not exist:', courseId);
+      return;
+    }
+    const courseData = courseDoc.data();
+    const updatedChapters = courseData.chapters.map(chapter => {
+      if (chapter.id === chapterId) {
+        const updatedLessons = chapter.lessons.map(lesson => {
+          if (lesson.id === lessonId) {
+            const updatedHomeworks = lesson.homeworks.filter(homework => homework.id !== homeworkId);
+            return { ...lesson, homeworks: updatedHomeworks };
+          }
+          return lesson;
+        });
+        return { ...chapter, lessons: updatedLessons };
+      }
+      return chapter;
+    });
+    await updateDoc(courseRef, { chapters: updatedChapters });
+    setLibrary(library.map(course => course.id === courseId ? { ...course, chapters: updatedChapters } : course));
+  };
+
+  const startEdit = (item, type, courseId = null, chapterId = null) => {
+    setEditMode(true);
+    setEditItem({ ...item, type, courseId, chapterId });
+  };
+
+  const handleEdit = (e) => {
+    const { name, value } = e.target;
+    setEditItem({ ...editItem, [name]: value });
+  };
+
+  const saveEdit = async () => {
+    const courseRef = doc(db, 'library', editItem.courseId || editItem.id);
+    const courseDoc = await getDoc(courseRef);
+  
+    if (!courseDoc.exists()) {
+      console.error('Course does not exist:', editItem.courseId || editItem.id);
+      return;
+    }
+  
+    const courseData = courseDoc.data();
+  
+    if (editItem.type === 'course') {
+      // Update the course itself
+      await updateDoc(courseRef, editItem);
+    } else if (editItem.type === 'chapter') {
+      // Update a chapter within the course
+      const updatedChapters = courseData.chapters.map(chapter =>
+        chapter.id === editItem.id ? { ...chapter, ...editItem } : chapter
+      );
+      await updateDoc(courseRef, { chapters: updatedChapters });
+    } else if (editItem.type === 'lesson') {
+      // Update a lesson within a chapter
+      const updatedChapters = courseData.chapters.map(chapter => {
+        if (chapter.id === editItem.chapterId) {
+          const updatedLessons = chapter.lessons.map(lesson =>
+            lesson.id === editItem.id ? { ...lesson, ...editItem } : lesson
+          );
+          return { ...chapter, lessons: updatedLessons };
+        }
+        return chapter;
+      });
+      await updateDoc(courseRef, { chapters: updatedChapters });
+    }
+  
+    // Update the local state
+    setLibrary(library.map(course => course.id === (editItem.courseId || editItem.id) ? { ...course, ...courseData } : course));
+    setEditMode(false);
+    setEditItem(null);
+  };
+
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    setNewHomework({ ...newHomework, files });
+  };
+
+  const handleHomeworkNameChange = (e) => {
+    setNewHomework({ ...newHomework, name: e.target.value });
+  };
+
+  const toggleCourse = (courseId) => {
+    setExpandedCourses(prevState => ({ ...prevState, [courseId]: !prevState[courseId] }));
+  };
+
+  const toggleChapter = (chapterId) => {
+    setExpandedChapters(prevState => ({ ...prevState, [chapterId]: !prevState[chapterId] }));
+  };
+
+  const toggleLesson = (lessonId) => {
+    setExpandedLessons(prevState => ({ ...prevState, [lessonId]: !prevState[lessonId] }));
+  };
+
+  const renderEditForm = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+      <div className="bg-white p-4 rounded">
+        <h2 className="text-xl font-bold mb-4">Edit Item</h2>
+        <Input
+          name="name"
+          value={editItem.name}
+          onChange={handleEdit}
+          className="mb-2"
+          placeholder="Name"
+        />
+        {editItem.ordinal !== undefined && (
+          <Input
+            name="ordinal"
+            type="number"
+            value={editItem.ordinal}
+            onChange={handleEdit}
+            className="mb-2"
+            placeholder="Ordinal"
+          />
+        )}
+        {editItem.description !== undefined && (
+          <Input
+            name="description"
+            value={editItem.description}
+            onChange={handleEdit}
+            className="mb-2"
+            placeholder="Description"
+          />
+        )}
+        <Button onClick={saveEdit} className="mr-2">Save</Button>
+        <Button onClick={() => setEditMode(false)}>Cancel</Button>
+      </div>
+    </div>
+  );
+
+  const renderLibrary = () => (
+    <div>
+      {library.map(course => (
+        <div key={course.id} className="mb-4">
+          <div className="flex items-center">
+            <Button onClick={() => toggleCourse(course.id)} className="mr-2">
+              {expandedCourses[course.id] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            </Button>
+            <span className="font-bold">{course.name}</span>
+            <Button onClick={() => startEdit(course, 'course')} className="ml-2">
+              <Edit2 className="h-4 w-4" />
+            </Button>
+            <Button onClick={() => addChapter(course.id)} className="ml-2">
+              <PlusCircle className="h-4 w-4" /> Chapter
+            </Button>
+            <Button onClick={() => deleteCourse(course.id)} className="ml-2">
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+          {expandedCourses[course.id] && (
+            <div>
+              {(course.chapters?.length || 0) === 0 && (
+                <div className="ml-4 mt-2 text-gray-500">No chapters available</div>
+              )}
+              {course.chapters?.map(chapter => (
+                <div key={chapter.id} className="ml-4 mt-2">
+                  <div className="flex items-center">
+                    <Button onClick={() => toggleChapter(chapter.id)} className="mr-2">
+                      {expandedChapters[chapter.id] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                    </Button>
+                    <span>{chapter.ordinal}. {chapter.name}</span>
+                    <Button onClick={() => startEdit(chapter, 'chapter', course.id)} className="ml-2">
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button onClick={() => addLesson(course.id, chapter.id)} className="ml-2">
+                      <PlusCircle className="h-4 w-4" /> Lesson
+                    </Button>
+                    <Button onClick={() => deleteChapter(course.id, chapter.id)} className="ml-2">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  {expandedChapters[chapter.id] && (
+                    <div>
+                      {(chapter.lessons?.length || 0) === 0 && (
+                        <div className="ml-4 mt-2 text-gray-500">No lessons available</div>
+                      )}
+                      {chapter.lessons?.map(lesson => (
+                        <div key={lesson.id} className="ml-4 mt-2">
+                          <div className="flex items-center">
+                            <Button onClick={() => toggleLesson(lesson.id)} className="mr-2">
+                              {expandedLessons[lesson.id] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                            </Button>
+                            <span>{lesson.ordinal}. {lesson.name}</span>
+                            <Button onClick={() => startEdit(lesson, 'lesson', course.id, chapter.id)} className="ml-2">
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button onClick={() => addHomework(course.id, chapter.id, lesson.id)} className="ml-2">
+                              <PlusCircle className="h-4 w-4" /> Homework
+                            </Button>
+                            <Button onClick={() => deleteLesson(course.id, chapter.id, lesson.id)} className="ml-2">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          {expandedLessons[lesson.id] && (
+                            <div>
+                              <p className="ml-6 text-sm text-gray-600">{lesson.description}</p>
+                              <div className="ml-6 mt-2">
+                                <Input
+                                  type="text"
+                                  value={newHomework.name}
+                                  onChange={handleHomeworkNameChange}
+                                  placeholder="Homework Name"
+                                  className="mb-2"
+                                />
+                                <input type="file" multiple onChange={handleFileChange} className="mb-2" />
+                                <Button onClick={() => addHomework(course.id, chapter.id, lesson.id)} className="ml-2">
+                                  <PlusCircle className="h-4 w-4" /> Add Homework
+                                </Button>
+                              </div>
+                              {(lesson.homeworks?.length || 0) === 0 && (
+                                <div className="ml-6 mt-2 text-gray-500">No homeworks available</div>
+                              )}
+                              {lesson.homeworks?.map(homework => (
+                                <div key={homework.id} className="ml-6 mt-2">
+                                  <div className="flex items-center">
+                                    <ChevronRight className="mr-2 h-4 w-4" />
+                                    <span>{homework.name}</span>
+                                    {homework.fileURLs.map((fileURL, index) => (
+                                      <a key={index} href={fileURL} target="_blank" rel="noopener noreferrer" className="ml-2">
+                                        File {index + 1}
+                                      </a>
+                                    ))}
+                                    <Button onClick={() => deleteHomework(course.id, chapter.id, lesson.id, homework.id)} className="ml-2">
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
 
   return (
-    <div className="library-container">
-      <form onSubmit={handleAddCourse} style={{ marginBottom: '1rem' }}>
-        <input
-          type="text"
-          value={newCourse}
-          onChange={(e) => setNewCourse(e.target.value)}
-          placeholder="New Course"
-        />
-        <Button type="submit">
-          <PlusCircle style={{ height: '1rem', width: '1rem' }} /> Add Course
-        </Button>
-      </form>
-      <Button onClick={handleDeleteAllCourses} style={{ marginBottom: '1rem', backgroundColor: '#EF4444', hover: { backgroundColor: '#DC2626' } }}>
-        <Trash2 style={{ height: '1rem', width: '1rem' }} /> Delete All Courses
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">Library</h1>
+      <Button onClick={addCourse} className="mb-4">
+        <PlusCircle className="mr-2 h-4 w-4" /> Add Course
       </Button>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
-        {courses.sort((a, b) => a.ordinal - b.ordinal).map(course => (
-          <div key={course.id} style={{ marginBottom: '1rem', flex: '1 1 calc(33.333% - 1rem)', boxSizing: 'border-box' }}>
-            <div style={{ display: 'flex' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', marginRight: '1rem' }}>
-                <Button onClick={() => toggleBranch(course.id)} style={{ marginBottom: '0.5rem' }}>
-                  {expandedBranches[course.id] ? <ChevronDown style={{ height: '1rem', width: '1rem' }} /> : <ChevronRight style={{ height: '1rem', width: '1rem' }} />}
-                </Button>
-                <Button onClick={() => startEditing({ type: 'course', courseId: course.id }, course.name)} style={{ marginBottom: '0.5rem' }}>
-                  <Edit2 style={{ height: '1rem', width: '1rem' }} />
-                </Button>
-                <Button onClick={() => handleAddChapter(course.id)} style={{ marginBottom: '0.5rem' }}>
-                  <PlusCircle style={{ height: '1rem', width: '1rem' }} /> Chapter
-                </Button>
-                <Button onClick={() => handleDeleteCourse(course.id)} style={{ marginBottom: '0.5rem', backgroundColor: '#EF4444', hover: { backgroundColor: '#DC2626' } }}>
-                  <Trash2 style={{ height: '1rem', width: '1rem' }} />
-                </Button>
-              </div>
-              <div>
-                {editingItem?.type === 'course' && editingItem.courseId === course.id ? (
-                  <div>
-                    <input
-                      type="text"
-                      value={editingValue}
-                      onChange={(e) => setEditingValue(e.target.value)}
-                    />
-                    <Button onClick={saveEditing}>Update</Button>
-                    <Button onClick={cancelEditing}>Cancel</Button>
-                  </div>
-                ) : (
-                  <span style={{ fontWeight: 'bold' }}>{course.name}</span>
-                )}
-                {expandedBranches[course.id] && course.chapters?.sort((a, b) => a.ordinal - b.ordinal).map(chapter => (
-                  <div key={chapter.id} style={{ marginLeft: '1rem', marginTop: '0.5rem' }} id={`chapter-${chapter.id}`}>
-                    <div style={{ display: 'flex' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', marginRight: '1rem' }}>
-                        <Button onClick={() => toggleBranch(chapter.id)} style={{ marginBottom: '0.5rem' }}>
-                          {expandedBranches[chapter.id] ? <ChevronDown style={{ height: '1rem', width: '1rem' }} /> : <ChevronRight style={{ height: '1rem', width: '1rem' }} />}
-                        </Button>
-                        <Button onClick={() => startEditing({ type: 'chapter', courseId: course.id, chapterId: chapter.id }, chapter.name)} style={{ marginBottom: '0.5rem' }}>
-                          <Edit2 style={{ height: '1rem', width: '1rem' }} />
-                        </Button>
-                        <Button onClick={() => handleAddLesson(course.id, chapter.id)} style={{ marginBottom: '0.5rem' }}>
-                          <PlusCircle style={{ height: '1rem', width: '1rem' }} /> Lesson
-                        </Button>
-                        <Button onClick={() => handleDeleteCourse(course.id)} style={{ marginBottom: '0.5rem', backgroundColor: '#EF4444', hover: { backgroundColor: '#DC2626' } }}>
-                          <Trash2 style={{ height: '1rem', width: '1rem' }} />
-                        </Button>
-                      </div>
-                      <div>
-                        {editingItem?.type === 'chapter' && editingItem.chapterId === chapter.id ? (
-                          <div>
-                            <input
-                              type="text"
-                              value={editingValue}
-                              onChange={(e) => setEditingValue(e.target.value)}
-                            />
-                            <Button onClick={saveEditing}>Update</Button>
-                            <Button onClick={cancelEditing}>Cancel</Button>
-                          </div>
-                        ) : (
-                          <span>{chapter.ordinal}. {chapter.name}</span>
-                        )}
-                        {expandedBranches[chapter.id] && chapter.lessons?.sort((a, b) => a.ordinal - b.ordinal).map(lesson => (
-                          <div key={lesson.id} style={{ marginLeft: '1rem', marginTop: '0.5rem' }} id={`lesson-${lesson.id}`}>
-                            <div style={{ display: 'flex' }}>
-                              <div style={{ display: 'flex', flexDirection: 'column', marginRight: '1rem' }}>
-                                <Button onClick={() => toggleBranch(lesson.id)} style={{ marginBottom: '0.5rem' }}>
-                                  {expandedBranches[lesson.id] ? <ChevronDown style={{ height: '1rem', width: '1rem' }} /> : <ChevronRight style={{ height: '1rem', width: '1rem' }} />}
-                                </Button>
-                                <Button onClick={() => startEditing({ type: 'lesson', courseId: course.id, chapterId: chapter.id, lessonId: lesson.id }, lesson.name)} style={{ marginBottom: '0.5rem' }}>
-                                  <Edit2 style={{ height: '1rem', width: '1rem' }} />
-                                </Button>
-                                <Button onClick={() => handleAddHomework(course.id, chapter.id, lesson.id)} style={{ marginBottom: '0.5rem' }}>
-                                  <PlusCircle style={{ height: '1rem', width: '1rem' }} /> Homework
-                                </Button>
-                                <Button onClick={() => handleDeleteCourse(course.id)} style={{ marginBottom: '0.5rem', backgroundColor: '#EF4444', hover: { backgroundColor: '#DC2626' } }}>
-                                  <Trash2 style={{ height: '1rem', width: '1rem' }} />
-                                </Button>
-                              </div>
-                              <div>
-                                {editingItem?.type === 'lesson' && editingItem.lessonId === lesson.id ? (
-                                  <div>
-                                    <input
-                                      type="text"
-                                      value={editingValue}
-                                      onChange={(e) => setEditingValue(e.target.value)}
-                                    />
-                                    <Button onClick={saveEditing}>Update</Button>
-                                    <Button onClick={cancelEditing}>Cancel</Button>
-                                  </div>
-                                ) : (
-                                  <span>{lesson.ordinal}. {lesson.name}</span>
-                                )}
-                                {expandedBranches[lesson.id] && (
-                                  <div>
-                                    <h4>Homeworks:</h4>
-                                    {Array.isArray(lesson.homework.files) && lesson.homework.files.map((file, index) => (
-                                      <div key={index} style={{ marginLeft: '1rem', marginTop: '0.5rem', padding: '1rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
-                                          <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                                            {file.name}
-                                          </a>
-                                          <button onClick={() => handleRemoveHomeworkFile(course.id, chapter.id, lesson.id, index)} className="ml-2 text-red-500 hover:text-red-700">
-                                            &times;
-                                          </button>
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+      {renderLibrary()}
+      {editMode && renderEditForm()}
     </div>
   );
 };

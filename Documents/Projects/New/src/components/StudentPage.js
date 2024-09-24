@@ -5,6 +5,8 @@ import { GlobalStateContext } from '../context/GlobalStateContext';
 import 'chart.js/auto';
 import CircularProgress from './ProgressBar/CircularProgress';
 import Button from '@/components/ui/Button';
+import TablePage from '@/components/TablePage';
+
 
 import { getDoc, doc, collection, addDoc, deleteDoc, updateDoc } from 'firebase/firestore'; // Import Firestore functions
 import { db } from '../firebase'; // Adjust the path to your Firebase configuration
@@ -407,7 +409,7 @@ const StudentPage = () => {
           </div>
         </div>
       </div>
-      
+      <TablePage/>
     </div>
   );
 }
