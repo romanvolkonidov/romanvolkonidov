@@ -228,6 +228,9 @@ const TablePage = ({ studentId }) => {
         headers = [];
     }
   
+    // Sort tableData by date in descending order
+    const sortedTableData = [...tableData].sort((a, b) => new Date(b.date) - new Date(a.date));
+  
     return (
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
@@ -239,7 +242,7 @@ const TablePage = ({ studentId }) => {
             </tr>
           </thead>
           <tbody>
-            {tableData
+            {sortedTableData
               .filter(row => {
                 if (view === 'completed') return row.progress !== '';
                 if (view === 'homework') return row.homework !== '';

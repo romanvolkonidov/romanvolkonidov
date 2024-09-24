@@ -253,15 +253,72 @@ const Library = () => {
     setExpandedLessons(prevState => ({ ...prevState, [lessonId]: !prevState[lessonId] }));
   };
 
+  const containerStyles = {
+    padding: '1rem',
+    backgroundColor: '#f9f9f9',
+    borderRadius: '8px',
+    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+  };
+
+  const courseStyles = {
+    marginBottom: '1rem',
+    padding: '1rem',
+    backgroundColor: '#fff',
+    borderRadius: '4px',
+    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+  };
+
+  const courseHeaderStyles = {
+    display: 'flex',
+    alignItems: 'center',
+    marginBottom: '0.5rem',
+  };
+
+  const chapterStyles = {
+    marginLeft: '1rem',
+    marginTop: '0.5rem',
+    padding: '0.5rem',
+    backgroundColor: '#f5f5f5',
+    borderRadius: '4px',
+  };
+
+  const chapterHeaderStyles = {
+    display: 'flex',
+    alignItems: 'center',
+    marginBottom: '0.25rem',
+  };
+
+  const lessonStyles = {
+    marginLeft: '1rem',
+    marginTop: '0.25rem',
+    padding: '0.5rem',
+    backgroundColor: '#f9f9f9',
+    borderRadius: '4px',
+  };
+
+  const lessonHeaderStyles = {
+    display: 'flex',
+    alignItems: 'center',
+    marginBottom: '0.25rem',
+  };
+
+  const homeworkStyles = {
+    marginLeft: '1rem',
+    marginTop: '0.25rem',
+    padding: '0.5rem',
+    backgroundColor: '#f0f0f0',
+    borderRadius: '4px',
+  };
+
   const renderEditForm = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white p-4 rounded">
-        <h2 className="text-xl font-bold mb-4">Edit Item</h2>
+    <div style={{ position: 'fixed', inset: '0', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '16px' }}>Edit Item</h2>
         <Input
           name="name"
           value={editItem.name}
           onChange={handleEdit}
-          className="mb-2"
+          style={{ marginBottom: '8px' }}
           placeholder="Name"
         />
         {editItem.ordinal !== undefined && (
@@ -270,118 +327,124 @@ const Library = () => {
             type="number"
             value={editItem.ordinal}
             onChange={handleEdit}
-            className="mb-2"
+            style={{ marginBottom: '8px' }}
             placeholder="Ordinal"
           />
         )}
-        {editItem.description !== undefined && (
-          <Input
+        {editItem.type === 'lesson' && (
+          <textarea
             name="description"
-            value={editItem.description}
+            value={editItem.description || ''}
             onChange={handleEdit}
-            className="mb-2"
+            style={{ marginBottom: '8px', padding: '8px', border: '1px solid #ccc', borderRadius: '4px', width: '100%' }}
             placeholder="Description"
           />
         )}
-        <Button onClick={saveEdit} className="mr-2">Save</Button>
+        <Button onClick={saveEdit} style={{ marginRight: '8px' }}>Save</Button>
         <Button onClick={() => setEditMode(false)}>Cancel</Button>
       </div>
     </div>
   );
 
   const renderLibrary = () => (
-    <div>
+    <div style={containerStyles}>
       {library.map(course => (
-        <div key={course.id} className="mb-4">
-          <div className="flex items-center">
-            <Button onClick={() => toggleCourse(course.id)} className="mr-2">
+        <div key={course.id} style={courseStyles}>
+          <div style={courseHeaderStyles}>
+            <Button onClick={() => toggleCourse(course.id)} style={{ marginRight: '0.5rem' }}>
               {expandedCourses[course.id] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             </Button>
-            <span className="font-bold">{course.name}</span>
-            <Button onClick={() => startEdit(course, 'course')} className="ml-2">
+            <span style={{ fontWeight: 'bold' }}>{course.name}</span>
+            <Button onClick={() => startEdit(course, 'course')} style={{ marginLeft: 'auto' }}>
               <Edit2 className="h-4 w-4" />
             </Button>
-            <Button onClick={() => addChapter(course.id)} className="ml-2">
-              <PlusCircle className="h-4 w-4" /> Chapter
+            <Button onClick={() => addChapter(course.id)} style={{ marginLeft: '0.5rem' }}>
+              <PlusCircle className="h-4 w-4" />
             </Button>
-            <Button onClick={() => deleteCourse(course.id)} className="ml-2">
+            <Button onClick={() => deleteCourse(course.id)} style={{ marginLeft: '0.5rem' }}>
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
           {expandedCourses[course.id] && (
             <div>
               {(course.chapters?.length || 0) === 0 && (
-                <div className="ml-4 mt-2 text-gray-500">No chapters available</div>
+                <div style={{ marginLeft: '1rem', marginTop: '0.5rem', color: '#777' }}>
+                  No chapters available
+                </div>
               )}
               {course.chapters?.map(chapter => (
-                <div key={chapter.id} className="ml-4 mt-2">
-                  <div className="flex items-center">
-                    <Button onClick={() => toggleChapter(chapter.id)} className="mr-2">
+                <div key={chapter.id} style={chapterStyles}>
+                  <div style={chapterHeaderStyles}>
+                    <Button onClick={() => toggleChapter(chapter.id)} style={{ marginRight: '0.5rem' }}>
                       {expandedChapters[chapter.id] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                     </Button>
                     <span>{chapter.ordinal}. {chapter.name}</span>
-                    <Button onClick={() => startEdit(chapter, 'chapter', course.id)} className="ml-2">
+                    <Button onClick={() => startEdit(chapter, 'chapter', course.id)} style={{ marginLeft: 'auto' }}>
                       <Edit2 className="h-4 w-4" />
                     </Button>
-                    <Button onClick={() => addLesson(course.id, chapter.id)} className="ml-2">
-                      <PlusCircle className="h-4 w-4" /> Lesson
+                    <Button onClick={() => addLesson(course.id, chapter.id)} style={{ marginLeft: '0.5rem' }}>
+                      <PlusCircle className="h-4 w-4" />
                     </Button>
-                    <Button onClick={() => deleteChapter(course.id, chapter.id)} className="ml-2">
+                    <Button onClick={() => deleteChapter(course.id, chapter.id)} style={{ marginLeft: '0.5rem' }}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                   {expandedChapters[chapter.id] && (
                     <div>
                       {(chapter.lessons?.length || 0) === 0 && (
-                        <div className="ml-4 mt-2 text-gray-500">No lessons available</div>
+                        <div style={{ marginLeft: '1rem', marginTop: '0.5rem', color: '#777' }}>
+                          No lessons available
+                        </div>
                       )}
                       {chapter.lessons?.map(lesson => (
-                        <div key={lesson.id} className="ml-4 mt-2">
-                          <div className="flex items-center">
-                            <Button onClick={() => toggleLesson(lesson.id)} className="mr-2">
+                        <div key={lesson.id} style={lessonStyles}>
+                          <div style={lessonHeaderStyles}>
+                            <Button onClick={() => toggleLesson(lesson.id)} style={{ marginRight: '0.5rem' }}>
                               {expandedLessons[lesson.id] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                             </Button>
                             <span>{lesson.ordinal}. {lesson.name}</span>
-                            <Button onClick={() => startEdit(lesson, 'lesson', course.id, chapter.id)} className="ml-2">
+                            <Button onClick={() => startEdit(lesson, 'lesson', course.id, chapter.id)} style={{ marginLeft: 'auto' }}>
                               <Edit2 className="h-4 w-4" />
                             </Button>
-                            <Button onClick={() => addHomework(course.id, chapter.id, lesson.id)} className="ml-2">
-                              <PlusCircle className="h-4 w-4" /> Homework
+                            <Button onClick={() => addHomework(course.id, chapter.id, lesson.id)} style={{ marginLeft: '0.5rem' }}>
+                              <PlusCircle className="h-4 w-4" />
                             </Button>
-                            <Button onClick={() => deleteLesson(course.id, chapter.id, lesson.id)} className="ml-2">
+                            <Button onClick={() => deleteLesson(course.id, chapter.id, lesson.id)} style={{ marginLeft: '0.5rem' }}>
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
                           {expandedLessons[lesson.id] && (
                             <div>
-                              <p className="ml-6 text-sm text-gray-600">{lesson.description}</p>
-                              <div className="ml-6 mt-2">
+                              <p style={{ marginLeft: '1.5rem', fontSize: '0.875rem', color: '#555' }}>{lesson.description}</p>
+                              <div style={{ marginLeft: '1.5rem', marginTop: '0.5rem' }}>
                                 <Input
                                   type="text"
                                   value={newHomework.name}
                                   onChange={handleHomeworkNameChange}
                                   placeholder="Homework Name"
-                                  className="mb-2"
+                                  style={{ marginBottom: '0.5rem' }}
                                 />
-                                <input type="file" multiple onChange={handleFileChange} className="mb-2" />
-                                <Button onClick={() => addHomework(course.id, chapter.id, lesson.id)} className="ml-2">
+                                <input type="file" multiple onChange={handleFileChange} style={{ marginBottom: '0.5rem' }} />
+                                <Button onClick={() => addHomework(course.id, chapter.id, lesson.id)} style={{ marginLeft: '0.5rem' }}>
                                   <PlusCircle className="h-4 w-4" /> Add Homework
                                 </Button>
                               </div>
                               {(lesson.homeworks?.length || 0) === 0 && (
-                                <div className="ml-6 mt-2 text-gray-500">No homeworks available</div>
+                                <div style={{ marginLeft: '1.5rem', marginTop: '0.5rem', color: '#777' }}>
+                                  No homeworks available
+                                </div>
                               )}
                               {lesson.homeworks?.map(homework => (
-                                <div key={homework.id} className="ml-6 mt-2">
-                                  <div className="flex items-center">
-                                    <ChevronRight className="mr-2 h-4 w-4" />
+                                <div key={homework.id} style={homeworkStyles}>
+                                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    <ChevronRight style={{ marginRight: '0.5rem', height: '16px', width: '16px' }} />
                                     <span>{homework.name}</span>
                                     {homework.fileURLs.map((fileURL, index) => (
-                                      <a key={index} href={fileURL} target="_blank" rel="noopener noreferrer" className="ml-2">
+                                      <a key={index} href={fileURL} target="_blank" rel="noopener noreferrer" style={{ marginLeft: '0.5rem' }}>
                                         File {index + 1}
                                       </a>
                                     ))}
-                                    <Button onClick={() => deleteHomework(course.id, chapter.id, lesson.id, homework.id)} className="ml-2">
+                                    <Button onClick={() => deleteHomework(course.id, chapter.id, lesson.id, homework.id)} style={{ marginLeft: '0.5rem' }}>
                                       <Trash2 className="h-4 w-4" />
                                     </Button>
                                   </div>
@@ -403,10 +466,10 @@ const Library = () => {
   );
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Library</h1>
-      <Button onClick={addCourse} className="mb-4">
-        <PlusCircle className="mr-2 h-4 w-4" /> Add Course
+    <div style={containerStyles}>
+      <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem' }}>Library</h1>
+      <Button onClick={addCourse} style={{ marginBottom: '1rem' }}>
+        <PlusCircle style={{ marginRight: '0.5rem', height: '16px', width: '16px' }} /> Add Course
       </Button>
       {renderLibrary()}
       {editMode && renderEditForm()}
