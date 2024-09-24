@@ -409,7 +409,7 @@ const StudentPage = () => {
           </div>
         </div>
       </div>
-      <TablePage/>
+      <TablePage studentId={id} />
     </div>
   );
 }

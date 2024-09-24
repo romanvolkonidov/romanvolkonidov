@@ -3,7 +3,7 @@ import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db } from '../firebase'; // Ensure you have the correct path to your firebase configuration
 
-const TablePage = () => {
+const TablePage = ({ studentId }) => {
   const [view, setView] = useState('completed'); // 'completed', 'homework', 'future'
   const [library, setLibrary] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState('');
@@ -27,7 +27,7 @@ const TablePage = () => {
         const tableData = tableDataSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   
         setLibrary(libraryData);
-        setTableData(tableData);
+        setTableData(tableData.filter(data => data.studentId === studentId));
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -36,7 +36,7 @@ const TablePage = () => {
     };
   
     fetchLibraryAndTableData();
-  }, []);
+  }, [studentId]);
 
   const storage = getStorage();
 
@@ -64,6 +64,7 @@ const TablePage = () => {
     const selectedHomeworkData = selectedLessonData?.homeworks?.find(homework => homework.id === selectedHomework);
     
     const newData = {
+      studentId, // Add student ID to the data
       date,
       course: selectedCourseData.name || '',
       chapter: selectedChapterData.name || '',
@@ -72,10 +73,10 @@ const TablePage = () => {
       homework: view === 'homework' ? selectedHomeworkData?.name || '' : '',
       homeworkFiles: view === 'homework' ? selectedHomeworkData?.fileURLs || [] : [], // Initialize with homework files
       submit: view === 'homework' ? [] : '', // Initialize as an empty array for file attachments
-      results: view === 'homework' ? { percentage: '', files: [] } : '', // Initialize as an object for percentage and files
+      results: view === 'homework' ? { percentage: '', files: [] } : { percentage: '', files: [] }, // Initialize as an object for percentage and files
       checkedHomework: view === 'homework' ? [] : '', // Initialize as an empty array for checked homework files
     };
-
+  
     try {
       setIsSubmitting(true);
       const docRef = await addDoc(collection(db, 'tableData'), newData);
@@ -136,9 +137,9 @@ const TablePage = () => {
     const docRef = doc(db, 'tableData', id);
     const updatedRow = tableData.find(row => row.id === id);
   
-    // Ensure results.files is an array
-    if (!Array.isArray(updatedRow.results.files)) {
-      updatedRow.results.files = [];
+    // Ensure results is an object
+    if (typeof updatedRow.results !== 'object') {
+      updatedRow.results = { percentage: '', files: [] };
     }
   
     updatedRow.results.percentage = percentage;
@@ -341,6 +342,14 @@ const TablePage = () => {
                             placeholder="Результаты (%)"
                             className="p-2 border rounded"
                           />
+                          <div className="w-full bg-gray-200 rounded mt-2">
+                            <div
+                              className="bg-green-500 text-xs font-medium text-green-100 text-center p-0.5 leading-none rounded"
+                              style={{ width: `${row.results.percentage}%` }}
+                            >
+                              {row.results.percentage}%
+                            </div>
+                          </div>
                           {row.results.files && row.results.files.map((fileURL, index) => (
                             <div key={index} className="flex items-center">
                               <a href={fileURL} download>
@@ -367,9 +376,9 @@ const TablePage = () => {
       </div>
     );
   };
-  
+
   if (loading) return <div>Loading...</div>;
-  
+
   return (
     <div className="p-4 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Таблица студента</h1>
@@ -379,7 +388,7 @@ const TablePage = () => {
         <button onClick={() => setView('homework')} className="p-2 border rounded ml-2">Homework</button>
         <button onClick={() => setView('future')} className="p-2 border rounded ml-2">Future</button>
       </div>
-  
+
       {renderDropdowns()}
       <div className="mb-4 flex flex-wrap gap-2">
         <input
@@ -398,7 +407,7 @@ const TablePage = () => {
           />
         )}
       </div>
-  
+
       <button
         onClick={handleAddData}
         disabled={isSubmitting}
@@ -406,7 +415,7 @@ const TablePage = () => {
       >
         {isSubmitting ? 'Submitting...' : 'Add Data'}
       </button>
-  
+
       {renderTable()}
     </div>
   );
