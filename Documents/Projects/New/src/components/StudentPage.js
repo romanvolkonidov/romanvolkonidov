@@ -11,6 +11,7 @@ import TablePage from '@/components/TablePage';
 
 
 
+
 import { getDoc, doc, collection, addDoc, deleteDoc, updateDoc } from 'firebase/firestore'; // Import Firestore functions
 import { db } from '../firebase'; // Adjust the path to your Firebase configuration
 
@@ -413,6 +414,7 @@ const StudentPage = () => {
         </div>
       </div>
       <TablePage studentId={id} />
+     
    
 
 

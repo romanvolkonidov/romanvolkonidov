@@ -10,7 +10,7 @@ const Library = () => {
   const [library, setLibrary] = useState([]);
   const [editMode, setEditMode] = useState(false);
   const [editItem, setEditItem] = useState(null);
-  const [newHomework, setNewHomework] = useState({ name: '', files: [] });
+  const [newHomework, setNewHomework] = useState({ text: '', files: [] });
   const [expandedCourses, setExpandedCourses] = useState({});
   const [expandedChapters, setExpandedChapters] = useState({});
   const [expandedLessons, setExpandedLessons] = useState({});
@@ -26,7 +26,7 @@ const Library = () => {
   }, []);
 
   const addCourse = async () => {
-    const newCourse = { name: 'New Course', chapters: [] };
+    const newCourse = { name: 'New Course', description: '', chapters: [] };
     const docRef = await addDoc(collection(db, 'library'), newCourse);
     setLibrary([...library, { id: docRef.id, ...newCourse }]);
   };
@@ -39,7 +39,7 @@ const Library = () => {
       return;
     }
     const courseData = courseDoc.data();
-    const newChapter = { id: Date.now().toString(), name: 'New Chapter', ordinal: (courseData.chapters?.length || 0) + 1, lessons: [] };
+    const newChapter = { id: Date.now().toString(), name: 'New Chapter', description: '', ordinal: (courseData.chapters?.length || 0) + 1, lessons: [] };
     const updatedChapters = [...(courseData.chapters || []), newChapter];
     await updateDoc(courseRef, { chapters: updatedChapters });
     setLibrary(library.map(course => course.id === courseId ? { ...course, chapters: updatedChapters } : course));
@@ -65,9 +65,9 @@ const Library = () => {
   };
 
   const addHomework = async (courseId, chapterId, lessonId) => {
-    const { name, files } = newHomework;
-    if (!name || files.length === 0) {
-      console.error('Homework name or files missing');
+    const { text, files } = newHomework;
+    if (!text || files.length === 0) {
+      console.error('Homework text or files missing');
       return;
     }
 
@@ -86,7 +86,7 @@ const Library = () => {
       return await getDownloadURL(storageRef);
     }));
 
-    const newHomeworkData = { id: Date.now().toString(), name, fileURLs };
+    const newHomeworkData = { id: Date.now().toString(), text, fileURLs };
     const updatedChapters = courseData.chapters.map(chapter => {
       if (chapter.id === chapterId) {
         const updatedLessons = chapter.lessons.map(lesson => {
@@ -101,7 +101,7 @@ const Library = () => {
     });
     await updateDoc(courseRef, { chapters: updatedChapters });
     setLibrary(library.map(course => course.id === courseId ? { ...course, chapters: updatedChapters } : course));
-    setNewHomework({ name: '', files: [] }); // Reset new homework state
+    setNewHomework({ text: '', files: [] }); // Reset new homework state
   };
 
   const deleteCourse = async (courseId) => {
@@ -237,8 +237,8 @@ const Library = () => {
     setNewHomework({ ...newHomework, files });
   };
 
-  const handleHomeworkNameChange = (e) => {
-    setNewHomework({ ...newHomework, name: e.target.value });
+  const handleHomeworkTextChange = (e) => {
+    setNewHomework({ ...newHomework, text: e.target.value });
   };
 
   const toggleCourse = (courseId) => {
@@ -331,7 +331,7 @@ const Library = () => {
             placeholder="Ordinal"
           />
         )}
-        {editItem.type === 'lesson' && (
+        {(editItem.type === 'course' || editItem.type === 'chapter' || editItem.type === 'lesson') && (
           <textarea
             name="description"
             value={editItem.description || ''}
@@ -367,6 +367,7 @@ const Library = () => {
           </div>
           {expandedCourses[course.id] && (
             <div>
+              <p style={{ marginLeft: '1rem', fontSize: '0.875rem', color: '#555' }}>{course.description}</p>
               {(course.chapters?.length || 0) === 0 && (
                 <div style={{ marginLeft: '1rem', marginTop: '0.5rem', color: '#777' }}>
                   No chapters available
@@ -391,6 +392,7 @@ const Library = () => {
                   </div>
                   {expandedChapters[chapter.id] && (
                     <div>
+                      <p style={{ marginLeft: '1rem', fontSize: '0.875rem', color: '#555' }}>{chapter.description}</p>
                       {(chapter.lessons?.length || 0) === 0 && (
                         <div style={{ marginLeft: '1rem', marginTop: '0.5rem', color: '#777' }}>
                           No lessons available
@@ -419,14 +421,14 @@ const Library = () => {
                               <div style={{ marginLeft: '1.5rem', marginTop: '0.5rem' }}>
                                 <Input
                                   type="text"
-                                  value={newHomework.name}
-                                  onChange={handleHomeworkNameChange}
-                                  placeholder="Homework Name"
+                                  value={newHomework.text}
+                                  onChange={handleHomeworkTextChange}
+                                  placeholder="Homework Text"
                                   style={{ marginBottom: '0.5rem' }}
                                 />
                                 <input type="file" multiple onChange={handleFileChange} style={{ marginBottom: '0.5rem' }} />
                                 <Button onClick={() => addHomework(course.id, chapter.id, lesson.id)} style={{ marginLeft: '0.5rem' }}>
-                                  <PlusCircle className="h-4 w-4" /> Add Homework
+                                  <PlusCircle className="h-4 w-4" /> Save
                                 </Button>
                               </div>
                               {(lesson.homeworks?.length || 0) === 0 && (
@@ -438,7 +440,7 @@ const Library = () => {
                                 <div key={homework.id} style={homeworkStyles}>
                                   <div style={{ display: 'flex', alignItems: 'center' }}>
                                     <ChevronRight style={{ marginRight: '0.5rem', height: '16px', width: '16px' }} />
-                                    <span>{homework.name}</span>
+                                    <span>{homework.text}</span>
                                     {homework.fileURLs.map((fileURL, index) => (
                                       <a key={index} href={fileURL} target="_blank" rel="noopener noreferrer" style={{ marginLeft: '0.5rem' }}>
                                         File {index + 1}

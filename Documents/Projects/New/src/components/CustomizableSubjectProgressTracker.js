@@ -1,132 +1,149 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card"
-import { Progress } from "@/components/ui/Progress"
-import { Input } from "@/components/ui/Input"
-import { Button } from "@/components/ui/Button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select"
-import { PlusCircle, XCircle, Edit } from 'lucide-react'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 
-const CustomizableSubjectProgressTracker = () => {
-  const [subjects, setSubjects] = useState([
-    { id: 1, name: 'Math', progress: 0 }
-  ]);
-  const [currentSubject, setCurrentSubject] = useState(1);
-  const [newSubjectName, setNewSubjectName] = useState('');
-  const [editingSubject, setEditingSubject] = useState(null);
-
-  const handleProgressChange = (event) => {
-    const value = parseInt(event.target.value, 10);
-    if (!isNaN(value) && value >= 0 && value <= 100) {
-      setSubjects(subjects.map(subject => 
-        subject.id === currentSubject ? { ...subject, progress: value } : subject
-      ));
-    }
-  };
-
-  const addSubject = () => {
-    if (newSubjectName.trim()) {
-      setSubjects([...subjects, { id: Date.now(), name: newSubjectName, progress: 0 }]);
-      setNewSubjectName('');
-    }
-  };
-
-  const removeSubject = (id) => {
-    setSubjects(subjects.filter(subject => subject.id !== id));
-    if (currentSubject === id && subjects.length > 1) {
-      setCurrentSubject(subjects[0].id);
-    }
-  };
-
-  const startEditingSubject = (id) => {
-    setEditingSubject(id);
-  };
-
-  const finishEditingSubject = (id, newName) => {
-    setSubjects(subjects.map(subject => 
-      subject.id === id ? { ...subject, name: newName } : subject
-    ));
-    setEditingSubject(null);
-  };
+// Performance Bar Components
+const StudentPerformanceBar = ({ performanceData, studentName, subject }) => {
+  if (!performanceData || performanceData.length === 0) return <div>No performance data available.</div>;
 
   return (
     <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold text-center">Customizable Subject Progress Tracker</CardTitle>
-      </CardHeader>
+      <CardHeader>{`${studentName}'s ${subject} Performance`}</CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          <Select 
-            value={currentSubject.toString()} 
-            onValueChange={(value) => setCurrentSubject(parseInt(value, 10))}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select a subject" />
-            </SelectTrigger>
-            <SelectContent>
-              {subjects.map(subject => (
-                <SelectItem key={subject.id} value={subject.id.toString()}>
-                  {subject.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {subjects.map(subject => (
-            subject.id === currentSubject && (
-              <div key={subject.id} className="space-y-2">
-                <Progress value={subject.progress} className="w-full h-4" />
-                <div className="flex items-center space-x-2">
-                  <Input
-                    type="number"
-                    value={subject.progress}
-                    onChange={handleProgressChange}
-                    min="0"
-                    max="100"
-                    className="w-20"
-                  />
-                  <span className="text-lg font-semibold">% Complete</span>
-                </div>
-              </div>
-            )
-          ))}
-
-          <div className="space-y-2">
-            <div className="font-semibold">Manage Subjects:</div>
-            {subjects.map(subject => (
-              <div key={subject.id} className="flex items-center space-x-2">
-                {editingSubject === subject.id ? (
-                  <Input
-                    value={subject.name}
-                    onChange={(e) => finishEditingSubject(subject.id, e.target.value)}
-                    onBlur={() => setEditingSubject(null)}
-                    autoFocus
-                  />
-                ) : (
-                  <span>{subject.name}</span>
-                )}
-                <Button size="icon" variant="ghost" onClick={() => startEditingSubject(subject.id)}>
-                  <Edit size={16} />
-                </Button>
-                <Button size="icon" variant="ghost" onClick={() => removeSubject(subject.id)} disabled={subjects.length === 1}>
-                  <XCircle size={16} />
-                </Button>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Input
-              placeholder="New subject name"
-              value={newSubjectName}
-              onChange={(e) => setNewSubjectName(e.target.value)}
-            />
-            <Button onClick={addSubject}>
-              <PlusCircle size={16} className="mr-2" /> Add Subject
-            </Button>
-          </div>
-        </div>
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={performanceData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="date" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Line type="monotone" dataKey="score" stroke="#8884d8" />
+          </LineChart>
+        </ResponsiveContainer>
       </CardContent>
     </Card>
+  );
+};
+
+// Schedule Components
+const StudentSchedule = ({ scheduleData, studentName }) => {
+  if (!scheduleData || scheduleData.length === 0) return <div>No schedule data available.</div>;
+
+  return (
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader>{`${studentName}'s Schedule`}</CardHeader>
+      <CardContent>
+        <ul className="space-y-2">
+          {scheduleData.map((item, index) => (
+            <li key={index} className="flex justify-between">
+              <span>{item.time}</span>
+              <span>{item.subject}</span>
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Teacher Recommendation Components
+const TeacherRecommendation = ({ recommendations, teacherName, category }) => {
+  if (!recommendations || recommendations.length === 0) return <div>No recommendations available.</div>;
+
+  return (
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader>{`${teacherName}'s ${category} Recommendations`}</CardHeader>
+      <CardContent>
+        <ul className="space-y-2">
+          {recommendations.map((item, index) => (
+            <li key={index}>{item}</li>
+          ))}
+        </ul>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Parent Component with manual data entry
+const CustomizableSubjectProgressTracker = () => {
+  // State for student data
+  const [studentName, setStudentName] = useState('John Doe');
+  const [subject, setSubject] = useState('Math');
+  const [performanceData, setPerformanceData] = useState([]);
+  const [scheduleData, setScheduleData] = useState([]);
+
+  // State for teacher data
+  const [teacherName, setTeacherName] = useState('Ms. Smith');
+  const [recommendationCategory, setRecommendationCategory] = useState('reading');
+  const [recommendations, setRecommendations] = useState([]);
+
+  // Handler to add performance data manually
+  const addPerformanceData = () => {
+    const date = prompt('Enter the date (YYYY-MM-DD):');
+    const score = prompt('Enter the score:');
+    setPerformanceData([...performanceData, { date, score: parseInt(score) }]);
+  };
+
+  // Handler to add schedule data manually
+  const addScheduleData = () => {
+    const time = prompt('Enter the time (e.g., 09:00 AM):');
+    const subject = prompt('Enter the subject:');
+    setScheduleData([...scheduleData, { time, subject }]);
+  };
+
+  // Handler to add recommendations manually
+  const addRecommendation = () => {
+    const recommendation = prompt('Enter a recommendation:');
+    setRecommendations([...recommendations, recommendation]);
+  };
+
+  return (
+    <div>
+      {/* Student Performance Section */}
+      <StudentPerformanceBar performanceData={performanceData} studentName={studentName} subject={subject} />
+      <button onClick={addPerformanceData}>Add Performance Data</button>
+
+      {/* Student Schedule Section */}
+      <StudentSchedule scheduleData={scheduleData} studentName={studentName} />
+      <button onClick={addScheduleData}>Add Schedule Data</button>
+
+      {/* Teacher Recommendations Section */}
+      <TeacherRecommendation recommendations={recommendations} teacherName={teacherName} category={recommendationCategory} />
+      <button onClick={addRecommendation}>Add Recommendation</button>
+
+      {/* Manual inputs to change student or teacher */}
+      <div>
+        <h3>Update Student Information</h3>
+        <input
+          type="text"
+          value={studentName}
+          onChange={(e) => setStudentName(e.target.value)}
+          placeholder="Enter student name"
+        />
+        <input
+          type="text"
+          value={subject}
+          onChange={(e) => setSubject(e.target.value)}
+          placeholder="Enter subject"
+        />
+      </div>
+
+      <div>
+        <h3>Update Teacher Information</h3>
+        <input
+          type="text"
+          value={teacherName}
+          onChange={(e) => setTeacherName(e.target.value)}
+          placeholder="Enter teacher name"
+        />
+        <input
+          type="text"
+          value={recommendationCategory}
+          onChange={(e) => setRecommendationCategory(e.target.value)}
+          placeholder="Enter recommendation category"
+        />
+      </div>
+    </div>
   );
 };
 

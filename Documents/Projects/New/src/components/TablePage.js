@@ -16,6 +16,7 @@ const TablePage = ({ studentId }) => {
   const [tableData, setTableData] = useState([]);
   const [loading, setLoading] = useState(true); // Add loading state
   const [isSubmitting, setIsSubmitting] = useState(false); // Add submitting state
+  const [visibleTooltip, setVisibleTooltip] = useState(null); // Add state for tooltip visibility
   
   useEffect(() => {
     const fetchLibraryAndTableData = async () => {
@@ -25,15 +26,25 @@ const TablePage = ({ studentId }) => {
         const tableDataSnapshot = await getDocs(collection(db, 'tableData'));
   
         const libraryData = librarySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        const tableData = tableDataSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          lessonDescription: libraryData
-            .find(course => course.id === doc.data().courseId)
-            ?.chapters.find(chapter => chapter.id === doc.data().chapterId)
-            ?.lessons.find(lesson => lesson.id === doc.data().lessonId)
-            ?.description || ''
-        }));
+        const tableData = tableDataSnapshot.docs.map(doc => {
+          const course = libraryData.find(course => course.id === doc.data().courseId);
+          const chapter = course?.chapters.find(chapter => chapter.id === doc.data().chapterId);
+          const lesson = chapter?.lessons.find(lesson => lesson.id === doc.data().lessonId);
+          return {
+            id: doc.id,
+            ...doc.data(),
+            lessonDescription: lesson?.description || ''
+          };
+        });
+
+        // Log lesson descriptions to the console
+        libraryData.forEach(course => {
+          course.chapters?.forEach(chapter => {
+            chapter.lessons?.forEach(lesson => {
+              console.log(`Lesson: ${lesson.name}, Description: ${lesson.description}`);
+            });
+          });
+        });
   
         setLibrary(libraryData);
         setTableData(tableData.filter(data => data.studentId === studentId));
@@ -161,6 +172,10 @@ const TablePage = ({ studentId }) => {
     }
   };
 
+  const toggleTooltip = (id) => {
+    setVisibleTooltip(visibleTooltip === id ? null : id);
+  };
+
   const renderDropdowns = () => (
     <div className="mb-4 flex flex-wrap gap-2">
       <select
@@ -276,8 +291,15 @@ const TablePage = ({ studentId }) => {
                       ) : header === 'Тема' ? (
                         row.chapter
                       ) : header === 'Урок' ? (
-                        <div data-tip={row.lessonDescription}>
-                          {row.lesson}
+                        <div>
+                          <span onClick={() => toggleTooltip(row.id)} className="cursor-pointer text-blue-500">
+                            {row.lesson}
+                          </span>
+                          {visibleTooltip === row.id && (
+                            <div className="absolute bg-gray-200 p-2 rounded shadow-lg">
+                              {row.lessonDescription}
+                            </div>
+                          )}
                         </div>
                       ) : header === 'Прогресс' ? (
                         <div className="w-full bg-gray-200 rounded">
@@ -318,8 +340,7 @@ const TablePage = ({ studentId }) => {
                               <button
                                 onClick={() => handleFileDelete(row.id, fileURL, 'submit')}
                                 className="ml-2 px-2 py-1 rounded bg-red-500 text-white"
-                              >
-                                ✕
+                              >                                ✕
                               </button>
                             </div>
                           ))}
@@ -387,7 +408,6 @@ const TablePage = ({ studentId }) => {
               ))}
           </tbody>
         </table>
-        <Tooltip place="top" type="dark" effect="solid" />
       </div>
     );
   };
@@ -437,3 +457,4 @@ const TablePage = ({ studentId }) => {
 };
 
 export default TablePage;
+                               
