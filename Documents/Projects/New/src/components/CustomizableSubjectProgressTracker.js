@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card"
+import { Progress } from "@/components/ui/Progress"
+import { Input } from "@/components/ui/Input"
+import { Button } from "@/components/ui/Button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select"
 import { PlusCircle, XCircle, Edit } from 'lucide-react'
 
 const CustomizableSubjectProgressTracker = () => {

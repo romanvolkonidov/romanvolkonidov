@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db } from '../firebase'; // Ensure you have the correct path to your firebase configuration
+import { Tooltip } from 'react-tooltip'; // Correct import for Tooltip
 
 const TablePage = ({ studentId }) => {
   const [view, setView] = useState('completed'); // 'completed', 'homework', 'future'
@@ -24,7 +25,15 @@ const TablePage = ({ studentId }) => {
         const tableDataSnapshot = await getDocs(collection(db, 'tableData'));
   
         const libraryData = librarySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        const tableData = tableDataSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const tableData = tableDataSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          lessonDescription: libraryData
+            .find(course => course.id === doc.data().courseId)
+            ?.chapters.find(chapter => chapter.id === doc.data().chapterId)
+            ?.lessons.find(lesson => lesson.id === doc.data().lessonId)
+            ?.description || ''
+        }));
   
         setLibrary(libraryData);
         setTableData(tableData.filter(data => data.studentId === studentId));
@@ -188,10 +197,10 @@ const TablePage = ({ studentId }) => {
           .find(course => course.id === selectedCourse)?.chapters
           ?.find(chapter => chapter.id === selectedChapter)?.lessons
           ?.map(lesson => (
-            <option key={lesson.id} value={lesson.id}>{lesson.name}</option>
+            <option key={lesson.id} value={lesson.id} data-tip={lesson.description}>{lesson.name}</option>
           ))}
       </select>
-
+      <Tooltip place="top" type="dark" effect="solid" />
       {view === 'homework' && (
         <select
           value={selectedHomework}
@@ -232,12 +241,12 @@ const TablePage = ({ studentId }) => {
     const sortedTableData = [...tableData].sort((a, b) => new Date(b.date) - new Date(a.date));
   
     return (
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-200">
+      <div className="overflow-x-auto shadow-md sm:rounded-lg">
+        <table className="w-full text-sm text-left text-gray-500">
+          <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+            <tr>
               {headers.map((header, index) => (
-                <th key={index} className="p-2 text-left border">{header}</th>
+                <th key={index} className="p-4">{header}</th>
               ))}
             </tr>
           </thead>
@@ -250,9 +259,9 @@ const TablePage = ({ studentId }) => {
                 return false;
               })
               .map((row, rowIndex) => (
-                <tr key={row.id} className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-100'}>
+                <tr key={row.id} className="bg-white border-b transition duration-300 ease-in-out hover:bg-gray-100">
                   {headers.map((header, colIndex) => (
-                    <td key={colIndex} className="p-2 border">
+                    <td key={colIndex} className="p-4">
                       {header === 'Действия' ? (
                         <button
                           onClick={() => handleDeleteRow(row.id)}
@@ -267,7 +276,9 @@ const TablePage = ({ studentId }) => {
                       ) : header === 'Тема' ? (
                         row.chapter
                       ) : header === 'Урок' ? (
-                        row.lesson
+                        <div data-tip={row.lessonDescription}>
+                          {row.lesson}
+                        </div>
                       ) : header === 'Прогресс' ? (
                         <div className="w-full bg-gray-200 rounded">
                           <div
@@ -376,6 +387,7 @@ const TablePage = ({ studentId }) => {
               ))}
           </tbody>
         </table>
+        <Tooltip place="top" type="dark" effect="solid" />
       </div>
     );
   };

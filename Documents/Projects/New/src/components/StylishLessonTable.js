@@ -114,7 +114,7 @@ const renderFileLinks = (files, label, lessonId, homeworkId, fileType) => (
   </div>
 );
 
-const StylishLessonTable = ({ selectedLessons, courses, onUncheck, onDateChange, onProgressChange, onHomeworkResultChange, onFileChange }) => {
+const StylishLessonTable = ({ selectedLessons = [], courses, onUncheck, onDateChange, onProgressChange, onHomeworkResultChange, onFileChange }) => {
   const sortedLessons = [...selectedLessons].sort((a, b) => new Date(b.date) - new Date(a.date));
 
   return (
