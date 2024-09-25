@@ -9,20 +9,20 @@ const TablePage = ({ studentId }) => {
   const [selectedCourse, setSelectedCourse] = useState('');
   const [selectedChapter, setSelectedChapter] = useState('');
   const [selectedLesson, setSelectedLesson] = useState('');
-  const [selectedHomework, setSelectedHomework] = useState('');
   const [progress, setProgress] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [tableData, setTableData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const [selectedDescription, setSelectedDescription] = useState(null);
+  
   useEffect(() => {
     const fetchLibraryAndTableData = async () => {
       try {
         setLoading(true);
         const librarySnapshot = await getDocs(collection(db, 'library'));
         const tableDataSnapshot = await getDocs(collection(db, 'tableData'));
-
+  
         const libraryData = librarySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         const tableData = tableDataSnapshot.docs.map(doc => {
           const course = libraryData.find(course => course.id === doc.data().courseId);
@@ -36,7 +36,7 @@ const TablePage = ({ studentId }) => {
             lesson
           };
         });
-
+  
         setLibrary(libraryData);
         setTableData(tableData.filter(data => data.studentId === studentId));
       } catch (error) {
@@ -45,7 +45,7 @@ const TablePage = ({ studentId }) => {
         setLoading(false);
       }
     };
-
+  
     fetchLibraryAndTableData();
   }, [studentId]);
 
@@ -72,8 +72,6 @@ const TablePage = ({ studentId }) => {
     const selectedLessonData = selectedChapterData.lessons?.find(lesson => lesson.id === selectedLesson);
     if (!selectedLessonData) return alert("Please select a valid lesson.");
     
-    const selectedHomeworkData = selectedLessonData?.homeworks?.find(homework => homework.id === selectedHomework);
-    
     const newData = {
       studentId,
       date,
@@ -81,13 +79,11 @@ const TablePage = ({ studentId }) => {
       chapterId: selectedChapterData.id,
       lessonId: selectedLessonData.id,
       progress: view === 'completed' ? progress : '',
-      homework: view === 'homework' ? selectedHomeworkData?.name || '' : '',
-      homeworkFiles: view === 'homework' ? selectedHomeworkData?.fileURLs || [] : [],
       submit: view === 'homework' ? [] : '',
       results: view === 'homework' ? { percentage: '', files: [] } : { percentage: '', files: [] },
       checkedHomework: view === 'homework' ? [] : '',
     };
-
+  
     try {
       setIsSubmitting(true);
       const docRef = await addDoc(collection(db, 'tableData'), newData);
@@ -200,24 +196,12 @@ const TablePage = ({ studentId }) => {
             <option key={lesson.id} value={lesson.id}>{lesson.name}</option>
           ))}
       </select>
-      {view === 'homework' && (
-        <select
-          value={selectedHomework}
-          onChange={(e) => setSelectedHomework(e.target.value)}
-          className="p-2 border rounded"
-        >
-          <option value="">Выберите домашнюю работу</option>
-          {library
-            .find(course => course.id === selectedCourse)?.chapters
-            ?.find(chapter => chapter.id === selectedChapter)?.lessons
-            ?.find(lesson => lesson.id === selectedLesson)?.homeworks
-            ?.map(homework => (
-              <option key={homework.id} value={homework.id}>{homework.name}</option>
-            ))}
-        </select>
-      )}
     </div>
   );
+
+  const handleItemClick = (item, type) => {
+    setSelectedDescription({ content: item.description, type });
+  };
 
   const renderTable = () => {
     let headers;
@@ -227,7 +211,7 @@ const TablePage = ({ studentId }) => {
         headers = ['Дата', 'Курс', 'Тема', 'Урок', 'Прогресс', 'Действия'];
         break;
       case 'homework':
-        headers = ['Дата', 'Домашняя работа', 'Сдать Домашнюю работу', 'Проверенная домашняя работа', 'Результаты', 'Действия'];
+        headers = ['Дата', 'Курс', 'Тема', 'Урок', 'Сдать Домашнюю работу', 'Проверенная домашняя работа', 'Результаты', 'Действия'];
         break;
       case 'future':
         headers = ['Курс', 'Тема', 'Урок', 'Действия'];
@@ -252,8 +236,8 @@ const TablePage = ({ studentId }) => {
             {sortedTableData
               .filter(row => {
                 if (view === 'completed') return row.progress !== '';
-                if (view === 'homework') return row.homework !== '';
-                if (view === 'future') return row.progress === '' && row.homework === '';
+                if (view === 'homework') return true;
+                if (view === 'future') return row.progress === '';
                 return false;
               })
               .map((row, rowIndex) => (
@@ -270,23 +254,23 @@ const TablePage = ({ studentId }) => {
                       ) : header === 'Дата' ? (
                         row.date
                       ) : header === 'Курс' ? (
-                        <span
-                          className="cursor-pointer text-blue-500"
-                          title={row.course?.description || "Нет описания"}
+                        <span 
+                          className="cursor-pointer text-blue-500 hover:underline"
+                          onClick={() => handleItemClick(row.course, 'course')}
                         >
                           {row.course?.name}
                         </span>
                       ) : header === 'Тема' ? (
-                        <span
-                          className="cursor-pointer text-blue-500"
-                          title={row.chapter?.description || "Нет описания"}
+                        <span 
+                          className="cursor-pointer text-blue-500 hover:underline"
+                          onClick={() => handleItemClick(row.chapter, 'chapter')}
                         >
                           {row.chapter?.name}
                         </span>
                       ) : header === 'Урок' ? (
-                        <span
-                          className="cursor-pointer text-blue-500"
-                          title={row.lesson?.description || "Нет описания"}
+                        <span 
+                          className="cursor-pointer text-blue-500 hover:underline"
+                          onClick={() => handleItemClick(row.lesson, 'lesson')}
                         >
                           {row.lesson?.name}
                         </span>
@@ -299,19 +283,6 @@ const TablePage = ({ studentId }) => {
                             {row.progress}%
                           </div>
                         </div>
-                      ) : header === 'Домашняя работа' ? (
-                        <>
-                          <div>{row.homework}</div>
-                          {row.homeworkFiles && row.homeworkFiles.map((fileURL, index) => (
-                            <div key={index} className="flex items-center">
-                              <a href={fileURL} download>
-                                <button className="px-2 py-1 rounded bg-blue-500 text-white">
-                                  {`File ${index + 1}`}
-                                </button>
-                              </a>
-                            </div>
-                          ))}
-                        </>
                       ) : header === 'Сдать Домашнюю работу' ? (
                         <>
                           <input
@@ -329,7 +300,8 @@ const TablePage = ({ studentId }) => {
                               <button
                                 onClick={() => handleFileDelete(row.id, fileURL, 'submit')}
                                 className="ml-2 px-2 py-1 rounded bg-red-500 text-white"
-                              >                                ✕
+                              >
+                                ✕
                               </button>
                             </div>
                           ))}
@@ -374,28 +346,14 @@ const TablePage = ({ studentId }) => {
                               {row.results.percentage}%
                             </div>
                           </div>
-                          {row.results.files && row.results.files.map((fileURL, index) => (
-                            <div key={index} className="flex items-center">
-                              <a href={fileURL} download>
-                                <button className="px-2 py-1 rounded bg-blue-500 text-white">
-                                  {`File ${index + 1}`}
-                                </button>
-                              </a>
-                              <button
-                                onClick={() => handleFileDelete(row.id, fileURL, 'results.files')}
-                                className="ml-2 px-2 py-1 rounded bg-red-500 text-white"
-                              >
-                                ✕
-                              </button>
-                            </div>
-                          ))}
                         </>
                       ) : null}
                     </td>
                   ))}
                 </tr>
               ))}
-          </tbody>
+
+                    </tbody>
         </table>
       </div>
     );
@@ -441,6 +399,14 @@ const TablePage = ({ studentId }) => {
       </button>
 
       {renderTable()}
+
+      {selectedDescription && (
+        <div className="mt-4 p-4 bg-gray-100 rounded shadow">
+          <h2 className="text-xl font-bold mb-2">{selectedDescription.type === 'course' ? 'Описание курса' : selectedDescription.type === 'chapter' ? 'Описание темы' : 'Описание урока'}</h2>
+          <p>{selectedDescription.content}</p>
+          <button onClick={() => setSelectedDescription(null)} className="mt-2 p-2 bg-red-500 text-white rounded">Закрыть</button>
+        </div>
+      )}
     </div>
   );
 };
