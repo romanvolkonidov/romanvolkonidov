@@ -5,7 +5,6 @@ import { db } from '../firebase';
 import Tooltip from '@/components/ui/Tooltip'; // Import Tooltip component
 import '../styles/TablePage.css';
 
-
 const TablePage = ({ studentId, readOnly = false }) => {
   const [view, setView] = useState('completed');
   const [library, setLibrary] = useState([]);
@@ -474,6 +473,6 @@ const TablePage = ({ studentId, readOnly = false }) => {
       {renderTable()}
     </div>
   );
-  };
-  
-  export default TablePage;
+};
+
+export default TablePage;

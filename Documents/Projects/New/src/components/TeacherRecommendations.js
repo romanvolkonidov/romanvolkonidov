@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/Card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/Tabs';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import Textarea from './ui/Textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/Select';
+import { collection, getDocs, setDoc, doc, deleteDoc, writeBatch } from 'firebase/firestore';
+import { db } from '../firebase';
 
 import { 
   Plus, Trash2, Edit2, Save, X, 
@@ -25,32 +27,47 @@ const iconOptions = [
   { value: 'calculator', label: 'Calculator', icon: Calculator },
 ];
 
-const initialTabs = [
-  {
-    id: 'read',
-    label: 'Read',
-    icon: 'book',
-    items: [
-      { id: 1, title: "Clean Code", description: "by Robert C. Martin" },
-      { id: 2, title: "Eloquent JavaScript", description: "by Marijn Haverbeke" },
-    ]
-  },
-  {
-    id: 'listen',
-    label: 'Listen',
-    icon: 'headphones',
-    items: [
-      { id: 1, title: "Syntax", description: "Hosted by Wes Bos & Scott Tolinski" },
-      { id: 2, title: "JavaScript Jabber", description: "Hosted by Charles Max Wood" },
-    ]
-  },
-];
-
-const TeacherRecommendations = ({ isViewOnly = false }) => {
-  const [tabs, setTabs] = useState(initialTabs);
-  const [activeTab, setActiveTab] = useState(tabs[0].id);
+const TeacherRecommendations = ({ isViewOnly = false, studentId }) => {
+  const [tabs, setTabs] = useState([]);
+  const [activeTab, setActiveTab] = useState('');
   const [editingItem, setEditingItem] = useState(null);
   const [newTab, setNewTab] = useState({ label: '', icon: '' });
+
+  useEffect(() => {
+    const fetchTabs = async () => {
+      try {
+        const tabsSnapshot = await getDocs(collection(db, 'teacherRecommendations', studentId, 'tabs'));
+        const tabsData = tabsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setTabs(tabsData);
+        if (tabsData.length > 0) {
+          setActiveTab(tabsData[0].id);
+        }
+      } catch (error) {
+        console.error("Error fetching tabs:", error);
+      }
+    };
+
+    fetchTabs();
+  }, [studentId]);
+
+  useEffect(() => {
+    const saveTabs = async () => {
+      try {
+        const batch = writeBatch(db);
+        tabs.forEach(tab => {
+          const tabRef = tab.id ? doc(db, 'teacherRecommendations', studentId, 'tabs', tab.id) : doc(collection(db, 'teacherRecommendations', studentId, 'tabs'));
+          batch.set(tabRef, tab);
+        });
+        await batch.commit();
+      } catch (error) {
+        console.error("Error saving tabs:", error);
+      }
+    };
+
+    if (tabs.length > 0) {
+      saveTabs();
+    }
+  }, [tabs, studentId]);
 
   const addTab = () => {
     if (newTab.label && newTab.icon) {
@@ -61,9 +78,10 @@ const TeacherRecommendations = ({ isViewOnly = false }) => {
     }
   };
 
-  const removeTab = (tabId) => {
+  const removeTab = async (tabId) => {
+    await deleteDoc(doc(db, 'teacherRecommendations', studentId, 'tabs', tabId));
     setTabs(tabs.filter(tab => tab.id !== tabId));
-    if (activeTab === tabId) {
+    if (activeTab === tabId && tabs.length > 0) {
       setActiveTab(tabs[0].id);
     }
   };
