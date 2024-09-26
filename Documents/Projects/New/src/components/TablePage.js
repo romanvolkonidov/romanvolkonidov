@@ -3,8 +3,10 @@ import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db } from '../firebase';
 import Tooltip from '@/components/ui/Tooltip'; // Import Tooltip component
+import '../styles/TablePage.css';
 
-const TablePage = ({ studentId }) => {
+
+const TablePage = ({ studentId, readOnly = false }) => {
   const [view, setView] = useState('completed');
   const [library, setLibrary] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState('');
@@ -173,6 +175,7 @@ const TablePage = ({ studentId }) => {
         value={selectedCourse}
         onChange={(e) => setSelectedCourse(e.target.value)}
         className="p-2 border rounded"
+        disabled={readOnly}
       >
         <option value="">Выберите курс</option>
         {library.map(course => (
@@ -184,6 +187,7 @@ const TablePage = ({ studentId }) => {
         value={selectedChapter}
         onChange={(e) => setSelectedChapter(e.target.value)}
         className="p-2 border rounded"
+        disabled={readOnly}
       >
         <option value="">Выберите тему</option>
         {library
@@ -197,6 +201,7 @@ const TablePage = ({ studentId }) => {
         value={selectedLesson}
         onChange={(e) => setSelectedLesson(e.target.value)}
         className="p-2 border rounded"
+        disabled={readOnly}
       >
         <option value="">Выберите урок</option>
         {library
@@ -211,6 +216,7 @@ const TablePage = ({ studentId }) => {
           value={selectedHomework}
           onChange={(e) => setSelectedHomework(e.target.value)}
           className="p-2 border rounded"
+          disabled={readOnly}
         >
           <option value="">Выберите домашнюю работу</option>
           {library
@@ -230,13 +236,16 @@ const TablePage = ({ studentId }) => {
   
     switch (view) {
       case 'completed':
-        headers = ['Дата', 'Курс', 'Тема', 'Урок', 'Прогресс', 'Действия'];
+        headers = ['Дата', 'Курс', 'Тема', 'Урок', 'Прогресс'];
+        if (!readOnly) headers.push('Действия');
         break;
       case 'homework':
-        headers = ['Дата', 'Домашняя работа', 'Сдать Домашнюю работу', 'Проверенная домашняя работа', 'Результаты', 'Действия'];
+        headers = ['Дата', 'Домашняя работа', 'Сдать Домашнюю работу', 'Проверенная домашняя работа', 'Результаты'];
+        if (!readOnly) headers.push('Действия');
         break;
       case 'future':
-        headers = ['Курс', 'Тема', 'Урок', 'Действия'];
+        headers = ['Курс', 'Тема', 'Урок'];
+        if (!readOnly) headers.push('Действия');
         break;
       default:
         headers = [];
@@ -245,8 +254,8 @@ const TablePage = ({ studentId }) => {
     const sortedTableData = [...tableData].sort((a, b) => new Date(b.date) - new Date(a.date));
   
     return (
-      <div className="overflow-x-auto shadow-md sm:rounded-lg">
-        <table className="w-full text-sm text-left text-gray-500">
+      <div className="table-container shadow-md sm:rounded-lg">
+        <table className="fixed-table w-full text-sm text-left text-gray-500">
           <thead className="text-xs text-gray-700 uppercase bg-gray-50">
             <tr>
               {headers.map((header, index) => (
@@ -267,12 +276,14 @@ const TablePage = ({ studentId }) => {
                   {headers.map((header, colIndex) => (
                     <td key={colIndex} className="p-4">
                       {header === 'Действия' ? (
-                        <button
-                          onClick={() => handleDeleteRow(row.id)}
-                          className="px-2 py-1 rounded bg-red-500 text-white"
-                        >
-                          Удалить
-                        </button>
+                        !readOnly && (
+                          <button
+                            onClick={() => handleDeleteRow(row.id)}
+                            className="px-2 py-1 rounded bg-red-500 text-white"
+                          >
+                            Удалить
+                          </button>
+                        )
                       ) : header === 'Дата' ? (
                         row.date
                       ) : header === 'Курс' ? (
@@ -341,67 +352,72 @@ const TablePage = ({ studentId }) => {
                               <button
                                 onClick={() => handleFileDelete(row.id, fileURL, 'submit')}
                                 className="ml-2 px-2 py-1 rounded bg-red-500 text-white"
-                              >                                ✕
+                              >
+                                ✕
                               </button>
                             </div>
                           ))}
                         </>
                       ) : header === 'Проверенная домашняя работа' ? (
-                        <>
-                          <input
-                            type="file"
-                            multiple
-                            onChange={(e) => handleFileUpload(row.id, Array.from(e.target.files), 'checkedHomework')}
-                          />
-                          {Array.isArray(row.checkedHomework) && row.checkedHomework.map((fileURL, index) => (
-                            <div key={index} className="flex items-center">
-                              <a href={fileURL} download>
-                                <button className="px-2 py-1 rounded bg-blue-500 text-white">
-                                  {`File ${index + 1}`}
+                        !readOnly && (
+                          <>
+                            <input
+                              type="file"
+                              multiple
+                              onChange={(e) => handleFileUpload(row.id, Array.from(e.target.files), 'checkedHomework')}
+                            />
+                            {Array.isArray(row.checkedHomework) && row.checkedHomework.map((fileURL, index) => (
+                              <div key={index} className="flex items-center">
+                                <a href={fileURL} download>
+                                  <button className="px-2 py-1 rounded bg-blue-500 text-white">
+                                    {`File ${index + 1}`}
+                                  </button>
+                                </a>
+                                <button
+                                  onClick={() => handleFileDelete(row.id, fileURL, 'checkedHomework')}
+                                  className="ml-2 px-2 py-1 rounded bg-red-500 text-white"
+                                >
+                                  ✕
                                 </button>
-                              </a>
-                              <button
-                                onClick={() => handleFileDelete(row.id, fileURL, 'checkedHomework')}
-                                className="ml-2 px-2 py-1 rounded bg-red-500 text-white"
-                              >
-                                ✕
-                              </button>
-                            </div>
-                          ))}
-                        </>
+                              </div>
+                            ))}
+                          </>
+                        )
                       ) : header === 'Результаты' ? (
-                        <>
-                          <input
-                            type="number"
-                            value={row.results.percentage}
-                            onChange={(e) => handlePercentageChange(row.id, e.target.value)}
-                            placeholder="Результаты (%)"
-                            className="p-2 border rounded"
-                          />
-                          <div className="w-full bg-gray-200 rounded mt-2">
-                            <div
-                              className="bg-green-500 text-xs font-medium text-green-100 text-center p-0.5 leading-none rounded"
-                              style={{ width: `${row.results.percentage}%` }}
-                            >
-                              {row.results.percentage}%
-                            </div>
-                          </div>
-                          {row.results.files && row.results.files.map((fileURL, index) => (
-                            <div key={index} className="flex items-center">
-                              <a href={fileURL} download>
-                                <button className="px-2 py-1 rounded bg-blue-500 text-white">
-                                  {`File ${index + 1}`}
-                                </button>
-                              </a>
-                              <button
-                                onClick={() => handleFileDelete(row.id, fileURL, 'results.files')}
-                                className="ml-2 px-2 py-1 rounded bg-red-500 text-white"
+                        !readOnly && (
+                          <>
+                            <input
+                              type="number"
+                              value={row.results.percentage}
+                              onChange={(e) => handlePercentageChange(row.id, e.target.value)}
+                              placeholder="Результаты (%)"
+                              className="p-2 border rounded"
+                            />
+                            <div className="w-full bg-gray-200 rounded mt-2">
+                              <div
+                                className="bg-green-500 text-xs font-medium text-green-100 text-center p-0.5 leading-none rounded"
+                                style={{ width: `${row.results.percentage}%` }}
                               >
-                                ✕
-                              </button>
+                                {row.results.percentage}%
+                              </div>
                             </div>
-                          ))}
-                        </>
+                            {row.results.files && row.results.files.map((fileURL, index) => (
+                              <div key={index} className="flex items-center">
+                                <a href={fileURL} download>
+                                  <button className="px-2 py-1 rounded bg-blue-500 text-white">
+                                    {`File ${index + 1}`}
+                                  </button>
+                                </a>
+                                <button
+                                  onClick={() => handleFileDelete(row.id, fileURL, 'results.files')}
+                                  className="ml-2 px-2 py-1 rounded bg-red-500 text-white"
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            ))}
+                          </>
+                        )
                       ) : null}
                     </td>
                   ))}
@@ -412,49 +428,52 @@ const TablePage = ({ studentId }) => {
       </div>
     );
   };
-
+  
   if (loading) return <div>Loading...</div>;
-
+  
   return (
     <div className="p-4 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Таблица студента</h1>
       
-      <div className="mb-4">
+      <div className="mb-4 fixed-buttons">
         <button onClick={() => setView('completed')} className="p-2 border rounded">Completed</button>
         <button onClick={() => setView('homework')} className="p-2 border rounded ml-2">Homework</button>
         <button onClick={() => setView('future')} className="p-2 border rounded ml-2">Future</button>
       </div>
-
-      {renderDropdowns()}
-      <div className="mb-4 flex flex-wrap gap-2">
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          className="p-2 border rounded"
-        />
-        {view === 'completed' && (
-          <input
-            type="number"
-            value={progress}
-            onChange={(e) => setProgress(e.target.value)}
-            placeholder="Прогресс (%)"
-            className="p-2 border rounded"
-          />
-        )}
-      </div>
-
-      <button
-        onClick={handleAddData}
-        disabled={isSubmitting}
-        className="p-2 bg-blue-500 text-white rounded"
-      >
-        {isSubmitting ? 'Submitting...' : 'Add Data'}
-      </button>
-
+  
+      {!readOnly && (
+        <>
+          {renderDropdowns()}
+          <div className="mb-4 flex flex-wrap gap-2">
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="p-2 border rounded"
+            />
+            {view === 'completed' && (
+              <input
+                type="number"
+                value={progress}
+                onChange={(e) => setProgress(e.target.value)}
+                placeholder="Прогресс (%)"
+                className="p-2 border rounded"
+              />
+            )}
+          </div>
+  
+          <button
+            onClick={handleAddData}
+            disabled={isSubmitting}
+            className="p-2 bg-blue-500 text-white rounded"
+          >
+            {isSubmitting ? 'Submitting...' : 'Add Data'}
+          </button>
+        </>
+      )}
       {renderTable()}
     </div>
   );
-};
-
-export default TablePage;
+  };
+  
+  export default TablePage;

@@ -1,0 +1,9 @@
+.custom-width {
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .custom-width {
+    max-width: 6xl; /* Adjust this value as needed */
+  }
+}

@@ -220,6 +220,7 @@ const GlobalStateProvider = ({ children }) => {
     const rate = exchangeRates[toCurrency] / exchangeRates[fromCurrency];
     return amount * rate;
   };
+  
 
   return (
     <GlobalStateContext.Provider value={{

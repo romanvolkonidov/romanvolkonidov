@@ -1,0 +1,26 @@
+.student-page {
+  overflow-x: auto; /* Ensures horizontal scrollbar is always present */
+  white-space: nowrap; /* Prevents wrapping of child elements */
+}
+
+.chart-info-container {
+  width: 100%; /* Ensures the container takes full width */
+}
+
+.table-left {
+  display: inline-block; /* Ensures the table respects white-space: nowrap */
+  width: 100%; /* Ensures the table takes full width */
+}
+
+.student-info-bar-container {
+  display: flex;
+  justify-content: space-between;
+}
+
+.student-info {
+  width: 70%;
+}
+
+.bar-chart {
+  width: 30%;
+}

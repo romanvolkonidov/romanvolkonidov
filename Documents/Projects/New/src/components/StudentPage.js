@@ -6,9 +6,10 @@ import 'chart.js/auto';
 import '../styles/StudentPage.css';
 import { db } from '../firebase';
 import { collection, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
-import StudentProgressBar from './ProgressBar/StudentProgressBar'; // Import the StudentProgressBar component
-import KidsProgressTracker from './ProgressBar/KidsProgressTracker'; // Import the KidsProgressTracker component
 import TablePage from '@/components/TablePage';
+import StudentProgressBar from '@/components/ProgressBar/StudentProgressBar';
+import TeacherRecommendations from '@/components/TeacherRecommendations';
+
 
 
 
@@ -388,6 +389,11 @@ const StudentPage = () => {
         </div>
       </div>
       <TablePage studentId={id} />
+      <StudentProgressBar  studentId={id} />
+      <TeacherRecommendations  studentId={id} />
+
+
+
 
       </div>
     

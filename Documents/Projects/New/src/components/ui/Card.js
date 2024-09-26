@@ -23,3 +23,9 @@ export const CardContent = ({ children }) => (
     {children}
   </div>
 );
+
+export const CardDescription = ({ children }) => (
+  <p className="text-gray-600">
+    {children}
+  </p>
+);
