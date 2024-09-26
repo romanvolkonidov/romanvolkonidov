@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db } from '../firebase';
+import Tooltip from '@/components/ui/Tooltip'; // Import Tooltip component
 
 const TablePage = ({ studentId }) => {
   const [view, setView] = useState('completed');
@@ -15,6 +16,7 @@ const TablePage = ({ studentId }) => {
   const [tableData, setTableData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTooltip, setActiveTooltip] = useState(null); // Add state for active tooltip
 
   useEffect(() => {
     const fetchLibraryAndTableData = async () => {
@@ -161,6 +163,10 @@ const TablePage = ({ studentId }) => {
     }
   };
 
+  const toggleTooltip = (id) => {
+    setActiveTooltip(activeTooltip === id ? null : id);
+  };
+
   const renderDropdowns = () => (
     <div className="mb-4 flex flex-wrap gap-2">
       <select
@@ -270,26 +276,32 @@ const TablePage = ({ studentId }) => {
                       ) : header === 'Дата' ? (
                         row.date
                       ) : header === 'Курс' ? (
-                        <span
-                          className="cursor-pointer text-blue-500"
-                          title={row.course?.description || "Нет описания"}
-                        >
-                          {row.course?.name}
-                        </span>
+                        <Tooltip content={row.course?.description || "Нет описания"}>
+                          <span
+                            className="cursor-pointer text-blue-500"
+                            onClick={() => toggleTooltip(`course-${row.id}`)}
+                          >
+                            {row.course?.name}
+                          </span>
+                        </Tooltip>
                       ) : header === 'Тема' ? (
-                        <span
-                          className="cursor-pointer text-blue-500"
-                          title={row.chapter?.description || "Нет описания"}
-                        >
-                          {row.chapter?.name}
-                        </span>
+                        <Tooltip content={row.chapter?.description || "Нет описания"}>
+                          <span
+                            className="cursor-pointer text-blue-500"
+                            onClick={() => toggleTooltip(`chapter-${row.id}`)}
+                          >
+                            {row.chapter?.name}
+                          </span>
+                        </Tooltip>
                       ) : header === 'Урок' ? (
-                        <span
-                          className="cursor-pointer text-blue-500"
-                          title={row.lesson?.description || "Нет описания"}
-                        >
-                          {row.lesson?.name}
-                        </span>
+                        <Tooltip content={row.lesson?.description || "Нет описания"}>
+                          <span
+                            className="cursor-pointer text-blue-500"
+                            onClick={() => toggleTooltip(`lesson-${row.id}`)}
+                          >
+                            {row.lesson?.name}
+                          </span>
+                        </Tooltip>
                       ) : header === 'Прогресс' ? (
                         <div className="w-full bg-gray-200 rounded">
                           <div
