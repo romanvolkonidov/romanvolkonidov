@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/Card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/Tabs';
-import { Button } from './ui/Button';
-import { Input } from './ui/Input';
-import Textarea from './ui/Textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/Select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import  Textarea  from '@/components/ui/Textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
 import { collection, getDocs, setDoc, doc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
-
 import { 
   Plus, Trash2, Edit2, Save, X, 
   Book, Headphones, Video, Globe, Code, Music, 
-  Film, Camera, Pencil, Calculator 
+  Film, Camera, Pencil, Calculator
 } from 'lucide-react';
 
 const iconOptions = [
@@ -146,8 +145,8 @@ const TeacherRecommendations = ({ isViewOnly = false, studentId }) => {
   return (
     <div className="w-full bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h2 className="text-3xl font-bold text-center mb-2">Персональные рекомендации учителя</h2>
-        <p className="text-xl text-center text-gray-600 mb-8">Повысьте эффективность своего обучения с помощью этих отобранных ресурсов</p>
+        <h2 className="text-3xl font-bold text-center mb-2">Teacher Recommendations</h2>
+        <p className="text-xl text-center text-gray-600 mb-8">Boost your learning with these curated resources</p>
         
         {!isViewOnly && (
           <div className="mb-4 flex space-x-2">
