@@ -9,6 +9,10 @@ import { collection, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestor
 import TablePage from '@/components/TablePage';
 import StudentProgressBar from '@/components/ProgressBar/StudentProgressBar';
 import TeacherRecommendations from '@/components/TeacherRecommendations';
+import StudentProfile from '@/components/StudentProfile';
+import StudentFeedback from '@/components/StudentFeedback';
+
+
 
 
 
@@ -255,6 +259,8 @@ const StudentPage = () => {
 
   return (
     <div className="student-page">
+                        <StudentProfile  />
+
       <div className="chart-info-container">
         <div className="student-info">
           <h2>{student.name}</h2>
@@ -391,6 +397,8 @@ const StudentPage = () => {
       <TablePage studentId={id} />
       <StudentProgressBar  studentId={id} />
       <TeacherRecommendations  studentId={id} />
+      <StudentFeedback  studentId={id} />
+
 
 
 

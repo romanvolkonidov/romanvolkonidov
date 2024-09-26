@@ -7,6 +7,9 @@ import StudentProgressBar from './ProgressBar/StudentProgressBar';
 import KidsProgressTracker from './ProgressBar/KidsProgressTracker';
 import TablePage from './TablePage'; // Import TablePage component
 import TeacherRecommendations from '@/components/TeacherRecommendations';
+import StudentProfile from '@/components/StudentProfile';
+import StudentFeedback from '@/components/StudentFeedback';
+
 
 
 const currencies = ['USD', 'KES', 'RUB', 'EUR'];
@@ -98,6 +101,8 @@ const StudentDashboard = () => {
 
   return (
     <div className="student-page">
+                  <StudentProfile  />
+
       <div className="chart-info-container">
         <div className="student-info-bar-container">
           <div className="student-info">
@@ -132,7 +137,8 @@ const StudentDashboard = () => {
       </div>
       <StudentProgressBar studentId={selectedStudentId} viewOnly={true}/> 
       <TablePage studentId={selectedStudentId} readOnly={true} className="table-left" /> {/* Include TablePage component with className */}
-       {/* <TeacherRecommendations studentId={selectedStudentId} viewOnly={true}/> */}
+       <TeacherRecommendations studentId={selectedStudentId} isViewOnly={true}/> 
+       <StudentFeedback  studentId={id} />
 
     </div>
   );

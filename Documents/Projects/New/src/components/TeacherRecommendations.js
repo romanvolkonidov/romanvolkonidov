@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import  Textarea  from '@/components/ui/Textarea';
+import Textarea from '@/components/ui/Textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
 import { collection, getDocs, setDoc, doc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -143,7 +143,7 @@ const TeacherRecommendations = ({ isViewOnly = false, studentId }) => {
   };
 
   return (
-    <div className="w-full bg-white">
+    <div className="w-full bg-white max-w-[500px]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h2 className="text-3xl font-bold text-center mb-2">Teacher Recommendations</h2>
         <p className="text-xl text-center text-gray-600 mb-8">Boost your learning with these curated resources</p>
@@ -154,10 +154,12 @@ const TeacherRecommendations = ({ isViewOnly = false, studentId }) => {
               placeholder="New tab label" 
               value={newTab.label} 
               onChange={(e) => setNewTab({...newTab, label: e.target.value})}
+              disabled={isViewOnly}
             />
             <Select 
               value={newTab.icon} 
               onValueChange={(value) => setNewTab({...newTab, icon: value})}
+              disabled={isViewOnly}
             >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Select an icon" />
@@ -173,7 +175,7 @@ const TeacherRecommendations = ({ isViewOnly = false, studentId }) => {
                 ))}
               </SelectContent>
             </Select>
-            <Button onClick={addTab}><Plus className="w-4 h-4 mr-2" /> Add Tab</Button>
+            <Button onClick={addTab} disabled={isViewOnly}><Plus className="w-4 h-4 mr-2" /> Add Tab</Button>
           </div>
         )}
 
@@ -197,28 +199,30 @@ const TeacherRecommendations = ({ isViewOnly = false, studentId }) => {
           
           {tabs.map((tab) => (
             <TabsContent key={tab.id} value={tab.id}>
-              <Card>
+              <Card className="h-[600px]">
                 <CardHeader>
                   <CardTitle className="text-2xl">{tab.label} Recommendations</CardTitle>
                   <CardDescription className="text-lg">Resources to enhance your learning</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="overflow-y-auto h-full">
                   {editingItem && editingItem.id && (
                     <div className="mb-4">
                       <Input 
                         value={editingItem.title} 
                         onChange={(e) => setEditingItem({...editingItem, title: e.target.value})} 
                         className="mb-2"
+                        disabled={isViewOnly}
                       />
                       <Textarea 
                         value={editingItem.description} 
                         onChange={(e) => setEditingItem({...editingItem, description: e.target.value})} 
                         className="mb-2"
+                        disabled={isViewOnly}
                       />
-                      <Button onClick={() => saveEdit(tab.id)} className="mr-2">
+                      <Button onClick={() => saveEdit(tab.id)} className="mr-2" disabled={isViewOnly}>
                         <Save className="w-4 h-4 mr-2" /> Save
                       </Button>
-                      <Button onClick={cancelEdit} variant="outline">
+                      <Button onClick={cancelEdit} variant="outline" disabled={isViewOnly}>
                         <X className="w-4 h-4 mr-2" /> Cancel
                       </Button>
                     </div>
