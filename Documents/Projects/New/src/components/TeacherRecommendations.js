@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -7,11 +7,7 @@ import Textarea from '@/components/ui/Textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
 import { collection, getDocs, setDoc, doc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
-import { 
-  Plus, Trash2, Edit2, Save, X, 
-  Book, Headphones, Video, Globe, Code, Music, 
-  Film, Camera, Pencil, Calculator
-} from 'lucide-react';
+import { Plus, Trash2, Edit2, Save, X, Book, Headphones, Video, Globe, Code, Music, Film, Camera, Pencil, Calculator } from 'lucide-react';
 
 const iconOptions = [
   { value: 'book', label: 'Book', icon: Book },
@@ -143,54 +139,53 @@ const TeacherRecommendations = ({ isViewOnly = false, studentId }) => {
   };
 
   return (
-    <div className="w-full bg-white max-w-[500px]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h2 className="text-3xl font-bold text-center mb-2">Teacher Recommendations</h2>
-        <p className="text-xl text-center text-gray-600 mb-8">Boost your learning with these curated resources</p>
-        
+    <Card className="w-full max-w-3xl mx-auto mt-6">
+      <CardHeader>
+        <CardTitle className="title">Персональные рекомендации преподавателя</CardTitle>
+      </CardHeader>
+      <CardContent>
         {!isViewOnly && (
-          <div className="mb-4 flex space-x-2">
+          <div className="mb-2 flex space-x-2">
             <Input 
               placeholder="New tab label" 
               value={newTab.label} 
               onChange={(e) => setNewTab({...newTab, label: e.target.value})}
-              disabled={isViewOnly}
+              className="text-sm"
             />
             <Select 
               value={newTab.icon} 
               onValueChange={(value) => setNewTab({...newTab, icon: value})}
-              disabled={isViewOnly}
             >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select an icon" />
+              <SelectTrigger className="w-[120px] text-sm">
+                <SelectValue placeholder="Icon" />
               </SelectTrigger>
               <SelectContent>
                 {iconOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     <div className="flex items-center">
-                      <option.icon className="w-4 h-4 mr-2" />
+                      <option.icon className="w-3 h-3 mr-2" />
                       {option.label}
                     </div>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <Button onClick={addTab} disabled={isViewOnly}><Plus className="w-4 h-4 mr-2" /> Add Tab</Button>
+            <Button onClick={addTab} size="sm"><Plus className="w-3 h-3" /></Button>
           </div>
         )}
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+  
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-grow flex flex-col">
           <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}>
             {tabs.map((tab) => (
-              <TabsTrigger key={tab.id} value={tab.id} className="flex items-center justify-center text-lg py-3">
-                <IconComponent iconName={tab.icon} />
+              <TabsTrigger key={tab.id} value={tab.id} className="flex items-center justify-center text-sm py-1">
+                <IconComponent iconName={tab.icon} className="w-3 h-3 mr-1" />
                 {tab.label}
                 {!isViewOnly && (
                   <Button variant="ghost" size="sm" onClick={(e) => {
                     e.stopPropagation();
                     removeTab(tab.id);
-                  }}>
-                    <X className="w-4 h-4" />
+                  }} className="ml-1 p-0">
+                    <X className="w-3 h-3" />
                   </Button>
                 )}
               </TabsTrigger>
@@ -198,43 +193,40 @@ const TeacherRecommendations = ({ isViewOnly = false, studentId }) => {
           </TabsList>
           
           {tabs.map((tab) => (
-            <TabsContent key={tab.id} value={tab.id}>
-              <Card className="h-[600px]">
-                <CardHeader>
-                  <CardTitle className="text-2xl">{tab.label} Recommendations</CardTitle>
-                  <CardDescription className="text-lg">Resources to enhance your learning</CardDescription>
+            <TabsContent key={tab.id} value={tab.id} className="flex-grow overflow-hidden">
+              <Card className="h-full flex flex-col">
+                <CardHeader className="py-2">
+                  <CardTitle className="text-lg break-words">{tab.label} </CardTitle>
                 </CardHeader>
-                <CardContent className="overflow-y-auto h-full">
+                <CardContent className="flex-grow overflow-y-auto">
                   {editingItem && editingItem.id && (
-                    <div className="mb-4">
+                    <div className="mb-2">
                       <Input 
                         value={editingItem.title} 
                         onChange={(e) => setEditingItem({...editingItem, title: e.target.value})} 
-                        className="mb-2"
-                        disabled={isViewOnly}
+                        className="mb-1 text-sm"
                       />
                       <Textarea 
                         value={editingItem.description} 
                         onChange={(e) => setEditingItem({...editingItem, description: e.target.value})} 
-                        className="mb-2"
-                        disabled={isViewOnly}
+                        className="mb-1 text-sm"
                       />
-                      <Button onClick={() => saveEdit(tab.id)} className="mr-2" disabled={isViewOnly}>
-                        <Save className="w-4 h-4 mr-2" /> Save
+                      <Button onClick={() => saveEdit(tab.id)} className="mr-1 text-sm" size="sm">
+                        <Save className="w-3 h-3 mr-1" /> Save
                       </Button>
-                      <Button onClick={cancelEdit} variant="outline" disabled={isViewOnly}>
-                        <X className="w-4 h-4 mr-2" /> Cancel
+                      <Button onClick={cancelEdit} variant="outline" size="sm">
+                        <X className="w-3 h-3 mr-1" /> Cancel
                       </Button>
                     </div>
                   )}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 gap-2">
                     {tab.items.map((item) => (
                       <RecommendationItem key={item.id} item={item} tabId={tab.id} />
                     ))}
                   </div>
                   {!isViewOnly && (
-                    <Button onClick={() => addItem(tab.id)} className="mt-4">
-                      <Plus className="w-4 h-4 mr-2" /> Add Recommendation
+                    <Button onClick={() => addItem(tab.id)} className="mt-2 text-sm" size="sm">
+                      <Plus className="w-3 h-3 mr-1" /> Add Recommendation
                     </Button>
                   )}
                 </CardContent>
@@ -242,8 +234,8 @@ const TeacherRecommendations = ({ isViewOnly = false, studentId }) => {
             </TabsContent>
           ))}
         </Tabs>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

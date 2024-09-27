@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Trash2 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
 import { Input } from './ui/Input';
@@ -6,29 +6,52 @@ import Label from './ui/Label';
 import Textarea from './ui/Textarea';
 import { Button } from './ui/Button';
 import Alert, { AlertDescription } from './ui/Alert';
+import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
+import { db } from '../firebase'; // Adjust the import path based on your project structure
 
-
-
-
-
-const StudentFeedback = () => {
+const StudentFeedback = ({ studentId }) => {
   const [feedbacks, setFeedbacks] = useState([]);
   const [newFeedback, setNewFeedback] = useState('');
   const [feedbackType, setFeedbackType] = useState('request');
 
-  const addFeedback = () => {
+  useEffect(() => {
+    const fetchFeedbacks = async () => {
+      try {
+        const feedbacksSnapshot = await getDocs(collection(db, 'studentFeedback', studentId, 'feedbacks'));
+        const feedbacksData = feedbacksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setFeedbacks(feedbacksData);
+      } catch (error) {
+        console.error("Error fetching feedbacks:", error);
+      }
+    };
+
+    fetchFeedbacks();
+  }, [studentId]);
+
+  const addFeedback = async () => {
     if (newFeedback.trim()) {
-      setFeedbacks([...feedbacks, { id: Date.now(), type: feedbackType, text: newFeedback }]);
-      setNewFeedback('');
+      const feedback = { type: feedbackType, text: newFeedback };
+      try {
+        const docRef = await addDoc(collection(db, 'studentFeedback', studentId, 'feedbacks'), feedback);
+        setFeedbacks([...feedbacks, { id: docRef.id, ...feedback }]);
+        setNewFeedback('');
+      } catch (error) {
+        console.error("Error adding feedback:", error);
+      }
     }
   };
 
-  const deleteFeedback = (id) => {
-    setFeedbacks(feedbacks.filter(feedback => feedback.id !== id));
+  const deleteFeedback = async (id) => {
+    try {
+      await deleteDoc(doc(db, 'studentFeedback', studentId, 'feedbacks', id));
+      setFeedbacks(feedbacks.filter(feedback => feedback.id !== id));
+    } catch (error) {
+      console.error("Error deleting feedback:", error);
+    }
   };
 
   return (
-    <Card className="w-full max-w-3xl mx-auto mt-6">
+    <Card className="w-full max-w-3xl mx-auto mt-6 min-h-[700px]">
       <CardHeader>
         <CardTitle>Отзывы и пожелания студентов</CardTitle>
       </CardHeader>
@@ -62,6 +85,7 @@ const StudentFeedback = () => {
         {feedbacks.length > 0 && (
           <div className="mt-6 space-y-4">
             <h3 className="text-lg font-semibold">Ваши сообщения:</h3>
+            <p className="text-sm text-gray-500">Эта информация будет доступна вашему учителю, пока она находится здесь</p>
             {feedbacks.map((feedback) => (
               <Alert key={feedback.id} className="flex justify-between items-start">
                 <AlertDescription>

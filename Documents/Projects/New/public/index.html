@@ -3,12 +3,92 @@
 <head>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
     <meta charset="UTF-8">
-    
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>React Photo Editor App</title>
+    <title>RV</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+        }
+
+        #logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #333, #777); /* Gray gradient background */
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        #lottie-background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        #logo {
+            width: 50%; /* Adjust size for better visibility on mobile */
+            max-width: 200px; /* Ensure it doesn't get too large on larger screens */
+        }
+
+        #root {
+            display: none;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
 </head>
 <body>
-    <div id="root"></div>
+    <div id="logo-container">
+        <div id="lottie-background"></div>
+        <img src="logo.jpg" alt="Logo" id="logo" class="animate__animated animate__zoomIn">
+    </div>
+    <div id="root">
+        <!-- Your main app content goes here -->
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.7.6/lottie.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const logoContainer = document.getElementById('logo-container');
+            const root = document.getElementById('root');
+
+            // Fetch the Lottie animation JSON
+            fetch('/animation.json')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(animationData => {
+                    // Load Lottie animation
+                    lottie.loadAnimation({
+                        container: document.getElementById('lottie-background'), // the dom element that will contain the animation
+                        renderer: 'svg',
+                        loop: true,
+                        autoplay: true,
+                        animationData: animationData // the animation data
+                    });
+                })
+                .catch(error => console.error('Error loading Lottie animation:', error));
+
+            // Wait for the animation to complete (4 seconds in this case)
+            setTimeout(() => {
+                logoContainer.style.display = 'none';
+                root.style.display = 'block';
+            }, 4000); // Match this duration with the CSS animation duration
+        });
+    </script>
 </body>
 </html>

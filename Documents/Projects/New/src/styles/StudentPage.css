@@ -1,4 +1,4 @@
-/* StudentPage.css */
+/* Keeping your existing styles and improving alignment and button consistency */
 
 .student-page {
   padding: 20px;
@@ -93,18 +93,19 @@ form select {
 
 .add-payment-button,
 .add-lesson-button {
-  background-color: #4caf50;
+  background-color: #007bff; /* Updated to match the standard button color */
   color: white;
   padding: 10px;
   border: none;
-  border-radius: 4px;
+  border-radius: 5px; /* Consistent rounded button */
   cursor: pointer;
   align-self: flex-end; /* Align buttons at the bottom */
+  transition: background-color 0.3s ease; /* Smooth hover effect */
 }
 
 .add-payment-button:hover,
 .add-lesson-button:hover {
-  background-color: #45a049;
+  background-color: #0056b3; /* Darker blue on hover */
 }
 
 .transactions-container {
@@ -134,7 +135,7 @@ form select {
 .transaction-item {
   background-color: #f1f1f1;
   padding: 10px;
-  border-radius: 4px;
+  border-radius: 5px;
   margin-bottom: 10px;
   display: flex;
   justify-content: space-between;
@@ -147,24 +148,25 @@ form select {
 }
 
 .button-group button {
-  background-color: #2196f3;
+  background-color: #007bff; /* Updated for consistency */
   color: white;
   padding: 5px 10px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .button-group button:hover {
-  background-color: #0b7dda;
+  background-color: #0056b3; /* Matching hover effect */
 }
 
 .remove-button {
-  background-color: #f44336;
+  background-color: #f44336; /* Red for remove buttons */
 }
 
 .remove-button:hover {
-  background-color: #e53935;
+  background-color: #e53935; /* Darker red on hover */
 }
 
 .error-message {
@@ -172,7 +174,6 @@ form select {
   margin-bottom: 10px;
 }
 
-/* New styles for subdivided lists */
 .transactions-list .sub-list {
   margin-left: 20px;
 }
@@ -209,6 +210,7 @@ form select {
     margin-bottom: 20px;
   }
 }
+
 .info-card {
   border: 1px solid #ccc;
   padding: 10px;
@@ -273,4 +275,59 @@ form select {
 .my-8 {
   margin-top: 2rem;
   margin-bottom: 2rem;
+}
+
+@media (min-width: 768px) {
+  .side-by-side-container {
+    display: flex;
+    gap: 20px; /* Adjust the gap between the components as needed */
+    min-width: 500px;
+  }
+
+  .side-by-side-container > * {
+    flex: 1; /* Make both components take equal space */
+  }
+}
+
+.title {
+  text-align: center;
+  font-size: 1.25rem; /* Adjust as needed */
+  font-weight: bold;
+  margin-bottom: 1rem; /* Adjust as needed */
+}
+.add-payment-button,
+.add-lesson-button {
+  background-color: #000000; /* Black button background */
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  align-self: flex-end; /* Align buttons at the bottom */
+}
+
+.add-payment-button:hover,
+.add-lesson-button:hover {
+  background-color: #333333; /* Slightly lighter black for hover effect */
+}
+
+.button-group button {
+  background-color: #000000; /* Black button background */
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.button-group button:hover {
+  background-color: #333333; /* Slightly lighter black for hover effect */
+}
+
+.remove-button {
+  background-color: #000000; /* Black button background */
+}
+
+.remove-button:hover {
+  background-color: #333333; /* Slightly lighter black for hover effect */
 }

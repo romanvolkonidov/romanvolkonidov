@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Slider } from "@/components/ui/Slider";
 import { db } from '../../firebase'; // Adjust this import based on your Firebase configuration file location
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const StudentProgressBar = ({ viewOnly, studentId }) => {
   const [bars, setBars] = useState([]);
@@ -92,9 +94,14 @@ const StudentProgressBar = ({ viewOnly, studentId }) => {
     setBars(newBars);
   };
 
+  const handleSaveMilestoneName = () => {
+    toast.success('Milestone name saved!');
+  };
+
   return (
     <div className="w-full p-6 bg-white rounded-xl shadow-md">
-      <h2 className="text-2xl font-bold mb-4 text-center text-gray-800">Успехи ученика</h2>
+      <ToastContainer />
+      <h2 className="text-2xl font-bold mb-4 text-center text-gray-800">Ваши достижения</h2>
       {!viewOnly && (
         <button onClick={addBar} className="mb-4 p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
           Add Bar
@@ -103,12 +110,12 @@ const StudentProgressBar = ({ viewOnly, studentId }) => {
       {bars.map((bar, index) => (
         <div key={index} className="mb-4 border rounded-lg p-4 shadow-sm">
           {!viewOnly && (
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex flex-wrap items-center justify-between mb-2 space-y-2">
               <input
                 type="text"
                 value={bar.name}
                 onChange={(e) => handleBarNameChange(index, e.target.value)}
-                className="p-2 border rounded w-full mr-2"
+                className="p-2 border rounded w-full md:w-auto mb-2"
                 placeholder="Bar Name"
                 aria-label={`Bar Name ${index + 1}`}
               />
@@ -116,18 +123,11 @@ const StudentProgressBar = ({ viewOnly, studentId }) => {
                 type="number"
                 value={bar.milestones.length}
                 onChange={(e) => handleMilestonesChange(index, parseInt(e.target.value) || 0)}
-                className="p-2 border rounded w-20"
+                className="p-2 border rounded w-20 mb-2"
                 min="0"
                 aria-label={`Number of milestones for ${bar.name}`}
               />
-              <Slider
-                defaultValue={[bar.progress]}
-                max={100}
-                step={1}
-                onValueChange={(value) => handleProgressChange(index, value)}
-                aria-label={`Progress for ${bar.name}`}
-              />
-              <div className="flex flex-col">
+              <div className="flex flex-wrap items-center space-x-2 mb-2">
                 {['color', 'milestoneColor', 'emptyBarColor', 'progressedBarColor'].map((field) => (
                   <input
                     key={field}
@@ -139,7 +139,7 @@ const StudentProgressBar = ({ viewOnly, studentId }) => {
                   />
                 ))}
               </div>
-              <button onClick={() => removeBar(index)} className="p-2 bg-red-500 text-white rounded hover:bg-red-600 transition">
+              <button onClick={() => removeBar(index)} className="p-2 bg-red-500 text-white rounded hover:bg-red-600 transition w-full md:w-auto">
                 Remove Bar
               </button>
             </div>
@@ -157,6 +157,18 @@ const StudentProgressBar = ({ viewOnly, studentId }) => {
                 </span>
               </div>
             </div>
+            {!viewOnly && (
+              <div className="w-full mb-4"> {/* Increased margin-bottom to 4 */}
+                <Slider
+                  defaultValue={[bar.progress]}
+                  max={100}
+                  step={1}
+                  onValueChange={(value) => handleProgressChange(index, value)}
+                  aria-label={`Progress for ${bar.name}`}
+                  className="w-full"
+                />
+              </div>
+            )}
             <div className="overflow-hidden h-2 mb-4 text-xs flex rounded relative w-full" style={{ background: bar.emptyBarColor }}>
               <div
                 style={{ width: `${bar.progress}%`, background: bar.progressedBarColor }}
@@ -177,46 +189,18 @@ const StudentProgressBar = ({ viewOnly, studentId }) => {
                 ></div>
               ))}
             </div>
-            {!viewOnly && bar.milestones.length > 0 && (
-              <div className="mb-4">
-                <select
-                  onChange={(e) => {
-                    const [milestoneIndex, name] = e.target.value.split('-');
-                    handleMilestoneNameChange(index, parseInt(milestoneIndex), name);
-                  }}
-                  className="p-2 border rounded"
-                  aria-label={`Select milestone to rename for ${bar.name}`}
-                >
-                  {bar.milestones.map((milestone, i) => (
-                    <option key={i} value={`${i}-${milestone.name}`}>
-                      {milestone.name}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  type="text"
-                  placeholder="Rename milestone"
-                  onBlur={(e) => {
-                    const milestoneIndex = parseInt(e.target.previousSibling.value.split('-')[0]);
-                    handleMilestoneNameChange(index, milestoneIndex, e.target.value);
-                  }}
-                  className="p-2 border rounded ml-2"
-                  aria-label={`Rename milestone`}
-                />
-              </div>
-            )}
           </div>
           <p className="text-center text-gray-600 mt-4">
-            {bar.progress < 25 && "Just getting started! Keep going!"}
-            {bar.progress >= 25 && bar.progress < 50 && "You're making progress! Keep it up!"}
-            {bar.progress >= 50 && bar.progress < 75 && "Halfway there! You're doing great!"}
-            {bar.progress >= 75 && bar.progress < 100 && "Almost there! You're nearly finished!"}
-            {bar.progress === 100 && "Congratulations! You've completed the course!"}
+            {bar.progress < 25 && "Сделали первый шаг на пути к успеху!"}
+            {bar.progress >= 25 && bar.progress < 50 && "Вы делаете успехи! Продолжайте в том же духе!"}
+            {bar.progress >= 50 && bar.progress < 75 && "Вы уже на полпути! Отлично справляетесь"}
+            {bar.progress >= 75 && bar.progress < 100 && "Вы почти там! Финишная прямая!"}
+            {bar.progress === 100 && "Поздравляю! Вы завершили курс!"}
           </p>
         </div>
       ))}
     </div>
   );
-};
+}
 
 export default StudentProgressBar;

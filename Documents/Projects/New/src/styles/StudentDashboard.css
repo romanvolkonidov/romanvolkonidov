@@ -1,26 +1,117 @@
+/* src/styles/StudentDashboard.css */
+
+/* General styles */
 .student-page {
-  overflow-x: auto; /* Ensures horizontal scrollbar is always present */
-  white-space: nowrap; /* Prevents wrapping of child elements */
+  padding: 20px;
+  color: black; /* Text color for the entire page */
 }
 
+/* Responsive grid layout */
+.grid {
+  display: grid;
+  gap: 16px;
+}
+
+.grid-cols-1 {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 640px) {
+  .sm\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 768px) {
+  .md\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Responsive padding and border */
+.p-4 {
+  padding: 16px;
+}
+
+.border {
+  border-width: 1px;
+}
+
+.border-gray-200 {
+  border-color: #e5e7eb;
+}
+
+.rounded-lg {
+  border-radius: 8px;
+}
+
+.shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Responsive text sizes */
+.text-lg {
+  font-size: 1.125rem;
+}
+
+.text-2xl {
+  font-size: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .text-lg {
+    font-size: 1.25rem;
+  }
+
+  .text-2xl {
+    font-size: 1.75rem;
+  }
+}
+
+/* Responsive button */
+button {
+  padding: 7px 14px; /* 30% smaller than 10px 20px */
+  font-size: 0.7rem; /* 30% smaller than 1rem */
+  border: none;
+  border-radius: 5px;
+  background-color: black; /* Base color */
+  color: white; /* Button text color */
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.3s; /* Transition for shadow */
+}
+
+/* Glossy effect on hover */
+button:hover {
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.3), /* Dark shadow for depth */
+    inset 0 2px 5px rgba(255, 255, 255, 0.3), /* Light glossy effect */
+    inset 0 -2px 3px rgba(0, 0, 0, 0.2); /* Subtle top shadow for dimension */
+}
+
+button:active {
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5); /* Darker shadow when active */
+}
+
+/* Responsive chart container */
 .chart-info-container {
-  width: 100%; /* Ensures the container takes full width */
-}
-
-.table-left {
-  display: inline-block; /* Ensures the table respects white-space: nowrap */
-  width: 100%; /* Ensures the table takes full width */
-}
-
-.student-info-bar-container {
-  display: flex;
-  justify-content: space-between;
-}
-
-.student-info {
-  width: 70%;
+  margin-top: 20px;
 }
 
 .bar-chart {
-  width: 30%;
+  margin-top: 20px;
+}
+
+/* Responsive side-by-side container */
+.side-by-side-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+@media (min-width: 768px) {
+  .side-by-side-container {
+    flex-direction: row;
+  }
 }

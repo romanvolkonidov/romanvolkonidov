@@ -253,72 +253,24 @@ const Library = () => {
     setExpandedLessons(prevState => ({ ...prevState, [lessonId]: !prevState[lessonId] }));
   };
 
-  const containerStyles = {
-    padding: '1rem',
-    backgroundColor: '#f9f9f9',
-    borderRadius: '8px',
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-  };
-
-  const courseStyles = {
-    marginBottom: '1rem',
-    padding: '1rem',
-    backgroundColor: '#fff',
-    borderRadius: '4px',
-    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
-  };
-
-  const courseHeaderStyles = {
-    display: 'flex',
-    alignItems: 'center',
-    marginBottom: '0.5rem',
-  };
-
-  const chapterStyles = {
-    marginLeft: '1rem',
-    marginTop: '0.5rem',
-    padding: '0.5rem',
-    backgroundColor: '#f5f5f5',
-    borderRadius: '4px',
-  };
-
-  const chapterHeaderStyles = {
-    display: 'flex',
-    alignItems: 'center',
-    marginBottom: '0.25rem',
-  };
-
-  const lessonStyles = {
-    marginLeft: '1rem',
-    marginTop: '0.25rem',
-    padding: '0.5rem',
-    backgroundColor: '#f9f9f9',
-    borderRadius: '4px',
-  };
-
-  const lessonHeaderStyles = {
-    display: 'flex',
-    alignItems: 'center',
-    marginBottom: '0.25rem',
-  };
-
-  const homeworkStyles = {
-    marginLeft: '1rem',
-    marginTop: '0.25rem',
-    padding: '0.5rem',
-    backgroundColor: '#f0f0f0',
-    borderRadius: '4px',
-  };
+  const containerStyles = 'p-4 bg-gray-100 rounded-lg shadow-md';
+  const courseStyles = 'mb-4 p-4 bg-white rounded-lg shadow-sm';
+  const courseHeaderStyles = 'flex items-center mb-2';
+  const chapterStyles = 'ml-4 mt-2 p-2 bg-gray-200 rounded-lg';
+  const chapterHeaderStyles = 'flex items-center mb-1';
+  const lessonStyles = 'ml-4 mt-1 p-2 bg-gray-100 rounded-lg';
+  const lessonHeaderStyles = 'flex items-center mb-1';
+  const homeworkStyles = 'ml-4 mt-1 p-2 bg-gray-50 rounded-lg';
 
   const renderEditForm = () => (
-    <div style={{ position: 'fixed', inset: '0', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '16px' }}>Edit Item</h2>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+      <div className="bg-white p-4 rounded-lg">
+        <h2 className="text-xl font-bold mb-4">Edit Item</h2>
         <Input
           name="name"
           value={editItem.name}
           onChange={handleEdit}
-          style={{ marginBottom: '8px' }}
+          className="mb-2"
           placeholder="Name"
         />
         {editItem.ordinal !== undefined && (
@@ -327,7 +279,7 @@ const Library = () => {
             type="number"
             value={editItem.ordinal}
             onChange={handleEdit}
-            style={{ marginBottom: '8px' }}
+            className="mb-2"
             placeholder="Ordinal"
           />
         )}
@@ -336,117 +288,117 @@ const Library = () => {
             name="description"
             value={editItem.description || ''}
             onChange={handleEdit}
-            style={{ marginBottom: '8px', padding: '8px', border: '1px solid #ccc', borderRadius: '4px', width: '100%' }}
+            className="mb-2 p-2 border border-gray-300 rounded-lg w-full"
             placeholder="Description"
           />
         )}
-        <Button onClick={saveEdit} style={{ marginRight: '8px' }}>Save</Button>
+        <Button onClick={saveEdit} className="mr-2">Save</Button>
         <Button onClick={() => setEditMode(false)}>Cancel</Button>
       </div>
     </div>
   );
 
   const renderLibrary = () => (
-    <div style={containerStyles}>
+    <div className={containerStyles}>
       {library.map(course => (
-        <div key={course.id} style={courseStyles}>
-          <div style={courseHeaderStyles}>
-            <Button onClick={() => toggleCourse(course.id)} style={{ marginRight: '0.5rem' }}>
+        <div key={course.id} className={courseStyles}>
+          <div className={courseHeaderStyles}>
+            <Button onClick={() => toggleCourse(course.id)} className="mr-2">
               {expandedCourses[course.id] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             </Button>
-            <span style={{ fontWeight: 'bold' }}>{course.name}</span>
-            <Button onClick={() => startEdit(course, 'course')} style={{ marginLeft: 'auto' }}>
+            <span className="font-bold">{course.name}</span>
+            <Button onClick={() => startEdit(course, 'course')} className="ml-auto">
               <Edit2 className="h-4 w-4" />
             </Button>
-            <Button onClick={() => addChapter(course.id)} style={{ marginLeft: '0.5rem' }}>
+            <Button onClick={() => addChapter(course.id)} className="ml-2">
               <PlusCircle className="h-4 w-4" />
             </Button>
-            <Button onClick={() => deleteCourse(course.id)} style={{ marginLeft: '0.5rem' }}>
+            <Button onClick={() => deleteCourse(course.id)} className="ml-2">
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
           {expandedCourses[course.id] && (
             <div>
-              <p style={{ marginLeft: '1rem', fontSize: '0.875rem', color: '#555' }}>{course.description}</p>
+              <p className="ml-4 text-sm text-gray-600">{course.description}</p>
               {(course.chapters?.length || 0) === 0 && (
-                <div style={{ marginLeft: '1rem', marginTop: '0.5rem', color: '#777' }}>
+                <div className="ml-4 mt-2 text-gray-500">
                   No chapters available
                 </div>
               )}
               {course.chapters?.map(chapter => (
-                <div key={chapter.id} style={chapterStyles}>
-                  <div style={chapterHeaderStyles}>
-                    <Button onClick={() => toggleChapter(chapter.id)} style={{ marginRight: '0.5rem' }}>
+                <div key={chapter.id} className={chapterStyles}>
+                  <div className={chapterHeaderStyles}>
+                    <Button onClick={() => toggleChapter(chapter.id)} className="mr-2">
                       {expandedChapters[chapter.id] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                     </Button>
                     <span>{chapter.ordinal}. {chapter.name}</span>
-                    <Button onClick={() => startEdit(chapter, 'chapter', course.id)} style={{ marginLeft: 'auto' }}>
+                    <Button onClick={() => startEdit(chapter, 'chapter', course.id)} className="ml-auto">
                       <Edit2 className="h-4 w-4" />
                     </Button>
-                    <Button onClick={() => addLesson(course.id, chapter.id)} style={{ marginLeft: '0.5rem' }}>
+                    <Button onClick={() => addLesson(course.id, chapter.id)} className="ml-2">
                       <PlusCircle className="h-4 w-4" />
                     </Button>
-                    <Button onClick={() => deleteChapter(course.id, chapter.id)} style={{ marginLeft: '0.5rem' }}>
+                    <Button onClick={() => deleteChapter(course.id, chapter.id)} className="ml-2">
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                   {expandedChapters[chapter.id] && (
                     <div>
-                      <p style={{ marginLeft: '1rem', fontSize: '0.875rem', color: '#555' }}>{chapter.description}</p>
+                      <p className="ml-4 text-sm text-gray-600">{chapter.description}</p>
                       {(chapter.lessons?.length || 0) === 0 && (
-                        <div style={{ marginLeft: '1rem', marginTop: '0.5rem', color: '#777' }}>
+                        <div className="ml-4 mt-2 text-gray-500">
                           No lessons available
                         </div>
                       )}
                       {chapter.lessons?.map(lesson => (
-                        <div key={lesson.id} style={lessonStyles}>
-                          <div style={lessonHeaderStyles}>
-                            <Button onClick={() => toggleLesson(lesson.id)} style={{ marginRight: '0.5rem' }}>
+                        <div key={lesson.id} className={lessonStyles}>
+                          <div className={lessonHeaderStyles}>
+                            <Button onClick={() => toggleLesson(lesson.id)} className="mr-2">
                               {expandedLessons[lesson.id] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                             </Button>
                             <span>{lesson.ordinal}. {lesson.name}</span>
-                            <Button onClick={() => startEdit(lesson, 'lesson', course.id, chapter.id)} style={{ marginLeft: 'auto' }}>
+                            <Button onClick={() => startEdit(lesson, 'lesson', course.id, chapter.id)} className="ml-auto">
                               <Edit2 className="h-4 w-4" />
                             </Button>
-                            <Button onClick={() => addHomework(course.id, chapter.id, lesson.id)} style={{ marginLeft: '0.5rem' }}>
+                            <Button onClick={() => addHomework(course.id, chapter.id, lesson.id)} className="ml-2">
                               <PlusCircle className="h-4 w-4" />
                             </Button>
-                            <Button onClick={() => deleteLesson(course.id, chapter.id, lesson.id)} style={{ marginLeft: '0.5rem' }}>
+                            <Button onClick={() => deleteLesson(course.id, chapter.id, lesson.id)} className="ml-2">
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
                           {expandedLessons[lesson.id] && (
                             <div>
-                              <p style={{ marginLeft: '1.5rem', fontSize: '0.875rem', color: '#555' }}>{lesson.description}</p>
-                              <div style={{ marginLeft: '1.5rem', marginTop: '0.5rem' }}>
+                              <p className="ml-6 text-sm text-gray-600">{lesson.description}</p>
+                              <div className="ml-6 mt-2">
                                 <Input
                                   type="text"
                                   value={newHomework.text}
                                   onChange={handleHomeworkTextChange}
                                   placeholder="Homework Text"
-                                  style={{ marginBottom: '0.5rem' }}
+                                  className="mb-2"
                                 />
-                                <input type="file" multiple onChange={handleFileChange} style={{ marginBottom: '0.5rem' }} />
-                                <Button onClick={() => addHomework(course.id, chapter.id, lesson.id)} style={{ marginLeft: '0.5rem' }}>
+                                <input type="file" multiple onChange={handleFileChange} className="mb-2" />
+                                <Button onClick={() => addHomework(course.id, chapter.id, lesson.id)} className="ml-2">
                                   <PlusCircle className="h-4 w-4" /> Save
                                 </Button>
                               </div>
                               {(lesson.homeworks?.length || 0) === 0 && (
-                                <div style={{ marginLeft: '1.5rem', marginTop: '0.5rem', color: '#777' }}>
+                                <div className="ml-6 mt-2text-gray-500">
                                   No homeworks available
                                 </div>
                               )}
                               {lesson.homeworks?.map(homework => (
-                                <div key={homework.id} style={homeworkStyles}>
-                                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                                    <ChevronRight style={{ marginRight: '0.5rem', height: '16px', width: '16px' }} />
+                                <div key={homework.id} className={homeworkStyles}>
+                                  <div className="flex items-center">
+                                    <ChevronRight className="mr-2 h-4 w-4" />
                                     <span>{homework.text}</span>
                                     {homework.fileURLs.map((fileURL, index) => (
-                                      <a key={index} href={fileURL} target="_blank" rel="noopener noreferrer" style={{ marginLeft: '0.5rem' }}>
+                                      <a key={index} href={fileURL} target="_blank" rel="noopener noreferrer" className="ml-2">
                                         File {index + 1}
                                       </a>
                                     ))}
-                                    <Button onClick={() => deleteHomework(course.id, chapter.id, lesson.id, homework.id)} style={{ marginLeft: '0.5rem' }}>
+                                    <Button onClick={() => deleteHomework(course.id, chapter.id, lesson.id, homework.id)} className="ml-2">
                                       <Trash2 className="h-4 w-4" />
                                     </Button>
                                   </div>
@@ -468,10 +420,10 @@ const Library = () => {
   );
 
   return (
-    <div style={containerStyles}>
-      <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem' }}>Library</h1>
-      <Button onClick={addCourse} style={{ marginBottom: '1rem' }}>
-        <PlusCircle style={{ marginRight: '0.5rem', height: '16px', width: '16px' }} /> Add Course
+    <div className={containerStyles}>
+      <h1 className="text-2xl font-bold mb-4">Library</h1>
+      <Button onClick={addCourse} className="mb-4">
+        <PlusCircle className="mr-2 h-4 w-4" /> Add Course
       </Button>
       {renderLibrary()}
       {editMode && renderEditForm()}

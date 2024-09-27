@@ -59,7 +59,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-black;
     font-feature-settings: "rlig" 1, "calt" 1;
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     line-height: 1.6;
@@ -96,7 +96,15 @@
   }
 
   button {
-    @apply bg-primary text-primary-foreground border-none py-3 px-6 rounded-[var(--radius)] cursor-pointer transition-all duration-300 font-semibold text-base shadow-sm inline-flex items-center justify-center min-w-[3rem] text-center hover:bg-secondary hover:text-secondary-foreground hover:translate-y-[-2px] hover:shadow-lg;
+    @apply bg-primary text-white border-none py-3 px-6 rounded-[var(--radius)] cursor-pointer transition-all duration-300 font-semibold text-base shadow-sm inline-flex items-center justify-center min-w-[3rem] text-center hover:bg-secondary hover:text-secondary-foreground hover:translate-y-[-2px] hover:shadow-lg;
+  }
+
+  /* Glossy button hover effect */
+  button:hover {
+    box-shadow: 
+      0 4px 8px rgba(0, 0, 0, 0.3),
+      inset 0 2px 10px rgba(255, 255, 255, 0.2),
+      inset 0 -1px 5px rgba(0, 0, 0, 0.15);
   }
 
   input[type="text"],
@@ -123,7 +131,7 @@
   }
 
   .form-group label {
-    @apply block mb-2 font-semibold text-foreground;
+    @apply block mb-2 font-semibold text-black;
   }
 
   .loading-spinner {
@@ -229,12 +237,6 @@
   }
 }
 
-@media print {
-  body {
-    @apply text-black bg-white;
-  }
-  
-  .no-print {
-    display: none !important;
-  }
+.main-content {
+  padding-top: 200px; /* Adjust this value to match the navbar height */
 }

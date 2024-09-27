@@ -84,7 +84,7 @@ const TablePage = ({ studentId, readOnly = false }) => {
       chapterId: selectedChapterData.id,
       lessonId: selectedLessonData.id,
       progress: view === 'completed' ? progress : '',
-      homework: view === 'homework' ? selectedHomeworkData?.name || '' : '',
+      homework: view === 'homework' ? selectedHomeworkData?.text || '' : '',
       homeworkFiles: view === 'homework' ? selectedHomeworkData?.fileURLs || [] : [],
       submit: view === 'homework' ? [] : '',
       results: view === 'homework' ? { percentage: '', files: [] } : { percentage: '', files: [] },
@@ -168,67 +168,66 @@ const TablePage = ({ studentId, readOnly = false }) => {
     setActiveTooltip(activeTooltip === id ? null : id);
   };
 
-  const renderDropdowns = () => (
-    <div className="mb-4 flex flex-wrap gap-2">
-      <select
-        value={selectedCourse}
-        onChange={(e) => setSelectedCourse(e.target.value)}
-        className="p-2 border rounded"
-        disabled={readOnly}
-      >
-        <option value="">Выберите курс</option>
-        {library.map(course => (
-          <option key={course.id} value={course.id}>{course.name}</option>
-        ))}
-      </select>
+  const renderDropdowns = () => {
+    const selectedCourseData = library.find(course => course.id === selectedCourse);
+    const selectedChapterData = selectedCourseData?.chapters?.find(chapter => chapter.id === selectedChapter);
+    const selectedLessonData = selectedChapterData?.lessons?.find(lesson => lesson.id === selectedLesson);
+    const homeworks = selectedLessonData?.homeworks || [];
 
-      <select
-        value={selectedChapter}
-        onChange={(e) => setSelectedChapter(e.target.value)}
-        className="p-2 border rounded"
-        disabled={readOnly}
-      >
-        <option value="">Выберите тему</option>
-        {library
-          .find(course => course.id === selectedCourse)?.chapters
-          ?.map(chapter => (
-            <option key={chapter.id} value={chapter.id}>{chapter.name}</option>
-          ))}
-      </select>
-
-      <select
-        value={selectedLesson}
-        onChange={(e) => setSelectedLesson(e.target.value)}
-        className="p-2 border rounded"
-        disabled={readOnly}
-      >
-        <option value="">Выберите урок</option>
-        {library
-          .find(course => course.id === selectedCourse)?.chapters
-          ?.find(chapter => chapter.id === selectedChapter)?.lessons
-          ?.map(lesson => (
-            <option key={lesson.id} value={lesson.id}>{lesson.name}</option>
-          ))}
-      </select>
-      {view === 'homework' && (
+    return (
+      <div className="mb-4 flex flex-wrap gap-2">
         <select
-          value={selectedHomework}
-          onChange={(e) => setSelectedHomework(e.target.value)}
+          value={selectedCourse}
+          onChange={(e) => setSelectedCourse(e.target.value)}
           className="p-2 border rounded"
           disabled={readOnly}
         >
-          <option value="">Выберите домашнюю работу</option>
-          {library
-            .find(course => course.id === selectedCourse)?.chapters
-            ?.find(chapter => chapter.id === selectedChapter)?.lessons
-            ?.find(lesson => lesson.id === selectedLesson)?.homeworks
-            ?.map(homework => (
-              <option key={homework.id} value={homework.id}>{homework.name}</option>
-            ))}
+          <option value="">Выберите курс</option>
+          {library.map(course => (
+            <option key={course.id} value={course.id}>{course.name}</option>
+          ))}
         </select>
-      )}
-    </div>
-  );
+
+        <select
+          value={selectedChapter}
+          onChange={(e) => setSelectedChapter(e.target.value)}
+          className="p-2 border rounded"
+          disabled={readOnly}
+        >
+          <option value="">Выберите тему</option>
+          {selectedCourseData?.chapters?.map(chapter => (
+            <option key={chapter.id} value={chapter.id}>{chapter.name}</option>
+          ))}
+        </select>
+
+        <select
+          value={selectedLesson}
+          onChange={(e) => setSelectedLesson(e.target.value)}
+          className="p-2 border rounded"
+          disabled={readOnly}
+        >
+          <option value="">Выберите урок</option>
+          {selectedChapterData?.lessons?.map(lesson => (
+            <option key={lesson.id} value={lesson.id}>{lesson.name}</option>
+          ))}
+        </select>
+
+        {view === 'homework' && (
+          <select
+            value={selectedHomework}
+            onChange={(e) => setSelectedHomework(e.target.value)}
+            className="p-2 border rounded"
+            disabled={readOnly}
+          >
+            <option value="">Выберите домашнюю работу</option>
+            {homeworks.map(homework => (
+              <option key={homework.id} value={homework.id}>{homework.text}</option>
+            ))}
+          </select>
+        )}
+      </div>
+    );
+  };
 
   const renderTable = () => {
     let headers;
@@ -313,14 +312,14 @@ const TablePage = ({ studentId, readOnly = false }) => {
                           </span>
                         </Tooltip>
                       ) : header === 'Прогресс' ? (
-                        <div className="w-full bg-gray-200 rounded">
-                          <div
-                            className="bg-blue-500 text-xs font-medium text-blue-100 text-center p-0.5 leading-none rounded"
-                            style={{ width: `${row.progress}%` }}
-                          >
-                            {row.progress}%
+                        <Tooltip content={`${row.progress}%`}>
+                          <div className="w-full bg-gray-200 rounded">
+                            <div
+                              className="bg-blue-500 text-xs font-medium text-blue-100 text-center p-0.5 leading-none rounded"
+                              style={{ width: `${row.progress}%` }}
+                            ></div>
                           </div>
-                        </div>
+                        </Tooltip>
                       ) : header === 'Домашняя работа' ? (
                         <>
                           <div>{row.homework}</div>
@@ -393,12 +392,12 @@ const TablePage = ({ studentId, readOnly = false }) => {
                               className="p-2 border rounded"
                             />
                             <div className="w-full bg-gray-200 rounded mt-2">
-                              <div
-                                className="bg-green-500 text-xs font-medium text-green-100 text-center p-0.5 leading-none rounded"
-                                style={{ width: `${row.results.percentage}%` }}
-                              >
-                                {row.results.percentage}%
-                              </div>
+                              <Tooltip content={`${row.results.percentage}%`}>
+                                <div
+                                  className="bg-green-500 text-xs font-medium text-green-100 text-center p-0.5 leading-none rounded"
+                                  style={{ width: `${row.results.percentage}%` }}
+                                ></div>
+                              </Tooltip>
                             </div>
                             {row.results.files && row.results.files.map((fileURL, index) => (
                               <div key={index} className="flex items-center">
@@ -432,14 +431,14 @@ const TablePage = ({ studentId, readOnly = false }) => {
   
   return (
     <div className="p-4 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Таблица студента</h1>
+      <h1 className="text-2xl font-bold mb-4"></h1>
       
       <div className="mb-4 fixed-buttons">
-        <button onClick={() => setView('completed')} className="p-2 border rounded">Completed</button>
-        <button onClick={() => setView('homework')} className="p-2 border rounded ml-2">Homework</button>
-        <button onClick={() => setView('future')} className="p-2 border rounded ml-2">Future</button>
+        <button onClick={() => setView('completed')} className="p-2 border rounded">Пройденные уроки</button>
+        <button onClick={() => setView('homework')} className="p-2 border rounded ml-2">Домашние задания</button>
+        <button onClick={() => setView('future')} className="p-2 border rounded ml-2">Запланированные уроки</button>
       </div>
-  
+
       {!readOnly && (
         <>
           {renderDropdowns()}
@@ -460,7 +459,7 @@ const TablePage = ({ studentId, readOnly = false }) => {
               />
             )}
           </div>
-  
+
           <button
             onClick={handleAddData}
             disabled={isSubmitting}

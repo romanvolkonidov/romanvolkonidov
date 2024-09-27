@@ -14,6 +14,8 @@ const GlobalStateProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [studentBarData, setStudentBarData] = useState({}); // Add state for student bar data
   const [studentProgress, setStudentProgress] = useState([]);
+  const [authenticatedStudent, setAuthenticatedStudent] = useState(null);
+
 
   const fetchExchangeRates = async () => {
     const response = await fetch('https://apilayer.net/api/live?access_key=08439dfc1bdd063f9bd949a703aef93b&currencies=EUR,KES,RUB&source=USD&format=1');
@@ -98,6 +100,15 @@ const GlobalStateProvider = ({ children }) => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (authenticatedStudent) {
+      localStorage.setItem('authenticatedStudent', JSON.stringify(authenticatedStudent));
+    } else {
+      localStorage.removeItem('authenticatedStudent');
+    }
+  }, [authenticatedStudent]);
+
 
   const updateStudentProgress = (newProgress) => {
     setStudentProgress(newProgress);
@@ -247,6 +258,9 @@ const GlobalStateProvider = ({ children }) => {
       updateStudentProgress, 
       studentProgress,
       setStudentProgress,// Add setStudentBarData to context value
+      authenticatedStudent,
+      setAuthenticatedStudent,
+      setStudents,
     }}>
       {children}
     </GlobalStateContext.Provider>

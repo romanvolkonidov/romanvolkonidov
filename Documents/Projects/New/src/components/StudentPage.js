@@ -11,6 +11,10 @@ import StudentProgressBar from '@/components/ProgressBar/StudentProgressBar';
 import TeacherRecommendations from '@/components/TeacherRecommendations';
 import StudentProfile from '@/components/StudentProfile';
 import StudentFeedback from '@/components/StudentFeedback';
+import SetPassword from '@/components/SetPassword';
+import Visibility from '@/components/Visibility';
+
+
 
 
 
@@ -259,30 +263,30 @@ const StudentPage = () => {
 
   return (
     <div className="student-page">
-                        <StudentProfile  />
+      <StudentProfile studentId={id} />
 
       <div className="chart-info-container">
         <div className="student-info">
           <h2>{student.name}</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
             <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
-              <h3 className="text-lg font-semibold">Price per Lesson</h3>
+              <h3 className="text-lg font-semibold">Стоимость одного урока</h3>
               <p className="text-2xl">{displayCurrency} {(convertToSelectedCurrency(student.price, student.currency)).toFixed(2)}</p>
             </div>
             <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
-              <h3 className="text-lg font-semibold">Lessons Purchased</h3>
+              <h3 className="text-lg font-semibold">Оплаченные уроки</h3>
               <p className="text-2xl">{totalPaidLessons.toFixed(2)}</p>
             </div>
             <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
-              <h3 className="text-lg font-semibold">Lessons Completed</h3>
+              <h3 className="text-lg font-semibold">Пройденные уроки</h3>
               <p className="text-2xl">{completedLessons}</p>
             </div>
             <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
-              <h3 className="text-lg font-semibold">Remaining Lessons</h3>
+              <h3 className="text-lg font-semibold">Осталось уроков</h3>
               <p className="text-2xl">{positiveRemainingLessons}</p>
             </div>
             <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
-              <h3 className="text-lg font-semibold">Debt Lessons</h3>
+              <h3 className="text-lg font-semibold">Не оплаченные уроки</h3>
               <p className="text-2xl">{debtLessons}</p>
             </div>
           </div>
@@ -396,9 +400,14 @@ const StudentPage = () => {
       </div>
       <TablePage studentId={id} />
       <StudentProgressBar  studentId={id} />
-      <TeacherRecommendations  studentId={id} />
-      <StudentFeedback  studentId={id} />
+      <div className="side-by-side-container">
+        <TeacherRecommendations studentId={id} />
+        <StudentFeedback studentId={id} />
+      </div>
+      <SetPassword studentId={id} />
+      <Visibility studentId={id} />
 
+     
 
 
 
