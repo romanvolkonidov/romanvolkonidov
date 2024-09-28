@@ -299,7 +299,7 @@ const Library = () => {
   );
 
   const renderLibrary = () => (
-    <div className={containerStyles}>
+    <div className={containerStyles} >
       {library.map(course => (
         <div key={course.id} className={courseStyles}>
           <div className={courseHeaderStyles}>

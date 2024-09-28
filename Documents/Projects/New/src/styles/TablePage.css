@@ -1,6 +1,9 @@
 .fixed-table {
   width: 100%;
   table-layout: fixed;
+  margin-left: auto;
+  border-collapse: collapse; /* Merge table borders */
+  min-width: 700px; /* Set a minimum width for the table */
 }
 
 .fixed-table thead th {
@@ -8,6 +11,8 @@
   top: 0;
   background: white;
   z-index: 1;
+  background-color: #f3f3f3; /* Background color for the header */
+  color: #333333;
 }
 
 .fixed-buttons {
@@ -16,31 +21,16 @@
   background: white;
   z-index: 1;
   padding: 10px 0;
+  display: flex;
+  justify-content: space-between; /* Ensure buttons are properly aligned */
+  width: 100%; /* Match the width of other buttons on the page */
 }
 
 .table-container {
   overflow-x: auto;
-}
-
-.table-container {
   height: 50vh; /* Fixed height for the table container */
   overflow-y: auto; /* Enable vertical scrolling */
-}
-
-.fixed-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.fixed-table thead {
-  position: sticky;
-  top: 0;
-  background-color: #f9f9f9; /* Background color for the header */
-  z-index: 1;
-}
-
-.table-container {
-  overflow-x: auto;
+  width: 100vw; /* Ensure the container takes full viewport width on mobile */
 }
 
 .fixed-table th, .fixed-table td {
@@ -48,4 +38,211 @@
   overflow-wrap: break-word;
   white-space: normal;
   max-width: 200px; /* Adjust the max-width as needed */
+  color: black; /* Ensure all text is black at all times */
+  padding: 10px;
+}
+
+.tooltip {
+  color: black !important; /* Ensure tooltips are also black */
+}
+
+.fixed-table .progress-bar {
+  background-color: turquoise; /* Set small bars to turquoise */
+}
+
+.fixed-table tbody tr:hover {
+  background-color: #f9f9f9; /* Make sure the hover effect is visible */
+}
+
+@media (max-width: 600px) {
+  .table-container {
+    overflow-x: scroll;
+    -webkit-overflow-scrolling: touch; /* Enable smooth scrolling on iOS */
+  }
+
+  .fixed-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px; /* Add some distance between buttons */
+    width: 100%; /* Ensure buttons are not hidden */
+  }
+}
+
+button, input[type="file"] {
+  background-color: #000000; /* Black background */
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover, input[type="file"]:hover {
+  background-color: #333333; /* Dark gray for hover effect */
+}
+
+button.px-2.py-1 {
+  background-color: #000000; /* Black background */
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+button.px-2.py-1:hover {
+  background-color: #333333; /* Hover color */
+}
+
+/* Ensure all text outside buttons and tooltips is black */
+body, .fixed-table th, .fixed-table td {
+  color: black;
+}
+
+/* General styling for all buttons in the table */
+table button {
+  background-color: #000000; /* Black background */
+  color: white;
+  border: none;
+  padding: 6px 12px; /* Adjust padding for compact look */
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem; /* Slightly smaller font size */
+  transition: background-color 0.3s ease;
+}
+
+/* Hover effect for buttons */
+table button:hover {
+  background-color: #333333; /* Dark gray for hover effect */
+}
+
+/* Additional styling for file-related buttons */
+table a button {
+  margin-left: 8px; /* Add some margin between file-related buttons */
+}
+
+/* Additional style for file upload buttons */
+input[type="file"] {
+  display: none; /* Hide default input appearance */
+}
+
+/* Label that acts like a button for the Browse button */
+.custom-file-upload {
+  background-color: black; /* Black background */
+  color: white; /* White text */
+  padding: 10px 20px; /* Increase padding for a larger button */
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px; /* Larger font size */
+  display: inline-block;
+  transition: background-color 0.3s ease;
+  text-align: center; /* Center text */
+  min-width: 100px; /* Ensures the button isn't too small */
+  margin: 10px;
+}
+
+/* Hover effect for the "button" */
+.custom-file-upload:hover {
+  background-color: #333;
+}
+
+.table-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.fixed-buttons button {
+  padding: 8px 16px; /* Compact buttons */
+  margin: 5px; /* Minimal spacing between buttons */
+  font-size: 14px; /* Same font size as the table */
+  background-color: black;
+  color: white;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+}
+
+/* Ensure margin between file buttons if necessary */
+table a button {
+  margin-left: 8px;
+}
+
+/* General styling for all buttons, including table buttons and page buttons */
+button, .custom-file-upload {
+  background-color: #000000; /* Black background */
+  color: white;
+  border: none;
+  padding: 6px 12px; /* Compact padding for a neat look */
+  border-radius: 4px; /* Rounded corners */
+  cursor: pointer;
+  font-size: 0.875rem; /* Slightly smaller font size */
+  transition: background-color 0.3s ease; /* Smooth hover transition */
+}
+
+/* Hover effect for all buttons */
+button:hover, .custom-file-upload:hover {
+  background-color: #333333; /* Darker gray when hovering */
+}
+
+.tooltip {
+  color: white !important;
+  background-color: rgba(0, 0, 0, 0.75); /* Optional: dark background for better contrast */
+  padding: 5px 10px; /* Optional: padding for better readability */
+  border-radius: 4px; /* Optional: rounded corners */
+}
+
+.fixed-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px; /* Adjust the gap between buttons as needed */
+}
+
+/* Ensure the parent container takes up the full height of the viewport */
+.full-height-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh; /* Full viewport height */
+}
+
+/* General styling for all buttons, including table buttons and page buttons */
+button, .custom-file-upload {
+  background-color: #000000; /* Black background */
+  color: white;
+  border: none;
+  padding: 6px 12px; /* Compact padding for a neat look */
+  border-radius: 4px; /* Rounded corners */
+  cursor: pointer;
+  font-size: 0.875rem; /* Slightly smaller font size */
+  transition: background-color 0.3s ease; /* Smooth hover transition */
+}
+
+/* Hover effect for all buttons */
+button:hover, .custom-file-upload:hover {
+  background-color: #333333; /* Darker gray when hovering */
+}
+
+.tooltip {
+  color: white !important;
+  background-color: rgba(0, 0, 0, 0.75); /* Optional: dark background for better contrast */
+  padding: 5px 10px; /* Optional: padding for better readability */
+  border-radius: 4px; /* Optional: rounded corners */
+}
+
+.fixed-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px; /* Adjust the gap between buttons as needed */
+  max-width: 70%;
+  margin-left: auto;
+  margin-right: auto;
+}
+@media (min-width: 768px) {
+  .fixed-buttons {
+    max-width: none; /* Remove the max-width restriction */
+  }
 }

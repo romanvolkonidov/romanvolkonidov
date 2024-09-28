@@ -105,7 +105,7 @@ const StudentDashboard = () => {
               <div className="chart-info-container">
                 <div className="student-info-bar-container">
                   <div className="student-info">
-                    <h2>{selectedStudent.name}</h2>
+                    <h2></h2>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
                       <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
                         <h3 className="text-lg font-semibold">Price per Lesson</h3>

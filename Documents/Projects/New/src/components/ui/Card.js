@@ -29,3 +29,9 @@ export const CardDescription = ({ children }) => (
     {children}
   </p>
 );
+
+export const CardFooter = ({ children }) => (
+  <div className="border-t pt-2 mt-4">
+    {children}
+  </div>
+);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Camera, Edit2, Save } from 'lucide-react';
+import { Camera, Edit2, Save, Trash2 } from 'lucide-react';
 import { Card, CardContent } from './ui/Card';
 import { Input } from './ui/Input';
 import Label from './ui/Label';
@@ -58,6 +58,10 @@ const StudentProfile = ({ studentId }) => {
     }
   };
 
+  const removeImage = () => {
+    setImage('/api/placeholder/200/200');
+  };
+
   const saveProfile = async () => {
     if (!studentId) {
       console.error("studentId is undefined");
@@ -87,16 +91,21 @@ const StudentProfile = ({ studentId }) => {
                 className="w-full h-full rounded-full object-cover"
               />
               {isEditing && (
-                <label htmlFor="image-upload" className="absolute bottom-2 right-2 bg-white rounded-full p-2 cursor-pointer shadow-md">
-                  <Camera size={24} />
-                  <input
-                    id="image-upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
-                </label>
+                <>
+                  <label htmlFor="image-upload" className="absolute bottom-2 right-2 bg-white rounded-full p-2 cursor-pointer shadow-md custom-button">
+                    <Camera size={16} />
+                    <input
+                      id="image-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                  </label>
+                  <Button onClick={removeImage} className="absolute top-2 right-2 bg-white rounded-full p-2 shadow-md custom-button">
+                    <Trash2 size={16} />
+                  </Button>
+                </>
               )}
             </div>
           </div>
@@ -156,11 +165,11 @@ const StudentProfile = ({ studentId }) => {
               )}
             </div>
             {isEditing ? (
-              <Button onClick={saveProfile} className="w-full">
+              <Button onClick={saveProfile} className="w-full custom-button">
                 <Save className="mr-2 h-4 w-4" /> Сохранить
               </Button>
             ) : (
-              <Button onClick={() => setIsEditing(true)} className="w-full">
+              <Button onClick={() => setIsEditing(true)} className="w-full custom-button">
                 <Edit2 className="mr-2 h-4 w-4" /> Редактировать профиль
               </Button>
             )}

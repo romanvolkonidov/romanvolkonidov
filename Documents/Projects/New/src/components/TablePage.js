@@ -231,7 +231,7 @@ const TablePage = ({ studentId, readOnly = false }) => {
 
   const renderTable = () => {
     let headers;
-  
+
     switch (view) {
       case 'completed':
         headers = ['Дата', 'Курс', 'Тема', 'Урок', 'Прогресс'];
@@ -248,12 +248,12 @@ const TablePage = ({ studentId, readOnly = false }) => {
       default:
         headers = [];
     }
-  
+
     const sortedTableData = [...tableData].sort((a, b) => new Date(b.date) - new Date(a.date));
-  
+
     return (
-      <div className="table-container shadow-md sm:rounded-lg">
-        <table className="fixed-table w-full text-sm text-left text-gray-500">
+      <div className="table-container shadow-md sm:rounded-lg overflow-x-auto">
+        <table className="fixed-table w-full text-sm text-left text-black">
           <thead className="text-xs text-gray-700 uppercase bg-gray-50">
             <tr>
               {headers.map((header, index) => (
@@ -277,7 +277,7 @@ const TablePage = ({ studentId, readOnly = false }) => {
                         !readOnly && (
                           <button
                             onClick={() => handleDeleteRow(row.id)}
-                            className="px-2 py-1 rounded bg-red-500 text-white"
+                            className="px-2 py-1 rounded bg-black text-white"
                           >
                             Удалить
                           </button>
@@ -287,7 +287,7 @@ const TablePage = ({ studentId, readOnly = false }) => {
                       ) : header === 'Курс' ? (
                         <Tooltip content={row.course?.description || "Нет описания"}>
                           <span
-                            className="cursor-pointer text-blue-500"
+                            className="cursor-pointer text-black"
                             onClick={() => toggleTooltip(`course-${row.id}`)}
                           >
                             {row.course?.name}
@@ -296,7 +296,7 @@ const TablePage = ({ studentId, readOnly = false }) => {
                       ) : header === 'Тема' ? (
                         <Tooltip content={row.chapter?.description || "Нет описания"}>
                           <span
-                            className="cursor-pointer text-blue-500"
+                            className="cursor-pointer text-black"
                             onClick={() => toggleTooltip(`chapter-${row.id}`)}
                           >
                             {row.chapter?.name}
@@ -305,7 +305,7 @@ const TablePage = ({ studentId, readOnly = false }) => {
                       ) : header === 'Урок' ? (
                         <Tooltip content={row.lesson?.description || "Нет описания"}>
                           <span
-                            className="cursor-pointer text-blue-500"
+                            className="cursor-pointer text-black"
                             onClick={() => toggleTooltip(`lesson-${row.id}`)}
                           >
                             {row.lesson?.name}
@@ -315,7 +315,7 @@ const TablePage = ({ studentId, readOnly = false }) => {
                         <Tooltip content={`${row.progress}%`}>
                           <div className="w-full bg-gray-200 rounded">
                             <div
-                              className="bg-blue-500 text-xs font-medium text-blue-100 text-center p-0.5 leading-none rounded"
+                              className="progress-bar text-xs font-medium text-blue-100 text-center p-0.5 leading-none rounded"
                               style={{ width: `${row.progress}%` }}
                             ></div>
                           </div>
@@ -326,7 +326,7 @@ const TablePage = ({ studentId, readOnly = false }) => {
                           {row.homeworkFiles && row.homeworkFiles.map((fileURL, index) => (
                             <div key={index} className="flex items-center">
                               <a href={fileURL} download>
-                                <button className="px-2 py-1 rounded bg-blue-500 text-white">
+                                <button className="px-2 py-1 rounded bg-black text-white">
                                   {`File ${index + 1}`}
                                 </button>
                               </a>
@@ -335,21 +335,24 @@ const TablePage = ({ studentId, readOnly = false }) => {
                         </>
                       ) : header === 'Сдать Домашнюю работу' ? (
                         <>
-                          <input
-                            type="file"
-                            multiple
-                            onChange={(e) => handleFileUpload(row.id, Array.from(e.target.files), 'submit')}
-                          />
+                          <label className="custom-file-upload">
+                            <input
+                              type="file"
+                              multiple
+                              onChange={(e) => handleFileUpload(row.id, Array.from(e.target.files), 'submit')}
+                            />
+                            Browse
+                          </label>
                           {Array.isArray(row.submit) && row.submit.map((fileURL, index) => (
                             <div key={index} className="flex items-center">
                               <a href={fileURL} download>
-                                <button className="px-2 py-1 rounded bg-blue-500 text-white">
+                                <button className="px-2 py-1 rounded bg-black text-white">
                                   {`File ${index + 1}`}
                                 </button>
                               </a>
                               <button
                                 onClick={() => handleFileDelete(row.id, fileURL, 'submit')}
-                                className="ml-2 px-2 py-1 rounded bg-red-500 text-white"
+                                className="ml-2 px-2 py-1 rounded bg-black text-white"
                               >
                                 ✕
                               </button>
@@ -359,21 +362,24 @@ const TablePage = ({ studentId, readOnly = false }) => {
                       ) : header === 'Проверенная домашняя работа' ? (
                         !readOnly && (
                           <>
-                            <input
-                              type="file"
-                              multiple
-                              onChange={(e) => handleFileUpload(row.id, Array.from(e.target.files), 'checkedHomework')}
-                            />
+                            <label className="custom-file-upload">
+                              <input
+                                type="file"
+                                multiple
+                                onChange={(e) => handleFileUpload(row.id, Array.from(e.target.files), 'checkedHomework')}
+                              />
+                              Browse
+                            </label>
                             {Array.isArray(row.checkedHomework) && row.checkedHomework.map((fileURL, index) => (
                               <div key={index} className="flex items-center">
                                 <a href={fileURL} download>
-                                  <button className="px-2 py-1 rounded bg-blue-500 text-white">
+                                  <button className="px-2 py-1 rounded bg-black text-white">
                                     {`File ${index + 1}`}
                                   </button>
                                 </a>
                                 <button
                                   onClick={() => handleFileDelete(row.id, fileURL, 'checkedHomework')}
-                                  className="ml-2 px-2 py-1 rounded bg-red-500 text-white"
+                                  className="ml-2 px-2 py-1 rounded bg-black text-white"
                                 >
                                   ✕
                                 </button>
@@ -389,12 +395,12 @@ const TablePage = ({ studentId, readOnly = false }) => {
                               value={row.results.percentage}
                               onChange={(e) => handlePercentageChange(row.id, e.target.value)}
                               placeholder="Результаты (%)"
-                              className="p-2 border rounded"
+                              className="p-2 border rounded text-black"
                             />
                             <div className="w-full bg-gray-200 rounded mt-2">
                               <Tooltip content={`${row.results.percentage}%`}>
                                 <div
-                                  className="bg-green-500 text-xs font-medium text-green-100 text-center p-0.5 leading-none rounded"
+                                  className="progress-bar text-xs font-medium text-green-100 text-center p-0.5 leading-none rounded"
                                   style={{ width: `${row.results.percentage}%` }}
                                 ></div>
                               </Tooltip>
@@ -402,13 +408,13 @@ const TablePage = ({ studentId, readOnly = false }) => {
                             {row.results.files && row.results.files.map((fileURL, index) => (
                               <div key={index} className="flex items-center">
                                 <a href={fileURL} download>
-                                  <button className="px-2 py-1 rounded bg-blue-500 text-white">
+                                  <button className="px-2 py-1 rounded bg-black text-white">
                                     {`File ${index + 1}`}
                                   </button>
                                 </a>
                                 <button
                                   onClick={() => handleFileDelete(row.id, fileURL, 'results.files')}
-                                  className="ml-2 px-2 py-1 rounded bg-red-500 text-white"
+                                  className="ml-2 px-2 py-1 rounded bg-black text-white"
                                 >
                                   ✕
                                 </button>
@@ -425,53 +431,57 @@ const TablePage = ({ studentId, readOnly = false }) => {
         </table>
       </div>
     );
-  };
+    };
   
-  if (loading) return <div>Loading...</div>;
+    if (loading) return <div>Loading...</div>;
   
-  return (
-    <div className="p-4 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4"></h1>
-      
-      <div className="mb-4 fixed-buttons">
-        <button onClick={() => setView('completed')} className="p-2 border rounded">Пройденные уроки</button>
-        <button onClick={() => setView('homework')} className="p-2 border rounded ml-2">Домашние задания</button>
-        <button onClick={() => setView('future')} className="p-2 border rounded ml-2">Запланированные уроки</button>
-      </div>
+    return (
+<div className="full-height-container">
+  <div className="p-4 max-w-6xl mx-auto">
+    <h1 className="text-2xl font-bold mb-4"></h1>
+    
+    <div className="mb-4 fixed-buttons">
+      <button onClick={() => setView('completed')} className="p-2 border rounded bg-black text-white">Пройденные уроки</button>
+      <button onClick={() => setView('homework')} className="p-2 border rounded ml-2 bg-black text-white">Домашние задания</button>
+      <button onClick={() => setView('future')} className="p-2 border rounded ml-2 bg-black text-white">Запланированные уроки</button>
+    </div>
 
-      {!readOnly && (
-        <>
-          {renderDropdowns()}
-          <div className="mb-4 flex flex-wrap gap-2">
+    {!readOnly && (
+      <>
+        {renderDropdowns()}
+        <div className="mb-4 flex flex-wrap gap-2">
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="p-2 border rounded text-black"
+          />
+          {view === 'completed' && (
             <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="p-2 border rounded"
+              type="number"
+              value={progress}
+              onChange={(e) => setProgress(e.target.value)}
+              placeholder="Прогресс (%)"
+              className="p-2 border rounded text-black"
             />
-            {view === 'completed' && (
-              <input
-                type="number"
-                value={progress}
-                onChange={(e) => setProgress(e.target.value)}
-                placeholder="Прогресс (%)"
-                className="p-2 border rounded"
-              />
-            )}
-          </div>
-
+          )}
           <button
             onClick={handleAddData}
+            className="p-2 border rounded bg-green-500 text-white"
             disabled={isSubmitting}
-            className="p-2 bg-blue-500 text-white rounded"
           >
-            {isSubmitting ? 'Submitting...' : 'Add Data'}
+            {isSubmitting ? 'Добавление...' : 'Добавить'}
           </button>
-        </>
-      )}
+        </div>
+      </>
+    )}
+
+    <div className="table-wrapper">
       {renderTable()}
     </div>
-  );
-};
-
-export default TablePage;
+  </div>
+</div>
+    );
+  };
+  
+  export default TablePage;

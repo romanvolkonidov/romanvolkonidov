@@ -92,7 +92,7 @@
   }
 
   h1, h2 {
-    @apply text-primary mb-6;
+    color:black
   }
 
   button {
@@ -239,4 +239,32 @@
 
 .main-content {
   padding-top: 200px; /* Adjust this value to match the navbar height */
+}
+
+/* Ensure all text, including tooltips, is black */
+.tooltip, body, .fixed-table th, .fixed-table td, .form-group label {
+  color: black !important;
+}
+
+/* Ensure the table uses a horizontal scrollbar on mobile */
+@media (max-width: 600px) {
+  .table-container {
+    overflow-x: scroll;
+    -webkit-overflow-scrolling: touch; /* Enable smooth scrolling on iOS */
+    width: 100vw; /* Ensure the container takes full viewport width */
+  }
+
+  .fixed-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px; /* Add some distance between buttons */
+    width: 100%; /* Ensure buttons are not hidden */
+  }
+}
+.tooltip {
+  color: white !important;
+  background-color: rgba(0, 0, 0, 0.75); /* Optional: dark background for better contrast */
+  padding: 5px 10px; /* Optional: padding for better readability */
+  border-radius: 4px; /* Optional: rounded corners */
 }

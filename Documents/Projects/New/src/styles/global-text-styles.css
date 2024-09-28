@@ -1,0 +1,27 @@
+/* Set all text to black by default */
+
+
+/* Override for buttons */
+button, 
+input[type="button"], 
+input[type="submit"], 
+input[type="reset"] {
+  color: initial; /* This will use the default button text color */
+}
+
+/* Override for tooltips */
+[title]:hover:after {
+  color: initial; /* This will use the default tooltip text color */
+}
+
+/* If you're using a specific tooltip library, you might need to target its classes */
+.tooltip, 
+.tippy-content {
+  color: initial;
+}
+
+/* If you have any other specific elements that shouldn't be black, add them here */
+/* For example: */
+.special-text {
+  color: initial;
+}

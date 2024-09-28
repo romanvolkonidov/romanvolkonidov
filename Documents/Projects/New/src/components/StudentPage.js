@@ -267,7 +267,7 @@ const StudentPage = () => {
 
       <div className="chart-info-container">
         <div className="student-info">
-          <h2>{student.name}</h2>
+          <h2></h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
             <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
               <h3 className="text-lg font-semibold">Стоимость одного урока</h3>

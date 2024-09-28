@@ -8,6 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { collection, getDocs, setDoc, doc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Plus, Trash2, Edit2, Save, X, Book, Headphones, Video, Globe, Code, Music, Film, Camera, Pencil, Calculator } from 'lucide-react';
+import '../styles/TeacherRecommendations.css';
+import '../styles/global-text-styles.css';
+
+
 
 const iconOptions = [
   { value: 'book', label: 'Book', icon: Book },
@@ -141,7 +145,7 @@ const TeacherRecommendations = ({ isViewOnly = false, studentId }) => {
   return (
     <Card className="w-full max-w-3xl mx-auto mt-6">
       <CardHeader>
-        <CardTitle className="title">Персональные рекомендации преподавателя</CardTitle>
+      <CardTitle className="title">Персональные рекомендации преподавателя</CardTitle>
       </CardHeader>
       <CardContent>
         {!isViewOnly && (
@@ -151,6 +155,7 @@ const TeacherRecommendations = ({ isViewOnly = false, studentId }) => {
               value={newTab.label} 
               onChange={(e) => setNewTab({...newTab, label: e.target.value})}
               className="text-sm"
+              style={{ color: 'black' }} // Ensure input text is black
             />
             <Select 
               value={newTab.icon} 
@@ -162,7 +167,7 @@ const TeacherRecommendations = ({ isViewOnly = false, studentId }) => {
               <SelectContent>
                 {iconOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
-                    <div className="flex items-center">
+                    <div className="flex items-center" style={{ color: 'black' }}>
                       <option.icon className="w-3 h-3 mr-2" />
                       {option.label}
                     </div>
@@ -170,21 +175,21 @@ const TeacherRecommendations = ({ isViewOnly = false, studentId }) => {
                 ))}
               </SelectContent>
             </Select>
-            <Button onClick={addTab} size="sm"><Plus className="w-3 h-3" /></Button>
+            <Button className="custom-button" onClick={addTab} size="sm"><Plus className="w-3 h-3" /></Button>
           </div>
         )}
   
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-grow flex flex-col">
           <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}>
             {tabs.map((tab) => (
-              <TabsTrigger key={tab.id} value={tab.id} className="flex items-center justify-center text-sm py-1">
+              <TabsTrigger key={tab.id} value={tab.id} className="flex items-center justify-center text-sm py-1" style={{ color: 'black' }}>
                 <IconComponent iconName={tab.icon} className="w-3 h-3 mr-1" />
                 {tab.label}
                 {!isViewOnly && (
-                  <Button variant="ghost" size="sm" onClick={(e) => {
+                  <Button className="custom-button" variant="ghost" size="sm" onClick={(e) => {
                     e.stopPropagation();
                     removeTab(tab.id);
-                  }} className="ml-1 p-0">
+                  }}>
                     <X className="w-3 h-3" />
                   </Button>
                 )}
@@ -196,7 +201,7 @@ const TeacherRecommendations = ({ isViewOnly = false, studentId }) => {
             <TabsContent key={tab.id} value={tab.id} className="flex-grow overflow-hidden">
               <Card className="h-full flex flex-col">
                 <CardHeader className="py-2">
-                  <CardTitle className="text-lg break-words">{tab.label} </CardTitle>
+                  <CardTitle className="text-lg break-words" style={{ color: 'black' }}>{tab.label} </CardTitle>
                 </CardHeader>
                 <CardContent className="flex-grow overflow-y-auto">
                   {editingItem && editingItem.id && (
@@ -205,16 +210,18 @@ const TeacherRecommendations = ({ isViewOnly = false, studentId }) => {
                         value={editingItem.title} 
                         onChange={(e) => setEditingItem({...editingItem, title: e.target.value})} 
                         className="mb-1 text-sm"
+                        style={{ color: 'black' }} // Ensure input text is black
                       />
                       <Textarea 
                         value={editingItem.description} 
                         onChange={(e) => setEditingItem({...editingItem, description: e.target.value})} 
                         className="mb-1 text-sm"
+                        style={{ color: 'black' }} // Ensure textarea text is black
                       />
-                      <Button onClick={() => saveEdit(tab.id)} className="mr-1 text-sm" size="sm">
+                      <Button className="custom-button" onClick={() => saveEdit(tab.id)} size="sm">
                         <Save className="w-3 h-3 mr-1" /> Save
                       </Button>
-                      <Button onClick={cancelEdit} variant="outline" size="sm">
+                      <Button className="custom-button" onClick={cancelEdit} variant="outline" size="sm">
                         <X className="w-3 h-3 mr-1" /> Cancel
                       </Button>
                     </div>
@@ -225,7 +232,7 @@ const TeacherRecommendations = ({ isViewOnly = false, studentId }) => {
                     ))}
                   </div>
                   {!isViewOnly && (
-                    <Button onClick={() => addItem(tab.id)} className="mt-2 text-sm" size="sm">
+                    <Button className="custom-button mt-2 text-sm" onClick={() => addItem(tab.id)} size="sm">
                       <Plus className="w-3 h-3 mr-1" /> Add Recommendation
                     </Button>
                   )}
