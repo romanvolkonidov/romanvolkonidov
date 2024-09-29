@@ -1,0 +1,50 @@
+.course-tree {
+  font-family: Arial, sans-serif;
+}
+
+.tree-node {
+  margin-left: 20px;
+}
+
+.node-content {
+  display: flex;
+  align-items: center;
+  margin: 5px 0;
+}
+
+.expand-button {
+  cursor: pointer;
+  margin-right: 5px;
+}
+
+.item-name {
+  margin-right: 10px;
+}
+
+.course > .node-content {
+  font-weight: bold;
+}
+
+.chapter > .node-content {
+  color: #444;
+}
+
+.lesson > .node-content {
+  color: #666;
+}
+
+.homework {
+  margin-left: 20px;
+  font-style: italic;
+}
+
+.edit-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}

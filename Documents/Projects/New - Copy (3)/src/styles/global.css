@@ -1,0 +1,277 @@
+/* global.css */
+.full-height-container {
+  height: 100%;
+}
+
+.container {
+  padding: 1rem;
+  max-width: 64rem;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.button-group {
+  margin-bottom: 1rem;
+}
+
+.button {
+  padding: 0.5rem;
+  border: 1px solid #000;
+  border-radius: 0.25rem;
+  background-color: #000;
+  color: #fff;
+  cursor: pointer;
+}
+
+.button.ml-2 {
+  margin-left: 0.5rem;
+}
+
+.button.bg-green {
+  background-color: #38a169;
+}
+
+.input-group {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.input {
+  padding: 0.5rem;
+  border: 1px solid #000;
+  border-radius: 0.25rem;
+  color: #000;
+}
+
+.progress-bar {
+  background-color: #4299e1;
+  text-align: center;
+  padding: 0.125rem;
+  border-radius: 0.25rem;
+  color: #ebf8ff;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.custom-file-upload {
+  cursor: pointer;
+  display: inline-block;
+  padding: 0.5rem;
+  border: 1px solid #000;
+  border-radius: 0.25rem;
+  background-color: #000;
+  color: #fff;
+}
+
+.custom-file-upload input[type="file"] {
+  display: none;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.table-container {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 0.375rem;
+}
+
+.fixed-table {
+  width: 100%;
+  text-align: left;
+  color: #000;
+}
+
+.fixed-table thead {
+  background-color: #f9fafb;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  color: #4a5568;
+}
+
+.fixed-table th,
+.fixed-table td {
+  padding: 1rem;
+}
+
+.fixed-table tbody tr {
+  background-color: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.fixed-table tbody tr:hover {
+  background-color: #f7fafc;
+}
+
+.input-black {
+  color: black;
+}
+
+.custom-button {
+  padding: 0.5rem;
+  border: 1px solid #000;
+  border-radius: 0.25rem;
+  background-color: #000;
+  color: #fff;
+  cursor: pointer;
+}
+
+.icon-small {
+  width: 1rem;
+  height: 1rem;
+}
+
+.mr-2 {
+  margin-right: 0.5rem;
+}
+
+.mt-2 {
+  margin-top: 0.5rem;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+}
+
+.mb-1 {
+  margin-bottom: 0.25rem;
+}
+
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+
+.mb-4 {
+  margin-bottom: 1rem;
+}
+
+.p-4 {
+  padding: 1rem;
+}
+
+.bg-gray-50 {
+  background-color: #f9fafb;
+}
+
+.rounded-lg {
+  border-radius: 0.5rem;
+}
+
+.flex {
+  display: flex;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.items-start {
+  align-items: flex-start;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.text-lg {
+  font-size: 1.125rem;
+}
+
+.text-gray-600 {
+  color: #4a5568;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.max-w-3xl {
+  max-width: 48rem;
+}
+
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.mt-6 {
+  margin-top: 1.5rem;
+}
+
+.space-x-2 {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.grid {
+  display: grid;
+}
+
+.grid-cols-1 {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.gap-2 {
+  gap: 0.5rem;
+}
+
+.overflow-hidden {
+  overflow: hidden;
+}
+
+.overflow-y-auto {
+  overflow-y: auto;
+}
+
+.break-words {
+  word-break: break-word;
+}
+
+.py-1 {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.py-2 {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+/* New classes for StudentDashboard */
+.student-page {
+  padding: 1rem;
+}
+
+.chart-info-container {
+  margin-bottom: 1rem;
+}
+
+.student-info-bar-container {
+  margin-bottom: 1rem;
+}
+
+.student-info {
+  margin-bottom: 1rem;
+}
+
+.bar-chart {
+  margin-top: 1rem;
+}
+
+.side-by-side-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.table-left {
+  margin-right: 1rem;
+}

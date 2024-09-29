@@ -1,0 +1,45 @@
+.custom-width {
+  width: 100%;
+}
+
+.title {
+  color: black !important;
+}
+
+@media (min-width: 1024px) {
+  .custom-width {
+    max-width: 72rem; /* Adjusted to Tailwind's 6xl value */
+  }
+}
+
+.custom-button, .custom-file-upload {
+  background-color: #000000; /* Black background */
+  color: white !important; /* Ensure button text is white */
+  border: none;
+  padding: 6px 12px; /* Compact padding for a neat look */
+  border-radius: 4px; /* Rounded corners */
+  cursor: pointer;
+  font-size: 0.875rem; /* Slightly smaller font size */
+  transition: background-color 0.3s ease; /* Smooth hover transition */
+}
+
+.custom-button:hover, .custom-file-upload:hover {
+  background-color: #333333; /* Darker gray when hovering */
+}
+
+/* Ensure button text and icons are white */
+button, .custom-file-upload {
+  color: white !important;
+  margin: 5px;
+}
+
+button svg, .custom-file-upload svg {
+  fill: black !important;
+}
+
+.tooltip {
+  color: white !important;
+  background-color: rgba(0, 0, 0, 0.75); /* Optional: dark background for better contrast */
+  padding: 5px 10px; /* Optional: padding for better readability */
+  border-radius: 4px; /* Optional: rounded corners */
+}

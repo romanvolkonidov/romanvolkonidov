@@ -1,0 +1,282 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.75rem;
+    --max-width: 1200px;
+    --font-mono: ui-monospace, Menlo, Monaco, 'Cascadia Mono', 'Segoe UI Mono',
+      'Roboto Mono', 'Oxygen Mono', 'Ubuntu Monospace', 'Source Code Pro',
+      'Fira Mono', 'Droid Sans Mono', 'Courier New', monospace;
+    --transition-duration: 0.3s;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-black;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+@layer components {
+  .app {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  nav {
+    @apply bg-primary text-primary-foreground py-4 mb-8 shadow-md;
+  }
+
+  nav ul {
+    @apply list-none p-0 flex justify-center;
+  }
+
+  nav ul li {
+    @apply mx-4;
+  }
+
+  nav ul li a {
+    @apply font-semibold no-underline transition-colors duration-300 hover:text-secondary;
+  }
+
+  h1, h2 {
+    color:black
+  }
+
+  button {
+    @apply bg-primary text-white border-none py-3 px-6 rounded-[var(--radius)] cursor-pointer transition-all duration-300 font-semibold text-base shadow-sm inline-flex items-center justify-center min-w-[3rem] text-center hover:bg-secondary hover:text-secondary-foreground hover:translate-y-[-2px] hover:shadow-lg;
+  }
+
+  /* Glossy button hover effect */
+  button:hover {
+    box-shadow: 
+      0 4px 8px rgba(0, 0, 0, 0.3),
+      inset 0 2px 10px rgba(255, 255, 255, 0.2),
+      inset 0 -1px 5px rgba(0, 0, 0, 0.15);
+  }
+}
+/*
+  input[type="text"],
+  input[type="number"],
+  input[type="month"],
+  select {
+    @apply w-full py-3 px-4 mb-4 border-2 border-input rounded-[var(--radius)] transition-colors duration-300 text-base focus:outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgba(30,64,175,0.2)];
+  }
+
+  .error {
+    @apply text-destructive text-sm mt-2 font-medium;
+  }
+
+  .success {
+    @apply text-green-600 text-sm mt-2 font-medium;
+  }
+
+  .card {
+    @apply bg-card text-card-foreground rounded-[var(--radius)] p-6 shadow-md transition-all duration-300 hover:translate-y-[-5px] hover:shadow-lg;
+  }
+
+  .form-group {
+    @apply mb-6;
+  }
+
+  .form-group label {
+    @apply block mb-2 font-semibold text-black;
+  }
+
+  .loading-spinner {
+    @apply border-4 border-muted rounded-full w-8 h-8;
+    border-top-color: hsl(var(--primary));
+    animation: spin 1s linear infinite;
+  }
+
+  .container {
+    @apply max-w-[var(--max-width)] mx-auto px-4;
+  }
+
+  .flex-center {
+    @apply flex items-center justify-center;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary;
+  }
+
+  .visually-hidden {
+    @apply sr-only;
+  }
+}
+
+@layer utilities {
+  .grid-layout {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .grid-cols-2 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+
+  @media (min-width: 768px) {
+    .grid-cols-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .grid-cols-3 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+
+  @media (min-width: 768px) {
+    .grid-cols-3 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .grid-cols-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  .app {
+    padding: 1.5rem;
+  }
+  
+  nav ul {
+    @apply flex-col items-center;
+  }
+  
+  nav ul li {
+    @apply my-3;
+  }
+  
+  button {
+    @apply w-full;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
+
+/* Ensure all text, including tooltips, is black */
+.tooltip, body, .fixed-table th, .fixed-table td, .form-group label {
+  color: black !important;
+}
+
+.main-content {
+  padding-top: 170px; /* Adjust this value to match the navbar height */
+}
+
+/* Ensure the table uses a horizontal scrollbar on mobile */
+@media (max-width: 600px) {
+  .table-container {
+    overflow-x: scroll;
+    -webkit-overflow-scrolling: touch; /* Enable smooth scrolling on iOS */
+    width: 100vw; /* Ensure the container takes full viewport width */
+  }
+
+  .fixed-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px; /* Add some distance between buttons */
+    width: 100%; /* Ensure buttons are not hidden */
+  }
+}
+.tooltip {
+  color: white !important;
+  background-color: rgba(0, 0, 0, 0.75); /* Optional: dark background for better contrast */
+  padding: 5px 10px; /* Optional: padding for better readability */
+  border-radius: 4px; /* Optional: rounded corners */
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+#root {
+  height: 100%;
+}
