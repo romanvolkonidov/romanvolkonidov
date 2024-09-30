@@ -2,8 +2,32 @@ import React, { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db } from '../firebase';
-import Tooltip from '@/components/ui/Tooltip'; // Import Tooltip component
+import Tooltip from '@/components/ui/Tooltip';
+import { X } from 'lucide-react';
 import '../styles/TablePage.css';
+import FileViewerButton from '@/components/FileViewerButton';
+
+
+const FileViewer = ({ file, onClose }) => {
+  const isImage = file.toLowerCase().match(/\.(jpeg|jpg|gif|png)$/);
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-4 rounded-lg max-w-3xl max-h-[90vh] overflow-auto relative">
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 p-1 bg-gray-200 rounded-full hover:bg-gray-300"
+        >
+          <X size={24} />
+        </button>
+        {isImage ? (
+          <img src={file} alt="Opened file" className="max-w-full max-h-[80vh] object-contain" />
+        ) : (
+          <iframe src={file} title="Opened file" className="w-full h-[80vh]" />
+        )}
+      </div>
+    </div>
+  );
+};
 
 const TablePage = ({ studentId, readOnly = false }) => {
   const [view, setView] = useState('completed');
@@ -12,12 +36,13 @@ const TablePage = ({ studentId, readOnly = false }) => {
   const [selectedChapter, setSelectedChapter] = useState('');
   const [selectedLesson, setSelectedLesson] = useState('');
   const [selectedHomework, setSelectedHomework] = useState('');
-  const [stoppedAt, setStoppedAt] = useState(''); // New state for stoppedAt
+  const [stoppedAt, setStoppedAt] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [tableData, setTableData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeTooltip, setActiveTooltip] = useState(null); // Add state for active tooltip
+  const [activeTooltip, setActiveTooltip] = useState(null);
+  const [viewerFile, setViewerFile] = useState(null);
 
   useEffect(() => {
     const fetchLibraryAndTableData = async () => {
@@ -168,6 +193,14 @@ const TablePage = ({ studentId, readOnly = false }) => {
     setActiveTooltip(activeTooltip === id ? null : id);
   };
 
+  const openFileViewer = (fileURL) => {
+    setViewerFile(fileURL);
+  };
+
+  const closeFileViewer = () => {
+    setViewerFile(null);
+  };
+
   const renderDropdowns = () => {
     const selectedCourseData = library.find(course => course.id === selectedCourse);
     const selectedChapterData = selectedCourseData?.chapters?.find(chapter => chapter.id === selectedChapter);
@@ -228,6 +261,25 @@ const TablePage = ({ studentId, readOnly = false }) => {
       </div>
     );
   };
+
+  const renderFileButton = (fileURL, index, field, row) => (
+    <div key={index} className="flex items-center mb-2">
+      <button
+        onClick={() => openFileViewer(fileURL)}
+        className="px-2 py-1 rounded bg-black text-white mr-2"
+      >
+        {`File ${index + 1}`}
+      </button>
+      {!readOnly && (
+        <button
+          onClick={() => handleFileDelete(row.id, fileURL, field)}
+          className="px-2 py-1 rounded bg-red-500 text-white"
+        >
+          ✕
+        </button>
+      )}
+    </div>
+  );
 
   const renderTable = () => {
     let headers;
@@ -306,8 +358,7 @@ const TablePage = ({ studentId, readOnly = false }) => {
                         <Tooltip content={row.lesson?.description || "Нет описания"}>
                           <span
                             className="cursor-pointer text-black"
-                            onClick={() => toggleTooltip(`lesson-${row.id}`)}
-                          >
+                            onClick={() => toggleTooltip(`lesson-${row.id}`)}>
                             {row.lesson?.name}
                           </span>
                         </Tooltip>
@@ -316,15 +367,9 @@ const TablePage = ({ studentId, readOnly = false }) => {
                       ) : header === 'Домашняя работа' ? (
                         <>
                           <div>{row.homework}</div>
-                          {row.homeworkFiles && row.homeworkFiles.map((fileURL, index) => (
-                            <div key={index} className="flex items-center">
-                              <a href={fileURL} download>
-                                <button className="px-2 py-1 rounded bg-black text-white">
-                                  {`File ${index + 1}`}
-                                </button>
-                              </a>
-                            </div>
-                          ))}
+                          {row.homeworkFiles && row.homeworkFiles.map((fileURL, index) => 
+                            renderFileButton(fileURL, index, 'homeworkFiles', row)
+                          )}
                         </>
                       ) : header === 'Сдать Домашнюю работу' ? (
                         <>
@@ -338,43 +383,15 @@ const TablePage = ({ studentId, readOnly = false }) => {
                               Browse
                             </label>
                           )}
-                          {Array.isArray(row.submit) && row.submit.map((fileURL, index) => (
-                            <div key={index} className="flex items-center">
-                              <a href={fileURL} download>
-                                <button className="px-2 py-1 rounded bg-black text-white">
-                                  {`File ${index + 1}`}
-                                </button>
-                              </a>
-                              {!readOnly && (
-                                <button
-                                  onClick={() => handleFileDelete(row.id, fileURL, 'submit')}
-                                  className="ml-2 px-2 py-1 rounded bg-black text-white"
-                                >
-                                  ✕
-                                </button>
-                              )}
-                            </div>
-                          ))}
+                          {Array.isArray(row.submit) && row.submit.map((fileURL, index) => 
+                            renderFileButton(fileURL, index, 'submit', row)
+                          )}
                         </>
                       ) : header === 'Проверенная домашняя работа' ? (
                         <>
-                          {Array.isArray(row.checkedHomework) && row.checkedHomework.map((fileURL, index) => (
-                            <div key={index} className="flex items-center">
-                              <a href={fileURL} download>
-                                <button className="px-2 py-1 rounded bg-black text-white">
-                                  {`File ${index + 1}`}
-                                </button>
-                              </a>
-                              {!readOnly && (
-                                <button
-                                  onClick={() => handleFileDelete(row.id, fileURL, 'checkedHomework')}
-                                  className="ml-2 px-2 py-1 rounded bg-black text-white"
-                                >
-                                  ✕
-                                </button>
-                              )}
-                            </div>
-                          ))}
+                          {Array.isArray(row.checkedHomework) && row.checkedHomework.map((fileURL, index) => 
+                            renderFileButton(fileURL, index, 'checkedHomework', row)
+                          )}
                         </>
                       ) : header === 'Результаты' ? (
                         <>
@@ -395,23 +412,9 @@ const TablePage = ({ studentId, readOnly = false }) => {
                               ></div>
                             </Tooltip>
                           </div>
-                          {row.results.files && row.results.files.map((fileURL, index) => (
-                            <div key={index} className="flex items-center">
-                              <a href={fileURL} download>
-                                <button className="px-2 py-1 rounded bg-black text-white">
-                                  {`File ${index + 1}`}
-                                </button>
-                              </a>
-                              {!readOnly && (
-                                <button
-                                  onClick={() => handleFileDelete(row.id, fileURL, 'results.files')}
-                                  className="ml-2 px-2 py-1 rounded bg-black text-white"
-                                >
-                                  ✕
-                                </button>
-                              )}
-                            </div>
-                          ))}
+                          {row.results.files && row.results.files.map((fileURL, index) => 
+                            renderFileButton(fileURL, index, 'results.files', row)
+                          )}
                         </>
                       ) : null}
                     </td>
@@ -424,54 +427,55 @@ const TablePage = ({ studentId, readOnly = false }) => {
     );
   };
   
-    if (loading) return <div>Loading...</div>;
-  
-    return (
-<div className="full-height-container buttons">
-  <div className="p-4 max-w-6xl mx-auto">
-    <h1 className="text-2xl font-bold mb-4"></h1>
-    
-    <div className="flex justify-center mb-4">
-  <button onClick={() => setView('completed')} className="p-2 border rounded ml-2 bg-black text-white">Пройденные уроки</button>
-  <button onClick={() => setView('homework')} className="p-2 border rounded ml-2 bg-black text-white">Домашние задания</button>
-  <button onClick={() => setView('future')} className="p-2 border rounded ml-2 bg-black text-white">Запланированные уроки</button>
-</div>
+  if (loading) return <div>Loading...</div>;
 
-    {!readOnly && (
-      <>
-        {renderDropdowns()}
-        <div className="mb-4 flex flex-wrap gap-2">
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="p-2 border rounded text-black"
-          />
-          {view === 'completed' && (
-            <textarea
-              value={stoppedAt}
-              onChange={(e) => setStoppedAt(e.target.value)}
-              placeholder="Остановились на"
-              className="p-2 border rounded text-black"
-            />
-          )}
-          <button
-            onClick={handleAddData}
-            className="p-2 border rounded bg-green-500 text-white"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Добавление...' : 'Добавить'}
-          </button>
+  return (
+    <div className="full-height-container buttons">
+      <div className="p-4 max-w-6xl mx-auto">
+        <h1 className="text-2xl font-bold mb-4"></h1>
+        
+        <div className="flex justify-center mb-4">
+          <button onClick={() => setView('completed')} className="p-2 border rounded ml-2 bg-black text-white">Пройденные уроки</button>
+          <button onClick={() => setView('homework')} className="p-2 border rounded ml-2 bg-black text-white">Домашние задания</button>
+          <button onClick={() => setView('future')} className="p-2 border rounded ml-2 bg-black text-white">Запланированные уроки</button>
         </div>
-      </>
-    )}
 
-    <div className="table-wrapper">
-      {renderTable()}
+        {!readOnly && (
+          <>
+            {renderDropdowns()}
+            <div className="mb-4 flex flex-wrap gap-2">
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="p-2 border rounded text-black"
+              />
+              {view === 'completed' && (
+                <textarea
+                  value={stoppedAt}
+                  onChange={(e) => setStoppedAt(e.target.value)}
+                  placeholder="Остановились на"
+                  className="p-2 border rounded text-black"
+                />
+              )}
+              <button
+                onClick={handleAddData}
+                className="p-2 border rounded bg-green-500 text-white"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Добавление...' : 'Добавить'}
+              </button>
+            </div>
+          </>
+        )}
+
+        <div className="table-wrapper">
+          {renderTable()}
+        </div>
+      </div>
+      {viewerFile && <FileViewer file={viewerFile} onClose={closeFileViewer} />}
     </div>
-  </div>
-</div>
-    );
-  };
-  
-  export default TablePage;
+  );
+};
+
+export default TablePage;

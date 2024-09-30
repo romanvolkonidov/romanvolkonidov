@@ -283,3 +283,18 @@ html, body {
 #root {
   height: 100%;
 }
+
+.max-w-3xl {
+  max-width: 90%;
+  min-width: 90%;
+}
+
+.absolute {
+
+opacity: 70%;
+}
+
+img {
+  max-width: 90%;
+  height: 90%;
+}
