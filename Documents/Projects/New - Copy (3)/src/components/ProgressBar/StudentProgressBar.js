@@ -191,11 +191,11 @@ const StudentProgressBar = ({ viewOnly, studentId }) => {
             </div>
           </div>
           <p className="text-center text-gray-600 mt-4">
-            {bar.progress < 25 && "Сделали первый шаг на пути к успеху!"}
-            {bar.progress >= 25 && bar.progress < 50 && "Вы делаете успехи! Продолжайте в том же духе!"}
-            {bar.progress >= 50 && bar.progress < 75 && "Вы уже на полпути! Отлично справляетесь"}
-            {bar.progress >= 75 && bar.progress < 100 && "Вы почти там! Финишная прямая!"}
-            {bar.progress === 100 && "Поздравляю! Вы завершили курс!"}
+          {bar.progress < 25 && "Есть над чем поработать. Не отчаивайтесь!"}
+{bar.progress >= 25 && bar.progress < 50 && "Неплохое начало. Продолжайте стараться!"}
+{bar.progress >= 50 && bar.progress < 75 && "Хороший результат! Вы на верном пути."}
+{bar.progress >= 75 && bar.progress < 100 && "Отличная работа! Почти идеально!"}
+{bar.progress === 100 && "Великолепно! Максимальный балл!"}
           </p>
         </div>
       ))}

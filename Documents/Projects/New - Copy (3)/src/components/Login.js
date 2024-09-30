@@ -8,6 +8,7 @@ import { GlobalStateContext } from '../context/GlobalStateContext';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
 import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
+import '../styles/Login.css';
 
 const Login = () => {
   const { setAuthenticatedStudent } = useContext(GlobalStateContext);
@@ -57,12 +58,15 @@ const Login = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 to-gray-800">
-      <Card className="w-full max-w-md bg-black bg-opacity-50 backdrop-blur-md border border-gray-600">
-      <CardHeader className="space-y-1 flex justify-center flex-col items-center">
-  <CardTitle className="text-3xl font-bold text-center text-white mx-auto">Вход</CardTitle>
-  <p className="text-sm text-center text-gray-400">Введите свои учетные данные для доступа к аккаунту</p>
-</CardHeader>
+    <div className="main flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 to-gray-700">
+      <Card className="w-full max-w-[90%] bg-black bg-opacity-50 backdrop-blur-md border border-gray-600">
+        <CardHeader className="space-y-1 flex justify-center flex-col items-center">
+          <div className="flex items-center space-x-4">
+            <img src="./../../logo.jpg" className="logo" alt="Logo" />
+            <CardTitle className="text-3xl font-bold text-center text-white">Вход</CardTitle>
+          </div>
+          <p className="text-sm text-center text-gray-400">Введите свои учетные данные для доступа к аккаунту</p>
+        </CardHeader>
         <CardContent className="space-y-4">
           {error && <p className="text-red-500 text-center">{error}</p>}
           <form onSubmit={handleLogin} className="space-y-4">

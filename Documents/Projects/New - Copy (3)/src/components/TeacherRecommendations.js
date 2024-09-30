@@ -11,8 +11,6 @@ import { Plus, Trash2, Edit2, Save, X, Book, Headphones, Video, Globe, Code, Mus
 import '../styles/TeacherRecommendations.css';
 import '../styles/global-text-styles.css';
 
-
-
 const iconOptions = [
   { value: 'book', label: 'Book', icon: Book },
   { value: 'headphones', label: 'Headphones', icon: Headphones },
@@ -118,11 +116,30 @@ const TeacherRecommendations = ({ isViewOnly = false, studentId }) => {
     setEditingItem(null);
   };
 
+  const autoLinkUrls = (text) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    return text.split(urlRegex).map((part, index) => 
+      urlRegex.test(part) ? (
+        <a
+          key={index}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:underline"
+        >
+          {part}
+        </a>
+      ) : (
+        <React.Fragment key={index}>{part}</React.Fragment>
+      )
+    );
+  };
+
   const RecommendationItem = ({ item, tabId }) => (
     <div className="mb-4 p-4 bg-gray-50 rounded-lg flex justify-between items-start">
       <div>
         <p className="font-semibold text-lg">{item.title}</p>
-        <p className="text-sm text-gray-600">{item.description}</p>
+        <div className="text-sm text-gray-600">{autoLinkUrls(item.description)}</div>
       </div>
       {!isViewOnly && (
         <div>
@@ -232,9 +249,11 @@ const TeacherRecommendations = ({ isViewOnly = false, studentId }) => {
                     ))}
                   </div>
                   {!isViewOnly && (
-                    <Button className="custom-button mt-2 text-sm" onClick={() => addItem(tab.id)} size="sm">
-                      <Plus className="w-3 h-3 mr-1" /> Add Recommendation
-                    </Button>
+                    <div className="flex flex-wrap mt-2">
+                      <Button className="custom-button text-sm mr-2 mb-2" onClick={() => addItem(tab.id)} size="sm">
+                        <Plus className="w-3 h-3 mr-1" /> Add Recommendation
+                      </Button>
+                    </div>
                   )}
                 </CardContent>
               </Card>

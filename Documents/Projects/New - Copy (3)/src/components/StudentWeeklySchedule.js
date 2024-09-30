@@ -1,16 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar } from 'lucide-react';
 import { db } from '../firebase';
-import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import '../styles/StudentWeeklySchedule.css';
 
-const LessonCard = ({ day, time, subject }) => (
+const LessonCard = ({ lesson, onEdit, onDelete, viewOnly }) => (
   <div className="bg-white rounded-lg shadow-md p-4 mb-4">
     <div className="flex justify-between items-start mb-2">
-      <span className="font-semibold text-black-600">{day}</span>
-      <span className="text-gray-600">{time}</span>
+      <span className="font-semibold text-black-600">{lesson.day}</span>
+      <span className="text-gray-600">{lesson.time}</span>
     </div>
-    <h3 className="text-lg font-semibold mb-1">{subject}</h3>
+    <h3 className="text-lg font-semibold mb-1">{lesson.subject}</h3>
+    {!viewOnly && (
+      <div className="flex space-x-2">
+        <button onClick={() => onEdit(lesson)} className="button bg-blue-500 hover:bg-blue-300 transition-colors">Edit</button>
+        <button onClick={() => onDelete(lesson.id)} className="button bg-red-500 hover:bg-red-300 transition-colors">Delete</button>
+      </div>
+    )}
   </div>
 );
 
@@ -21,6 +27,7 @@ const StudentWeeklySchedule = ({ customClass = '', viewOnly = false, studentId }
     time: '',
     subject: '',
   });
+  const [editingLesson, setEditingLesson] = useState(null);
 
   useEffect(() => {
     const fetchLessons = async () => {
@@ -39,14 +46,31 @@ const StudentWeeklySchedule = ({ customClass = '', viewOnly = false, studentId }
   };
 
   const handleAddLesson = async () => {
-    const lessonWithStudentId = { ...newLesson, studentId };
-    try {
-      const docRef = await addDoc(collection(db, 'weeklySchedule'), lessonWithStudentId);
-      setLessons([...lessons, { id: docRef.id, ...lessonWithStudentId }]);
-      setNewLesson({ day: '', time: '', subject: '' });
-    } catch (e) {
-      console.error('Error adding document: ', e);
+    if (editingLesson) {
+      const lessonRef = doc(db, 'weeklySchedule', editingLesson.id);
+      await updateDoc(lessonRef, newLesson);
+      setLessons(lessons.map(lesson => lesson.id === editingLesson.id ? { ...lesson, ...newLesson } : lesson));
+      setEditingLesson(null);
+    } else {
+      const lessonWithStudentId = { ...newLesson, studentId };
+      try {
+        const docRef = await addDoc(collection(db, 'weeklySchedule'), lessonWithStudentId);
+        setLessons([...lessons, { id: docRef.id, ...lessonWithStudentId }]);
+      } catch (e) {
+        console.error('Error adding document: ', e);
+      }
     }
+    setNewLesson({ day: '', time: '', subject: '' });
+  };
+
+  const handleEditLesson = (lesson) => {
+    setNewLesson({ day: lesson.day, time: lesson.time, subject: lesson.subject });
+    setEditingLesson(lesson);
+  };
+
+  const handleDeleteLesson = async (id) => {
+    await deleteDoc(doc(db, 'weeklySchedule', id));
+    setLessons(lessons.filter(lesson => lesson.id !== id));
   };
 
   return (
@@ -60,9 +84,10 @@ const StudentWeeklySchedule = ({ customClass = '', viewOnly = false, studentId }
           lessons.map((lesson, index) => (
             <LessonCard
               key={index}
-              day={lesson.day}
-              time={lesson.time}
-              subject={lesson.subject}
+              lesson={lesson}
+              onEdit={handleEditLesson}
+              onDelete={handleDeleteLesson}
+              viewOnly={viewOnly}
             />
           ))
         ) : (
@@ -71,7 +96,7 @@ const StudentWeeklySchedule = ({ customClass = '', viewOnly = false, studentId }
       </div>
       {!viewOnly && (
         <div className="mt-4">
-          <h3 className="text-lg font-bold mb-2">Add New Lesson</h3>
+          <h3 className="text-lg font-bold mb-2">{editingLesson ? 'Edit Lesson' : 'Add New Lesson'}</h3>
           <div className="space-y-2">
             <div>
               <label className="block text-gray-600">День</label>
@@ -107,7 +132,7 @@ const StudentWeeklySchedule = ({ customClass = '', viewOnly = false, studentId }
               onClick={handleAddLesson}
               className="button bg-black-500 hover:bg-black-300 transition-colors"
             >
-              Add Lesson
+              {editingLesson ? 'Update Lesson' : 'Add Lesson'}
             </button>
           </div>
         </div>

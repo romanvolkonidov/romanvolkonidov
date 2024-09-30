@@ -23,6 +23,7 @@ import StudentWeeklySchedule from '@/components/StudentWeeklySchedule';
 
 
 
+
 const currencies = ['USD', 'KES', 'RUB', 'EUR'];
 
 const StudentPage = () => {
@@ -407,16 +408,11 @@ const StudentPage = () => {
         <StudentFeedback studentId={id} />
       </div>
       <SetPassword studentId={id} />
+
       <Visibility studentId={id} />
       <StudentWeeklySchedule studentId={id} />
 
-
-     
-
-
-
-
-      </div>
+    </div>
     
     
    );

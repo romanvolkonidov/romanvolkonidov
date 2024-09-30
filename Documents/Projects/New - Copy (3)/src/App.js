@@ -18,6 +18,7 @@ import SetPassword from './components/SetPassword';
 import Login from './components/Login'; // Import the Login component
 import AdminLogin from './components/AdminLogin'; // Import the AdminLogin component
 import ProtectedRoute from './components/ProtectedRoute'; // Import the ProtectedRoute component
+import ErrorBoundary from './components/ErrorBoundary'
 
 import './styles/App.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
@@ -59,6 +60,7 @@ function App() {
   }, []);
 
   return (
+    <ErrorBoundary>
     <GlobalStateProvider>
       <VisibilityProvider>
         <Router>
@@ -91,6 +93,7 @@ function App() {
         </Router>
       </VisibilityProvider>
     </GlobalStateProvider>
+    </ErrorBoundary>
   );
 }
 

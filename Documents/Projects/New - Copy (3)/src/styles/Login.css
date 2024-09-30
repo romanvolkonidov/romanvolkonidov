@@ -1,0 +1,16 @@
+.logo {
+display: inline-block;
+width: 48px;
+}
+
+.text {
+display: inline-block;
+}
+
+.main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+}

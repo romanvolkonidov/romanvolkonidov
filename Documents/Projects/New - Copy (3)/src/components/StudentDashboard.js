@@ -110,23 +110,23 @@ const StudentDashboard = () => {
                     <h2></h2>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
                       <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
-                        <h3 className="text-lg font-semibold">Price per Lesson</h3>
+                        <h3 className="text-lg font-semibold">Стоимость одного урока</h3>
                         <p className="text-2xl">USD {(convertToSelectedCurrency(selectedStudent.price, selectedStudent.currency)).toFixed(2)}</p>
                       </div>
                       <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
-                        <h3 className="text-lg font-semibold">Lessons Purchased</h3>
+                        <h3 className="text-lg font-semibold">Оплаченные уроки</h3>
                         <p className="text-2xl">{totalPaidLessons.toFixed(2)}</p>
                       </div>
                       <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
-                        <h3 className="text-lg font-semibold">Lessons Completed</h3>
+                        <h3 className="text-lg font-semibold">Пройденные уроки</h3>
                         <p className="text-2xl">{completedLessons}</p>
                       </div>
                       <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
-                        <h3 className="text-lg font-semibold">Remaining Lessons</h3>
+                        <h3 className="text-lg font-semibold">Осталось уроков</h3>
                         <p className="text-2xl">{positiveRemainingLessons}</p>
                       </div>
                       <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
-                        <h3 className="text-lg font-semibold">Debt Lessons</h3>
+                        <h3 className="text-lg font-semibold">Не оплаченные уроки</h3>
                         <p className="text-2xl">{debtLessons}</p>
                       </div>
                     </div>
@@ -136,6 +136,7 @@ const StudentDashboard = () => {
               <div className="bar-chart">
                 <Bar data={barData} options={barOptions} />
               </div>
+              
             </div>
           )}
         </div>
@@ -148,7 +149,9 @@ const StudentDashboard = () => {
         <TeacherRecommendations isViewOnly={true} studentId={id} />
         <StudentFeedback studentId={id} />
 
+      
       </div>
+   
     </div>
   );
 }

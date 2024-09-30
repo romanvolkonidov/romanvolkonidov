@@ -70,9 +70,8 @@
 
 @layer components {
   .app {
-    max-width: var(--max-width);
+    min-width: 100%;
     margin: 0 auto;
-    padding: 2rem;
   }
 
   nav {
@@ -107,12 +106,12 @@
       inset 0 -1px 5px rgba(0, 0, 0, 0.15);
   }
 }
-/*
+
   input[type="text"],
   input[type="number"],
   input[type="month"],
   select {
-    @apply w-full py-3 px-4 mb-4 border-2 border-input rounded-[var(--radius)] transition-colors duration-300 text-base focus:outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgba(30,64,175,0.2)];
+    @apply w-full py-3  mb-4    text-base focus:outline-none ;
   }
 
   .error {
@@ -156,7 +155,7 @@
   .visually-hidden {
     @apply sr-only;
   }
-}
+
 
 @layer utilities {
   .grid-layout {
@@ -246,7 +245,10 @@
 }
 
 .main-content {
-  padding-top: 170px; /* Adjust this value to match the navbar height */
+  padding: 0;
+  margin: 0;
+  width: 100%;
+
 }
 
 /* Ensure the table uses a horizontal scrollbar on mobile */
@@ -274,6 +276,7 @@
 
 html, body {
   height: 100%;
+  width: 100%;
   margin: 0;
 }
 

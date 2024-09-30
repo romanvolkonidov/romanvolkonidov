@@ -23,14 +23,14 @@
   padding: 10px 0;
   display: flex;
   justify-content: space-between; /* Ensure buttons are properly aligned */
-  width: 100%; /* Match the width of other buttons on the page */
+  width: 90vw; /* Match the width of other buttons on the page */
 }
 
 .table-container {
   overflow-x: auto;
   height: 50vh; /* Fixed height for the table container */
   overflow-y: auto; /* Enable vertical scrolling */
-  width: 100vw; /* Ensure the container takes full viewport width on mobile */
+  width: 90vw; /* Ensure the container takes full viewport width on mobile */
 }
 
 .fixed-table th, .fixed-table td {
@@ -204,7 +204,7 @@ button:hover, .custom-file-upload:hover {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 100vh; /* Full viewport height */
+  min-height: 90vh; /* Full viewport height */
 }
 
 /* General styling for all buttons, including table buttons and page buttons */
@@ -245,4 +245,8 @@ button:hover, .custom-file-upload:hover {
   .fixed-buttons {
     max-width: none; /* Remove the max-width restriction */
   }
+}
+
+.buttons {
+align-items: center;
 }
