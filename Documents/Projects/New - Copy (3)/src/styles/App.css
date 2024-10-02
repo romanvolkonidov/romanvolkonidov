@@ -245,9 +245,10 @@
 }
 
 .main-content {
-  padding: 0;
+
   margin: 0;
   width: 100%;
+  padding-top: 13rem;
 
 }
 
@@ -278,10 +279,14 @@ html, body {
   height: 100%;
   width: 100%;
   margin: 0;
+  
 }
 
 #root {
   height: 100%;
+  width: 100%;
+
+  
 }
 
 .max-w-3xl {
@@ -297,4 +302,18 @@ opacity: 70%;
 img {
   max-width: 90%;
   height: 90%;
+}
+
+.pt-4 {
+  padding-top: 10rem;
+}
+
+.top {
+  padding-top: 20rem;
+}
+
+.app {
+  padding-top: 5rem;
+  padding-left: 0;
+  padding-right: 0;
 }

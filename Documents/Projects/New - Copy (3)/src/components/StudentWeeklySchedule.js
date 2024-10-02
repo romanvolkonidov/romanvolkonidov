@@ -29,12 +29,22 @@ const StudentWeeklySchedule = ({ customClass = '', viewOnly = false, studentId }
   });
   const [editingLesson, setEditingLesson] = useState(null);
 
+  const dayOrder = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
+
+  const sortLessons = (lessons) => {
+    return lessons.sort((a, b) => {
+      const dayComparison = dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day);
+      if (dayComparison !== 0) return dayComparison;
+      return a.time.localeCompare(b.time);
+    });
+  };
+
   useEffect(() => {
     const fetchLessons = async () => {
       const q = query(collection(db, 'weeklySchedule'), where('studentId', '==', studentId));
       const querySnapshot = await getDocs(q);
       const lessonsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setLessons(lessonsData);
+      setLessons(sortLessons(lessonsData));
     };
 
     fetchLessons();
@@ -49,13 +59,13 @@ const StudentWeeklySchedule = ({ customClass = '', viewOnly = false, studentId }
     if (editingLesson) {
       const lessonRef = doc(db, 'weeklySchedule', editingLesson.id);
       await updateDoc(lessonRef, newLesson);
-      setLessons(lessons.map(lesson => lesson.id === editingLesson.id ? { ...lesson, ...newLesson } : lesson));
+      setLessons(sortLessons(lessons.map(lesson => lesson.id === editingLesson.id ? { ...lesson, ...newLesson } : lesson)));
       setEditingLesson(null);
     } else {
       const lessonWithStudentId = { ...newLesson, studentId };
       try {
         const docRef = await addDoc(collection(db, 'weeklySchedule'), lessonWithStudentId);
-        setLessons([...lessons, { id: docRef.id, ...lessonWithStudentId }]);
+        setLessons(sortLessons([...lessons, { id: docRef.id, ...lessonWithStudentId }]));
       } catch (e) {
         console.error('Error adding document: ', e);
       }
@@ -70,7 +80,7 @@ const StudentWeeklySchedule = ({ customClass = '', viewOnly = false, studentId }
 
   const handleDeleteLesson = async (id) => {
     await deleteDoc(doc(db, 'weeklySchedule', id));
-    setLessons(lessons.filter(lesson => lesson.id !== id));
+    setLessons(sortLessons(lessons.filter(lesson => lesson.id !== id)));
   };
 
   return (
@@ -100,18 +110,22 @@ const StudentWeeklySchedule = ({ customClass = '', viewOnly = false, studentId }
           <div className="space-y-2">
             <div>
               <label className="block text-gray-600">День</label>
-              <input
-                type="text"
+              <select
                 name="day"
                 value={newLesson.day}
                 onChange={handleInputChange}
                 className="input"
-              />
+              >
+                <option value="">Выберите день</option>
+                {dayOrder.map(day => (
+                  <option key={day} value={day}>{day}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-gray-600">Время</label>
               <input
-                type="text"
+                type="time"
                 name="time"
                 value={newLesson.time}
                 onChange={handleInputChange}

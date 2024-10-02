@@ -117,7 +117,7 @@ const StudentProfile = ({ studentId }) => {
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter your name"
+                  placeholder="Введите ваше имя"
                 />
               ) : (
                 <p className="text-lg font-semibold">{name}</p>
@@ -130,7 +130,7 @@ const StudentProfile = ({ studentId }) => {
                   id="age"
                   value={age}
                   onChange={(e) => setAge(e.target.value)}
-                  placeholder="Enter your age"
+                  placeholder="Введите ваш возраст"
                 />
               ) : (
                 <p>{age}</p>
@@ -143,7 +143,7 @@ const StudentProfile = ({ studentId }) => {
                   id="learningGoals"
                   value={learningGoals}
                   onChange={(e) => setLearningGoals(e.target.value)}
-                  placeholder="Describe your learning goals"
+                  placeholder="Опишите ваши цели обучения"
                   rows={3}
                 />
               ) : (
@@ -157,7 +157,7 @@ const StudentProfile = ({ studentId }) => {
                   id="description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Tell us about yourself or your child"
+                  placeholder="Расскажите немного о себе или о вашем ребенке"
                   rows={4}
                 />
               ) : (

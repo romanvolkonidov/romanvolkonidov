@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Slider } from "@/components/ui/Slider";
-import { db } from '../../firebase'; // Adjust this import based on your Firebase configuration file location
+import { db } from '../../firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const StudentProgressBar = ({ viewOnly, studentId }) => {
   const [bars, setBars] = useState([]);
@@ -16,7 +16,6 @@ const StudentProgressBar = ({ viewOnly, studentId }) => {
       if (docSnap.exists()) {
         setBars(docSnap.data().bars);
       } else {
-        // Initialize with default data if no document exists
         const defaultBars = [{
           name: 'Default Bar',
           milestones: [],
@@ -24,7 +23,8 @@ const StudentProgressBar = ({ viewOnly, studentId }) => {
           color: '#40E0D0',
           milestoneColor: '#000000',
           emptyBarColor: '#E0E0E0',
-          progressedBarColor: '#40E0D0'
+          progressedBarColor: '#40E0D0',
+          showComments: true
         }];
         await setDoc(docRef, { bars: defaultBars });
         setBars(defaultBars);
@@ -46,159 +46,194 @@ const StudentProgressBar = ({ viewOnly, studentId }) => {
   }, [bars, studentId]);
 
   const addBar = () => {
-    setBars([...bars, {
+    setBars(prevBars => [...prevBars, {
       name: 'New Bar',
       milestones: [],
       progress: 50,
       color: '#40E0D0',
       milestoneColor: '#000000',
       emptyBarColor: '#E0E0E0',
-      progressedBarColor: '#40E0D0'
+      progressedBarColor: '#40E0D0',
+      showComments: true
     }]);
   };
 
   const removeBar = (index) => {
-    const newBars = bars.filter((_, i) => i !== index);
-    setBars(newBars);
+    setBars(prevBars => prevBars.filter((_, i) => i !== index));
   };
 
   const handleMilestonesChange = (index, milestones) => {
-    const newBars = [...bars];
-    newBars[index].milestones = Array.from({ length: milestones }, (_, i) => ({
-      name: `Milestone ${i + 1}`,
-    }));
-    setBars(newBars);
+    setBars(prevBars => {
+      const newBars = [...prevBars];
+      newBars[index].milestones = Array.from({ length: milestones }, (_, i) => ({
+        name: `Milestone ${i + 1}`,
+      }));
+      return newBars;
+    });
   };
 
   const handleProgressChange = (index, value) => {
-    const newBars = [...bars];
-    newBars[index].progress = Math.max(0, Math.min(100, value[0])); // Clamp the progress between 0 and 100
-    setBars(newBars);
+    setBars(prevBars => {
+      const newBars = [...prevBars];
+      newBars[index].progress = Math.max(0, Math.min(100, value));
+      return newBars;
+    });
   };
 
   const handleColorChange = (index, color, field) => {
-    const newBars = [...bars];
-    newBars[index][field] = color;
-    setBars(newBars);
+    setBars(prevBars => {
+      const newBars = [...prevBars];
+      newBars[index][field] = color;
+      return newBars;
+    });
   };
 
   const handleBarNameChange = (index, name) => {
-    const newBars = [...bars];
-    newBars[index].name = name;
-    setBars(newBars);
+    setBars(prevBars => {
+      const newBars = [...prevBars];
+      newBars[index].name = name;
+      return newBars;
+    });
   };
 
-  const handleMilestoneNameChange = (barIndex, milestoneIndex, name) => {
-    const newBars = [...bars];
-    newBars[barIndex].milestones[milestoneIndex].name = name;
-    setBars(newBars);
+  const handleCommentToggle = (index) => {
+    setBars(prevBars => {
+      const newBars = [...prevBars];
+      newBars[index].showComments = !newBars[index].showComments;
+      return newBars;
+    });
   };
 
-  const handleSaveMilestoneName = () => {
-    toast.success('Milestone name saved!');
+  const getEncouragingComment = (progress) => {
+    if (progress < 25) return "Есть над чем поработать. Не отчаивайтесь!";
+    if (progress < 50) return "Неплохое начало. Продолжайте стараться!";
+    if (progress < 75) return "Хороший результат! Вы на верном пути.";
+    if (progress < 100) return "Отличная работа! Почти идеально!";
+    return "Великолепно! Максимальный балл!";
   };
 
   return (
-    <div className="w-full p-6 bg-white rounded-xl shadow-md">
+    <div className="w-[85%]  p-4 md:p-6 bg-gradient-to-br from-blue-50 to-teal-50 rounded-xl shadow-lg">
       <ToastContainer />
-      <h2 className="text-2xl font-bold mb-4 text-center text-gray-800">Ваши достижения</h2>
+      <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">Ваши достижения</h2>
       {!viewOnly && (
-        <button onClick={addBar} className="mb-4 p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
+        <button onClick={addBar} className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
           Add Bar
         </button>
       )}
-      {bars.map((bar, index) => (
-        <div key={index} className="mb-4 border rounded-lg p-4 shadow-sm">
-          {!viewOnly && (
-            <div className="flex flex-wrap items-center justify-between mb-2 space-y-2">
-              <input
-                type="text"
-                value={bar.name}
-                onChange={(e) => handleBarNameChange(index, e.target.value)}
-                className="p-2 border rounded w-full md:w-auto mb-2"
-                placeholder="Bar Name"
-                aria-label={`Bar Name ${index + 1}`}
-              />
-              <input
-                type="number"
-                value={bar.milestones.length}
-                onChange={(e) => handleMilestonesChange(index, parseInt(e.target.value) || 0)}
-                className="p-2 border rounded w-20 mb-2"
-                min="0"
-                aria-label={`Number of milestones for ${bar.name}`}
-              />
-              <div className="flex flex-wrap items-center space-x-2 mb-2">
-                {['color', 'milestoneColor', 'emptyBarColor', 'progressedBarColor'].map((field) => (
+      <div className="space-y-8">
+        <AnimatePresence>
+          {bars.map((bar, index) => (
+            <motion.div
+              key={index}
+              className="bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-300"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+            >
+              {!viewOnly && (
+                <div className="flex flex-wrap items-center justify-between mb-4 space-y-2">
                   <input
-                    key={field}
-                    type="color"
-                    value={bar[field]}
-                    onChange={(e) => handleColorChange(index, e.target.value, field)}
-                    className="p-1 border rounded"
-                    aria-label={`Select ${field.replace(/([A-Z])/g, ' $1').toLowerCase()} for ${bar.name}`}
+                    type="text"
+                    value={bar.name}
+                    onChange={(e) => handleBarNameChange(index, e.target.value)}
+                    className="w-full md:w-auto mb-2 px-2 py-1 border rounded"
+                    placeholder="Bar Name"
                   />
-                ))}
+                  <input
+                    type="number"
+                    value={bar.milestones.length}
+                    onChange={(e) => handleMilestonesChange(index, parseInt(e.target.value) || 0)}
+                    className="w-20 mb-2 px-2 py-1 border rounded"
+                    min="0"
+                  />
+                  <div className="flex flex-wrap items-center space-x-2 mb-2">
+                    {['color', 'milestoneColor', 'emptyBarColor', 'progressedBarColor'].map((field) => (
+                      <div key={field} className="flex flex-col items-center">
+                        <label className="text-xs mb-1">{field}</label>
+                        <input
+                          type="color"
+                          value={bar[field]}
+                          onChange={(e) => handleColorChange(index, e.target.value, field)}
+                          className="w-8 h-8"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={bar.showComments}
+                      onChange={() => handleCommentToggle(index)}
+                      className="mr-2"
+                    />
+                    Show Comments
+                  </label>
+                  <button onClick={() => removeBar(index)} className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition w-full md:w-auto">
+                    Remove Bar
+                  </button>
+                </div>
+              )}
+              <div className="flex flex-col md:flex-row items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-gray-700 mb-2 md:mb-0">{bar.name}</h3>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-gray-600">Прогресс:</span>
+                  <span className="text-lg font-bold text-teal-600">{bar.progress}%</span>
+                </div>
               </div>
-              <button onClick={() => removeBar(index)} className="p-2 bg-red-500 text-white rounded hover:bg-red-600 transition w-full md:w-auto">
-                Remove Bar
-              </button>
-            </div>
-          )}
-          <div className="relative pt-1 w-full">
-            <div className="flex mb-2 items-center justify-between">
-              <div>
-                <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-teal-600 bg-teal-200">
-                  {bar.name} 
-                </span>
+              <div className="relative pt-1 w-full">
+                {!viewOnly && (
+                  <input
+                    type="range"
+                    value={bar.progress}
+                    onChange={(e) => handleProgressChange(index, parseInt(e.target.value))}
+                    min="0"
+                    max="100"
+                    step="1"
+                    className="w-full mb-4"
+                  />
+                )}
+                <div className="relative overflow-hidden h-6 mb-4 text-xs flex rounded-full" style={{ backgroundColor: bar.emptyBarColor }}>
+                  <motion.div
+                    className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center"
+                    style={{ width: `${bar.progress}%`, backgroundColor: bar.progressedBarColor }}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${bar.progress}%` }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                  />
+                  {bar.milestones.map((milestone, i) => (
+                    <div
+                      key={i}
+                      className="absolute top-0 bottom-0 w-0.5"
+                      style={{
+                        left: `${(i + 1) * (100 / (bar.milestones.length + 1))}%`,
+                        backgroundColor: bar.milestoneColor,
+                      }}
+                      title={milestone.name}
+                    >
+                      <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-2 h-2 rounded-full" style={{ backgroundColor: bar.milestoneColor }} />
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="text-right">
-                <span className="text-xs font-semibold inline-block text-teal-600">
-                  {bar.progress}%
-                </span>
-              </div>
-            </div>
-            {!viewOnly && (
-              <div className="w-full mb-4"> {/* Increased margin-bottom to 4 */}
-                <Slider
-                  defaultValue={[bar.progress]}
-                  max={100}
-                  step={1}
-                  onValueChange={(value) => handleProgressChange(index, value)}
-                  aria-label={`Progress for ${bar.name}`}
-                  className="w-full"
-                />
-              </div>
-            )}
-            <div className="overflow-hidden h-2 mb-4 text-xs flex rounded relative w-full" style={{ background: bar.emptyBarColor }}>
-              <div
-                style={{ width: `${bar.progress}%`, background: bar.progressedBarColor }}
-                className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center transition-all duration-500 ease-in-out"
-              ></div>
-              {bar.milestones.map((milestone, i) => (
-                <div
-                  key={i}
-                  className="absolute top-0 h-2 w-2 rounded-full cursor-pointer"
-                  style={{
-                    background: bar.milestoneColor,
-                    left: `${(i + 1) * (100 / (bar.milestones.length + 1))}%`,
-                    transform: 'translateX(-50%)',
-                  }}
-                  title={milestone.name}
-                  onClick={() => alert(milestone.name)}
-                  aria-label={`Milestone ${milestone.name}`}
-                ></div>
-              ))}
-            </div>
-          </div>
-          <p className="text-center text-gray-600 mt-4">
-          {bar.progress < 25 && "Есть над чем поработать. Не отчаивайтесь!"}
-{bar.progress >= 25 && bar.progress < 50 && "Неплохое начало. Продолжайте стараться!"}
-{bar.progress >= 50 && bar.progress < 75 && "Хороший результат! Вы на верном пути."}
-{bar.progress >= 75 && bar.progress < 100 && "Отличная работа! Почти идеально!"}
-{bar.progress === 100 && "Великолепно! Максимальный балл!"}
-          </p>
-        </div>
-      ))}
+              <AnimatePresence>
+                {bar.showComments && (
+                  <motion.p
+                    className="text-center text-gray-600 mt-4 italic"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {getEncouragingComment(bar.progress)}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

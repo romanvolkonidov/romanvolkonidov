@@ -16,6 +16,16 @@ const Library = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const sortByOrdinal = (items) => {
+    return items.sort((a, b) => {
+      if (a.ordinal === undefined && b.ordinal === undefined) return 0;
+      if (a.ordinal === undefined) return 1;
+      if (b.ordinal === undefined) return -1;
+      return a.ordinal - b.ordinal;
+    });
+  };
+
+
   useEffect(() => {
     const fetchLibrary = async () => {
       setIsLoading(true);
@@ -23,7 +33,8 @@ const Library = () => {
       try {
         const querySnapshot = await getDocs(collection(db, 'library'));
         const libraryData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setLibrary(libraryData);
+        const sortedLibraryData = sortByOrdinal(libraryData);
+        setLibrary(sortedLibraryData);
       } catch (error) {
         console.error("Error fetching library data:", error);
         setError("Failed to fetch library data. Please try again later.");
@@ -36,6 +47,7 @@ const Library = () => {
   }, []);
 
   const addCourse = async () => {
+    const highestOrdinal = Math.max(0, ...library.map(course => course.ordinal || 0));
     const newCourse = { name: 'New Course', description: '', chapters: [] };
     const docRef = await addDoc(collection(db, 'library'), newCourse);
     setLibrary([...library, { id: docRef.id, ...newCourse }]);
@@ -229,7 +241,11 @@ const Library = () => {
       await updateDoc(courseRef, { chapters: updatedChapters });
     }
 
-    setLibrary(library.map(course => course.id === (editItem.courseId || editItem.id) ? { ...course, ...courseData } : course));
+    const updatedLibrary = await getDocs(collection(db, 'library'));
+    const libraryData = updatedLibrary.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const sortedLibraryData = libraryData.sort((a, b) => (a.ordinal || Infinity) - (b.ordinal || Infinity));
+    setLibrary(sortedLibraryData);
+
     setEditMode(false);
     setEditItem(null);
   };
@@ -271,7 +287,7 @@ const Library = () => {
     setLibrary(library.map(course => course.id === courseId ? { ...course, chapters: updatedChapters } : course));
   };
 
-  const containerStyles = 'p-4 bg-gray-100 rounded-lg shadow-md';
+  const containerStyles = 'pt-20 top bg-gray-100 rounded-lg shadow-md';
   const courseStyles = 'mb-4 p-4 bg-white rounded-lg shadow-sm';
   const courseHeaderStyles = 'flex items-center mb-2';
   const chapterStyles = 'ml-4 mt-2 p-2 bg-gray-200 rounded-lg';
@@ -284,7 +300,7 @@ const Library = () => {
   const renderEditForm = () => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
       <div className="bg-white p-4 rounded-lg">
-        <h2 className="text-xl font-bold mb-4">Edit Item</h2>
+        <h2 className="text-xl font-bold mb-4">Edit {editItem.type.charAt(0).toUpperCase() + editItem.type.slice(1)}</h2>
         {editItem.type !== 'homework' && (
           <Input
             name="name"

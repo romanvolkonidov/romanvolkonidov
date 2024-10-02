@@ -94,9 +94,13 @@ const StudentDashboard = () => {
   };
 
   return (
+    
     <div className="student-page">
-      <StudentProfile studentId={id} />
       
+      
+
+      <StudentProfile studentId={id} />
+  
       {isFinancialSectionVisible && (
         <div>
           <button onClick={() => setShowFinancialSection(!showFinancialSection)}>
@@ -153,6 +157,7 @@ const StudentDashboard = () => {
       </div>
    
     </div>
+    
   );
 }
 

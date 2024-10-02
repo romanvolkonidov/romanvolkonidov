@@ -12,12 +12,10 @@ const ProtectedRoute = ({ adminOnly = false }) => {
     const checkAuth = () => {
       const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
       const isAdmin = localStorage.getItem('isAdmin') === 'true';
-
       setIsAuthenticated(isAuthenticated);
       setIsAdmin(isAdmin);
       setLoading(false);
     };
-
     checkAuth();
   }, []);
 
@@ -26,15 +24,15 @@ const ProtectedRoute = ({ adminOnly = false }) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
 
   if (adminOnly && !isAdmin) {
-    return <Navigate to={`/dashboard/${authenticatedStudent?.id}`} />;
+    return <Navigate to={`/dashboard/${authenticatedStudent?.id}`} replace />;
   }
 
   if (!isAdmin && window.location.pathname !== `/dashboard/${authenticatedStudent?.id}`) {
-    return <Navigate to={`/dashboard/${authenticatedStudent?.id}`} />;
+    return <Navigate to={`/dashboard/${authenticatedStudent?.id}`} replace />;
   }
 
   return <Outlet />;
