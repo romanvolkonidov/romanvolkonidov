@@ -15,6 +15,12 @@ const Alert = ({ children, type = 'info' }) => {
   );
 };
 
+export const AlertTitle = ({ children }) => (
+  <h4 className="font-bold text-lg mb-2">
+    {children}
+  </h4>
+);
+
 export const AlertDescription = ({ children }) => (
   <p className="text-gray-600">
     {children}

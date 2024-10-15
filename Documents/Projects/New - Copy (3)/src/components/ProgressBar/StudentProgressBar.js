@@ -97,12 +97,21 @@ const StudentProgressBar = ({ viewOnly, studentId }) => {
   };
 
   const handleCommentToggle = (index) => {
+    console.log('Toggle function called for index:', index);
     setBars(prevBars => {
       const newBars = [...prevBars];
-      newBars[index].showComments = !newBars[index].showComments;
+      newBars[index] = {
+        ...newBars[index],
+        showComments: !newBars[index].showComments
+      };
+      console.log('New state for bar:', newBars[index]);
       return newBars;
     });
   };
+
+  useEffect(() => {
+    console.log('Bars state updated:', bars);
+  }, [bars]);
 
   const getEncouragingComment = (progress) => {
     if (progress < 25) return "Есть над чем поработать. Не отчаивайтесь!";
@@ -113,11 +122,14 @@ const StudentProgressBar = ({ viewOnly, studentId }) => {
   };
 
   return (
-    <div className="w-[85%]  p-4 md:p-6 bg-gradient-to-br from-blue-50 to-teal-50 rounded-xl shadow-lg">
+    <div className="w-full max-w-5xl mx-auto p-6 bg-white rounded-lg shadow-md">
       <ToastContainer />
-      <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">Ваши достижения</h2>
+      <h2 className="text-3xl font-bold mb-6 text-center text-black">Ваши достижения</h2>
       {!viewOnly && (
-        <button onClick={addBar} className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
+        <button 
+          onClick={addBar} 
+          className="mb-4 px-4 py-2 bg-black text-white rounded hover:bg-gray-800 transition"
+        >
           Add Bar
         </button>
       )}
@@ -126,7 +138,7 @@ const StudentProgressBar = ({ viewOnly, studentId }) => {
           {bars.map((bar, index) => (
             <motion.div
               key={index}
-              className="bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-300"
+              className="bg-gray-100 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-300"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
@@ -138,20 +150,20 @@ const StudentProgressBar = ({ viewOnly, studentId }) => {
                     type="text"
                     value={bar.name}
                     onChange={(e) => handleBarNameChange(index, e.target.value)}
-                    className="w-full md:w-auto mb-2 px-2 py-1 border rounded"
+                    className="w-full md:w-auto mb-2 px-2 py-1 border border-gray-300 rounded text-black"
                     placeholder="Bar Name"
                   />
                   <input
                     type="number"
                     value={bar.milestones.length}
                     onChange={(e) => handleMilestonesChange(index, parseInt(e.target.value) || 0)}
-                    className="w-20 mb-2 px-2 py-1 border rounded"
+                    className="w-20 mb-2 px-2 py-1 border border-gray-300 rounded text-black"
                     min="0"
                   />
                   <div className="flex flex-wrap items-center space-x-2 mb-2">
                     {['color', 'milestoneColor', 'emptyBarColor', 'progressedBarColor'].map((field) => (
                       <div key={field} className="flex flex-col items-center">
-                        <label className="text-xs mb-1">{field}</label>
+                        <label className="text-xs mb-1 text-black">{field}</label>
                         <input
                           type="color"
                           value={bar[field]}
@@ -161,25 +173,28 @@ const StudentProgressBar = ({ viewOnly, studentId }) => {
                       </div>
                     ))}
                   </div>
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={bar.showComments}
-                      onChange={() => handleCommentToggle(index)}
-                      className="mr-2"
-                    />
-                    Show Comments
-                  </label>
-                  <button onClick={() => removeBar(index)} className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition w-full md:w-auto">
+                  <input
+  type="checkbox"
+  checked={bar.showComments}
+  onChange={() => {
+    console.log('Checkbox clicked, current state:', bar.showComments);
+    handleCommentToggle(index);
+  }}
+  className="mr-2"
+/>
+                  <button 
+                    onClick={() => removeBar(index)} 
+                    className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800 transition w-full md:w-auto"
+                  >
                     Remove Bar
                   </button>
                 </div>
               )}
               <div className="flex flex-col md:flex-row items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold text-gray-700 mb-2 md:mb-0">{bar.name}</h3>
+                <h3 className="text-xl font-semibold text-black mb-2 md:mb-0">{bar.name}</h3>
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium text-gray-600">Прогресс:</span>
-                  <span className="text-lg font-bold text-teal-600">{bar.progress}%</span>
+                  <span className="text-sm font-medium text-black">Прогресс:</span>
+                  <span className="text-lg font-bold text-black">{bar.progress}%</span>
                 </div>
               </div>
               <div className="relative pt-1 w-full">
@@ -220,7 +235,7 @@ const StudentProgressBar = ({ viewOnly, studentId }) => {
               <AnimatePresence>
                 {bar.showComments && (
                   <motion.p
-                    className="text-center text-gray-600 mt-4 italic"
+                    className="text-center text-black mt-4 italic"
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}

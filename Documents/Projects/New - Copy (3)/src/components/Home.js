@@ -122,31 +122,36 @@ const Home = () => {
   }
 
   return (
-    <div className="home p-6 bg-gray-100 min-h-screen">
-      <h2 className="home-title text-4xl font-bold mb-8 text-center text-indigo-600">Income and Expense Tracker</h2>
+    <div className="max-w-5xl mx-auto p-5 font-sans text-black">
+      <h2 className="text-center text-black mb-8 text-3xl font-bold">Income and Expense Tracker</h2>
 
-      <div className="exchange-rates mb-8 p-6 bg-white rounded-lg shadow-md">
-        <p className="exchange-rates-title text-2xl font-semibold mb-4 text-indigo-500">Exchange Rates (1 USD)</p>
+      <div className="mb-8 p-6 bg-white rounded-lg shadow-md">
+        <p className="text-2xl font-semibold mb-4 text-black">Exchange Rates (1 USD)</p>
         <div className="grid grid-cols-2 gap-4">
           {Object.entries(exchangeRates).map(([currency, rate]) => (
-            <p key={currency} className="text-lg text-gray-700">{currency}: {rate.toFixed(2)}</p>
+            <p key={currency} className="text-lg text-black">{currency}: {rate.toFixed(2)}</p>
           ))}
         </div>
       </div>
 
-      {error && <p className="error-message text-red-500 mb-4 text-center">{error}</p>}
+      {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
 
-      <div className="selectors mb-8 p-6 bg-white rounded-lg shadow-md">
-        <div className="currency-selector mb-6">
-          <label htmlFor="displayCurrency" className="block text-lg font-medium mb-2 text-gray-700">Display Currency:</label>
-          <select id="displayCurrency" value={selectedDisplayCurrency} onChange={(e) => setSelectedDisplayCurrency(e.target.value)} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-lg">
+      <div className="mb-8 p-6 bg-white rounded-lg shadow-md">
+        <div className="mb-6">
+          <label htmlFor="displayCurrency" className="block text-lg font-medium mb-2 text-black">Display Currency:</label>
+          <select 
+            id="displayCurrency" 
+            value={selectedDisplayCurrency} 
+            onChange={(e) => setSelectedDisplayCurrency(e.target.value)} 
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black text-lg text-black"
+          >
             {currencies.map(curr => (
               <option key={curr} value={curr}>{curr}</option>
             ))}
           </select>
         </div>
-        <div className="date-range-selector mb-6">
-          <label className="block text-lg font-medium mb-2 text-gray-700">Date Range:</label>
+        <div className="mb-6">
+          <label className="block text-lg font-medium mb-2 text-black">Date Range:</label>
           <div className="mt-1 flex space-x-4">
             <label className="inline-flex items-center">
               <input
@@ -155,9 +160,9 @@ const Home = () => {
                 value="month"
                 checked={dateRange === 'month'}
                 onChange={() => setDateRange('month')}
-                className="form-radio text-indigo-600"
+                className="form-radio text-black"
               />
-              <span className="ml-2 text-lg text-gray-700">Month</span>
+              <span className="ml-2 text-lg text-black">Month</span>
             </label>
             <label className="inline-flex items-center">
               <input
@@ -166,14 +171,16 @@ const Home = () => {
                 value="year"
                 checked={dateRange === 'year'}
                 onChange={() => setDateRange('year')}
-                className="form-radio text-indigo-600"
+                className="form-radio text-black"
               />
-              <span className="ml-2 text-lg text-gray-700">Year</span>
+              <span className="ml-2 text-lg text-black">Year</span>
             </label>
           </div>
         </div>
-        <div className="date-selector mb-6">
-          <label htmlFor="displayDate" className="block text-lg font-medium mb-2 text-gray-700">{dateRange === 'month' ? 'Display Month:' : 'Display Year:'}</label>
+        <div className="mb-6">
+          <label htmlFor="displayDate" className="block text-lg font-medium mb-2 text-black">
+            {dateRange === 'month' ? 'Display Month:' : 'Display Year:'}
+          </label>
           <input
             type={dateRange === 'month' ? 'month' : 'number'}
             id="displayDate"
@@ -181,43 +188,51 @@ const Home = () => {
             onChange={(e) => setSelectedDate(e.target.value)}
             min={dateRange === 'year' ? '1900' : undefined}
             max={dateRange === 'year' ? new Date().getFullYear() : undefined}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-lg"
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black text-lg text-black"
           />
         </div>
       </div>
 
-      <div style={{ width: '100%', height: 400 }} className="mb-8">
-        <ResponsiveContainer>
-          <BarChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip formatter={(value) => `${value.toFixed(2)} ${selectedDisplayCurrency}`} />
-            <Legend />
-            <Bar dataKey="value" radius={[10, 10, 0, 0]} fillOpacity={0.8}>
-              {data.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={
-                    entry.name === 'Expected Income'
-                      ? 'rgba(255, 215, 0, 0.8)'
-                      : entry.name === 'Actual Income'
-                      ? 'rgba(0, 255, 0, 0.8)'
-                      : entry.name === 'Expenses'
-                      ? 'rgba(255, 140, 0, 0.8)'
-                      : 'rgba(255, 0, 0, 0.8)' // Color for Debt
-                  }
-                />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+      <div className="mb-8 p-6 bg-white rounded-lg shadow-md">
+        <div style={{ width: '100%', height: 400 }}>
+          <ResponsiveContainer>
+            <BarChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip formatter={(value) => `${value.toFixed(2)} ${selectedDisplayCurrency}`} />
+              <Legend />
+              <Bar dataKey="value" radius={[10, 10, 0, 0]} fillOpacity={0.8}>
+                {data.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={
+                      entry.name === 'Expected Income'
+                        ? 'rgba(255, 215, 0, 0.8)'
+                        : entry.name === 'Actual Income'
+                        ? 'rgba(0, 255, 0, 0.8)'
+                        : entry.name === 'Expenses'
+                        ? 'rgba(255, 140, 0, 0.8)'
+                        : 'rgba(255, 0, 0, 0.8)' // Color for Debt
+                    }
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="transaction-form space-y-6 p-6 bg-white rounded-lg shadow-md">
-        <div className="form-group">
-          <label htmlFor="transactionType" className="block text-lg font-medium mb-2 text-gray-700">Transaction Type</label>
-          <select id="transactionType" name="transactionType" value={transactionType} onChange={(e) => setTransactionType(e.target.value)} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-lg">
+      <form onSubmit={handleSubmit} className="space-y-6 p-6 bg-white rounded-lg shadow-md">
+        <div>
+          <label htmlFor="transactionType" className="block text-lg font-medium mb-2 text-black">Transaction Type</label>
+          <select 
+            id="transactionType" 
+            name="transactionType" 
+            value={transactionType} 
+            onChange={(e) => setTransactionType(e.target.value)} 
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black text-lg text-black"
+          >
             <option value="expense">Expense</option>
             <option value="income">Income</option>
             <option value="expectedIncome">Expected Income</option>
@@ -225,8 +240,8 @@ const Home = () => {
           </select>
         </div>
         {transactionType === 'expense' && (
-          <div className="form-group">
-            <label className="block text-lg font-medium mb-2 text-gray-700">Person</label>
+          <div>
+            <label className="block text-lg font-medium mb-2 text-black">Person</label>
             <div className="mt-1 flex space-x-4">
               <label className="inline-flex items-center">
                 <input
@@ -235,9 +250,9 @@ const Home = () => {
                   value="Roman"
                   checked={selectedPerson === 'Roman'}
                   onChange={() => setSelectedPerson('Roman')}
-                  className="form-radio text-indigo-600"
+                  className="form-radio text-black"
                 />
-                <span className="ml-2 text-lg text-gray-700">Roman</span>
+                <span className="ml-2 text-lg text-black">Roman</span>
               </label>
               <label className="inline-flex items-center">
                 <input
@@ -246,35 +261,62 @@ const Home = () => {
                   value="Violet"
                   checked={selectedPerson === 'Violet'}
                   onChange={() => setSelectedPerson('Violet')}
-                  className="form-radio text-indigo-600"
+                  className="form-radio text-black"
                 />
-                <span className="ml-2 text-lg text-gray-700">Violet</span>
+                <span className="ml-2 text-lg text-black">Violet</span>
               </label>
             </div>
           </div>
         )}
         {transactionType !== 'expectedIncome' && transactionType !== 'setDebt' && selectedCategory !== 'Debt Repayment' && (
-          <div className="form-group">
-            <label htmlFor="description" className="block text-lg font-medium mb-2 text-gray-700">Description</label>
-            <input type="text" id="description" name="description" value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-lg" />
+          <div>
+            <label htmlFor="description" className="block text-lg font-medium mb-2 text-black">Description</label>
+            <input 
+              type="text" 
+              id="description" 
+              name="description" 
+              value={description} 
+              onChange={(e) => setDescription(e.target.value)} 
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black text-lg text-black" 
+            />
           </div>
         )}
-        <div className="form-group">
-          <label htmlFor="amount" className="block text-lg font-medium mb-2 text-gray-700">Amount</label>
-          <input type="number" id="amount" name="amount" value={amount} onChange={(e) => setAmount(e.target.value)} required className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-lg" />
+        <div>
+          <label htmlFor="amount" className="block text-lg font-medium mb-2 text-black">Amount</label>
+          <input 
+            type="number" 
+            id="amount" 
+            name="amount" 
+            value={amount} 
+            onChange={(e) => setAmount(e.target.value)} 
+            required 
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black text-lg text-black" 
+          />
         </div>
-        <div className="form-group">
-          <label htmlFor="currency" className="block text-lg font-medium mb-2 text-gray-700">Currency</label>
-          <select id="currency" name="currency" value={currency} onChange={(e) => setCurrency(e.target.value)} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-lg">
+        <div>
+          <label htmlFor="currency" className="block text-lg font-medium mb-2 text-black">Currency</label>
+          <select 
+            id="currency" 
+            name="currency" 
+            value={currency} 
+            onChange={(e) => setCurrency(e.target.value)} 
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black text-lg text-black"
+          >
             {currencies.map(curr => (
               <option key={curr} value={curr}>{curr}</option>
             ))}
           </select>
         </div>
         {transactionType === 'expense' && (
-          <div className="form-group">
-            <label htmlFor="category" className="block text-lg font-medium mb-2 text-gray-700">Category</label>
-            <select id="category" name="category" value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-lg">
+          <div>
+            <label htmlFor="category" className="block text-lg font-medium mb-2 text-black">Category</label>
+            <select 
+              id="category" 
+              name="category" 
+              value={selectedCategory} 
+              onChange={(e) => setSelectedCategory(e.target.value)} 
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black text-lg text-black"
+            >
               <option value="">Select Category</option>
               {expenseCategories.map(category => (
                 <option key={category} value={category}>{category}</option>
@@ -282,17 +324,21 @@ const Home = () => {
             </select>
           </div>
         )}
-        {error && <p className="error-message text-red-500 text-center">{error}</p>}
-        <button type="submit" className="submit-button bg-indigo-600 text-white py-2 px-4 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 text-lg">Add Transaction</button>
+        {error && <p className="text-red-500 text-center">{error}</p>}
+        <button type="submit" className="w-full bg-black text-white py-2 px-4 rounded-md shadow-sm hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black text-lg">
+          Add Transaction
+        </button>
       </form>
 
-      {notification && <p className="notification text-green-500 mt-4 text-center">{notification}</p>}
+      {notification && <p className="text-green-500 mt-4 text-center">{notification}</p>}
 
-      {showPopup && <div className="popup fixed top-0 left-0 right-0 bottom-0 flex items-center justify-center bg-black bg-opacity-50">
-        <div className="bg-white p-4 rounded-md shadow-md">
-          <p className="text-lg font-semibold">Submission Successful!</p>
+      {showPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-4 rounded-md shadow-md">
+            <p className="text-lg font-semibold text-black">Submission Successful!</p>
+          </div>
         </div>
-      </div>}
+      )}
     </div>
   );
 }

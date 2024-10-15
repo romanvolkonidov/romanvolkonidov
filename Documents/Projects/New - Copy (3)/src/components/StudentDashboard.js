@@ -8,10 +8,14 @@ import '../styles/StudentDashboard.css';
 import StudentProgressBar from './ProgressBar/StudentProgressBar';
 import TablePage from './TablePage'; // Import TablePage component
 import TeacherRecommendations from '@/components/TeacherRecommendations';
-import StudentProfile from '@/components/StudentProfile';
+import StudentProfile from './StudentProfile';
 import StudentFeedback from '@/components/StudentFeedback';
 import StudentWeeklySchedule from '@/components/StudentWeeklySchedule';
+import WebApp from '@twa-dev/sdk';
 
+const ProfileView = ({ studentId }) => {
+  return <StudentProfile studentId={studentId} isInferiorView={true} />;
+};
 
 const currencies = ['USD', 'KES', 'RUB', 'EUR'];
 
@@ -23,6 +27,16 @@ const StudentDashboard = () => {
   const [progress, setProgress] = useState(0);
   const [showFinancialSection, setShowFinancialSection] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    WebApp.ready();
+    WebApp.expand();
+  }, []);
+
+  useEffect(() => {
+    document.body.style.backgroundColor = WebApp.backgroundColor;
+    document.body.style.color = WebApp.textColor;
+  }, []);
 
   useEffect(() => {
     if (!authenticatedStudent) {
@@ -39,6 +53,17 @@ const StudentDashboard = () => {
       }
     }
   }, [id, students]);
+
+  const handleButtonClick = () => {
+    WebApp.showPopup({
+      title: 'Confirmation',
+      message: 'Are you sure you want to submit?',
+      buttons: [
+        { id: 'ok', type: 'ok', text: 'OK' },
+        { id: 'cancel', type: 'cancel', text: 'Cancel' }
+      ]
+    });
+  };
 
   const convertToSelectedCurrency = (amount, currency) => {
     if (!exchangeRates[currency] || !exchangeRates['USD']) {
@@ -99,7 +124,9 @@ const StudentDashboard = () => {
       
       
 
-      <StudentProfile studentId={id} />
+      <div className="side-by-side-container">
+  <ProfileView studentId={id} />
+</div>
   
       {isFinancialSectionVisible && (
         <div>
@@ -114,9 +141,9 @@ const StudentDashboard = () => {
                     <h2></h2>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
                       <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
-                        <h3 className="text-lg font-semibold">Стоимость одного урока</h3>
-                        <p className="text-2xl">USD {(convertToSelectedCurrency(selectedStudent.price, selectedStudent.currency)).toFixed(2)}</p>
-                      </div>
+  <h3 className="text-lg font-semibold">Стоимость одного урока</h3>
+  <p className="text-2xl">{selectedStudent.currency} {selectedStudent.price.toFixed(2)}</p>
+</div>
                       <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
                         <h3 className="text-lg font-semibold">Оплаченные уроки</h3>
                         <p className="text-2xl">{totalPaidLessons.toFixed(2)}</p>
@@ -155,7 +182,7 @@ const StudentDashboard = () => {
 
       
       </div>
-   
+
     </div>
     
   );

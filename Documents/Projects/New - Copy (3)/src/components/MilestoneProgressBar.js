@@ -6,7 +6,7 @@ import { Slider } from "./ui/Slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/Select";
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { GlobalStateContext } from '../context/GlobalStateContext';
-import Checkbox from './ui/Checkbox'; // Ensure Checkbox is imported
+import { Checkbox } from './ui/Checkbox'; // Ensure Checkbox is imported
 
 
 const MilestoneProgressBar = () => {

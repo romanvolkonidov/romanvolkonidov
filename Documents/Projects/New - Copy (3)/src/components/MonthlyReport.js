@@ -18,6 +18,8 @@ const MonthlyReport = () => {
   const [error, setError] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState('');
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState(null);
 
   const incomeCategories = useMemo(() => {
     const studentNames = students.map(student => student.name);
@@ -33,6 +35,7 @@ const MonthlyReport = () => {
       ) : true;
       const matchesDate = selectedDate ? t.date.startsWith(selectedDate) : true;
       const isNotLesson = t.type !== 'lesson';
+      // Include transactions from removed students
       return matchesMonth && matchesType && matchesCategory && matchesDate && isNotLesson;
     }).sort((a, b) => new Date(b.date) - new Date(a.date));
   }, [transactions, selectedMonth, filterType, filterCategory, selectedDate, incomeCategories]);
@@ -118,9 +121,27 @@ const MonthlyReport = () => {
     'Violet': 'bg-green-100',
   };
 
+  const handleDeleteClick = (transaction) => {
+    setTransactionToDelete(transaction);
+    setShowDeleteConfirmation(true);
+  };
+
+  const confirmDelete = async () => {
+    if (transactionToDelete) {
+      await handleRemoveTransaction(transactionToDelete.id);
+      setShowDeleteConfirmation(false);
+      setTransactionToDelete(null);
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteConfirmation(false);
+    setTransactionToDelete(null);
+  };
+
   return (
-    <div className="max-w-5xl mx-auto p-5 font-sans text-gray-800">
-      <h2 className="text-center text-blue-500 mb-5 text-2xl font-bold">Monthly Report</h2>
+    <div className="max-w-5xl mx-auto p-5 font-sans text-black">
+      <h2 className="text-center text-black mb-5 text-2xl font-bold">Monthly Report</h2>
       {error && <p className="text-red-600 font-bold mb-5">{error}</p>}
       <div className="mb-5">
         <label htmlFor="month" className="block my-2 text-lg">Month:</label>
@@ -129,7 +150,7 @@ const MonthlyReport = () => {
           id="month"
           value={selectedMonth}
           onChange={(e) => setSelectedMonth(e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded mb-5"
+          className="w-full p-2 border border-gray-300 rounded mb-5 text-black"
         />
       </div>
       <div className="mb-5">
@@ -187,64 +208,58 @@ const MonthlyReport = () => {
       </div>
       <div className="mb-5">
         <div className="bg-blue-100 p-4 rounded mb-3">
-          <h3 className="text-lg font-semibold">Total Income: {totalIncome.toFixed(2)} {selectedCurrency}</h3>
+          <h3 className="text-lg font-semibold text-black">Total Income: {totalIncome.toFixed(2)} {selectedCurrency}</h3>
         </div>
         <div className="bg-red-100 p-4 rounded mb-3">
-          <h3 className="text-lg font-semibold">Total Expenses: {totalExpenses.toFixed(2)} {selectedCurrency}</h3>
+          <h3 className="text-lg font-semibold text-black">Total Expenses: {totalExpenses.toFixed(2)} {selectedCurrency}</h3>
         </div>
         <div className="bg-yellow-100 p-4 rounded mb-3">
-          <h3 className="text-lg font-semibold">Total Debt: {totalDebt.toFixed(2)} {selectedCurrency}</h3>
+          <h3 className="text-lg font-semibold text-black">Total Debt: {totalDebt.toFixed(2)} {selectedCurrency}</h3>
         </div>
       </div>
+      
       <div className="mb-5">
-        <h3 className="text-lg font-semibold">Income</h3>
+        <h3 className="text-lg font-semibold text-black">Income</h3>
         <ul className="list-none p-0">
           {filteredTransactions.filter(t => t.type === 'income').map(transaction => (
-            <li key={transaction.id} className="bg-gray-100 border border-gray-300 rounded p-3 mb-3 relative">
+            <li key={transaction.id} className={`bg-gray-100 border border-gray-300 rounded p-3 mb-3 relative ${transaction.studentRemoved ? 'opacity-50' : ''}`}>
               {editingTransactionId === transaction.id ? (
                 <>
-                  <input
-                    type="number"
-                    defaultValue={transaction.amount}
-                    onBlur={(e) => handleEditTransaction({
-                      ...transaction,
-                      amount: parseFloat(e.target.value)
-                    })}
-                    className="w-1/2 inline-block mr-2"
-                  />
-                  <input
-                    type="date"
-                    defaultValue={transaction.date.split('T')[0]}
-                    onBlur={(e) => handleEditTransaction({
-                      ...transaction,
-                      date: e.target.value
-                    })}
-                    className="w-1/2 inline-block"
-                  />
-                  <button onClick={cancelEditing} className="bg-blue-500 text-white p-2 rounded ml-2 hover:bg-blue-700">Cancel</button>
-                  <button onClick={() => handleEditTransaction(transaction)} className="bg-blue-500 text-white p-2 rounded ml-2 hover:bg-blue-700">Update</button>
+                  <span onClick={() => startEditing(transaction.id)} className="block mb-2 cursor-pointer text-lg font-medium">
+                    <span className="block text-black">{transaction.category}</span>
+                    <span className="block text-black">
+                      {convertToSelectedCurrency(transaction.amount, transaction.currency).toFixed(2)} {selectedCurrency}
+                    </span>
+                    <span className="block text-black">{transaction.date.split('T')[0]}</span>
+                    {transaction.description && <span className="block text-gray-600 italic">{transaction.description}</span>}
+                  </span>
+                  <div className="absolute right-2 top-2">
+                    <button onClick={() => handleDeleteClick(transaction)} className="bg-black text-white p-2 rounded hover:bg-gray-800">Remove</button>
+                  </div>
+                  {transaction.studentRemoved && <span className="text-red-500 text-sm font-bold">Deleted Student</span>}
                 </>
               ) : (
                 <>
                   <span onClick={() => startEditing(transaction.id)} className="block mb-2 cursor-pointer text-lg font-medium">
-                    <span className="block text-blue-600">{transaction.category}</span>
-                    <span className="block text-gray-700">
+                    <span className="block text-black">{transaction.category}</span>
+                    <span className="block text-black">
                       {convertToSelectedCurrency(transaction.amount, transaction.currency).toFixed(2)} {selectedCurrency}
                     </span>
-                    <span className="block text-gray-500">{transaction.date.split('T')[0]}</span>
-                    {transaction.description && <span className="block text-gray-400 italic">{transaction.description}</span>}
+                    <span className="block text-black">{transaction.date.split('T')[0]}</span>
+                    {transaction.description && <span className="block text-gray-600 italic">{transaction.description}</span>}
                   </span>
                   <div className="absolute right-2 top-2">
-                    <button onClick={() => handleRemoveTransaction(transaction.id)} className="bg-gray-500 text-white p-2 rounded hover:bg-red-700">Remove</button>
+                    <button onClick={() => handleDeleteClick(transaction)} className="bg-black text-white p-2 rounded hover:bg-gray-800">Remove</button>
                   </div>
                 </>
               )}
+            {transaction.studentRemoved && <span className="text-red-500 text-sm">(Student Removed)</span>}
             </li>
           ))}
         </ul>
       </div>
       <div className="mb-5">
-        <h3 className="text-lg font-semibold">Expenses</h3>
+        <h3 className="text-lg font-semibold text-black">Expenses</h3>
         <ul className="list-none p-0">
           {filteredTransactions.filter(t => t.type === 'expense').map(transaction => {
             const bgColor = personColorMapping[transaction.person] || 'bg-gray-100';
@@ -259,7 +274,7 @@ const MonthlyReport = () => {
                         ...transaction,
                         amount: parseFloat(e.target.value)
                       })}
-                      className="w-1/2 inline-block mr-2"
+                      className="w-1/2 inline-block mr-2 text-black"
                     />
                     <input
                       type="date"
@@ -268,24 +283,24 @@ const MonthlyReport = () => {
                         ...transaction,
                         date: e.target.value
                       })}
-                      className="w-1/2 inline-block"
+                      className="w-1/2 inline-block text-black"
                     />
-                    <button onClick={cancelEditing} className="bg-blue-500 text-white p-2 rounded ml-2 hover:bg-blue-700">Cancel</button>
-                    <button onClick={() => handleEditTransaction(transaction)} className="bg-blue-500 text-white p-2 rounded ml-2 hover:bg-blue-700">Update</button>
+                    <button onClick={cancelEditing} className="bg-black text-white p-2 rounded ml-2 hover:bg-gray-800">Cancel</button>
+                    <button onClick={() => handleEditTransaction(transaction)} className="bg-black text-white p-2 rounded ml-2 hover:bg-gray-800">Update</button>
                   </>
                 ) : (
                   <>
                     <span onClick={() => startEditing(transaction.id)} className="block mb-2 cursor-pointer text-lg font-medium">
-                      <span className="block text-blue-600">{transaction.category}</span>
-                      <span className="block text-gray-700">
+                      <span className="block text-black">{transaction.category}</span>
+                      <span className="block text-black">
                         {convertToSelectedCurrency(transaction.amount, transaction.currency).toFixed(2)} {selectedCurrency}
                       </span>
-                      <span className="block text-gray-500">{transaction.date.split('T')[0]}</span>
-                      <span className="block text-gray-500">{transaction.person}</span> {/* Display the person's name */}
-                      {transaction.description && <span className="block text-gray-400 italic">{transaction.description}</span>}
+                      <span className="block text-black">{transaction.date.split('T')[0]}</span>
+                      <span className="block text-black">{transaction.person}</span>
+                      {transaction.description && <span className="block text-gray-600 italic">{transaction.description}</span>}
                     </span>
                     <div className="absolute right-2 top-2">
-                      <button onClick={() => handleRemoveTransaction(transaction.id)} className="bg-gray-500 text-white p-2 rounded hover:bg-red-700">Remove</button>
+                      <button onClick={() => handleDeleteClick(transaction)} className="bg-black text-white p-2 rounded hover:bg-gray-800">Remove</button>
                     </div>
                   </>
                 )}
@@ -295,6 +310,20 @@ const MonthlyReport = () => {
         </ul>
       </div>
       {showPopup && <div className={`fixed bottom-5 right-5 bg-green-500 text-white p-3 rounded shadow-lg ${showPopup ? 'block' : 'hidden'}`}>{popupMessage}</div>}
+      
+      {/* Delete Confirmation Popup */}
+      {showDeleteConfirmation && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+          <div className="bg-white p-5 rounded-lg shadow-xl">
+            <h2 className="text-xl font-bold mb-4 text-black">Confirm Deletion</h2>
+            <p className="mb-4 text-black">Are you sure you want to delete this transaction?</p>
+            <div className="flex justify-end space-x-2">
+              <button onClick={cancelDelete} className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400">Cancel</button>
+              <button onClick={confirmDelete} className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800">Confirm</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ProgressBar } from '@/components/ui/progress';
+import { Progress } from '@/components/ui/Progress';
 
 const CourseProgress = ({ progress, milestones }) => {
   return (

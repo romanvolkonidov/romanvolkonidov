@@ -10,11 +10,10 @@ const Visibility = () => {
 
   return (
     <div className="home-page">
-      <h1>Home Page</h1>
-      <button onClick={toggleFinancialSectionVisibility} className="p-2 bg-blue-500 text-white rounded">
-        Toggle Financial Section Visibility
+      <button onClick={toggleFinancialSectionVisibility} className="p-2 bg-black-500 text-white rounded">
+        On/Off
       </button>
-      <p>Financial Section is {isFinancialSectionVisible ? 'Visible' : 'Hidden'}</p>
+      <p>{isFinancialSectionVisible ? 'Visible' : 'Hidden'}</p>
     </div>
   );
 };

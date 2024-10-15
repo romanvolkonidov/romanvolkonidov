@@ -7,14 +7,14 @@ import '../styles/StudentWeeklySchedule.css';
 const LessonCard = ({ lesson, onEdit, onDelete, viewOnly }) => (
   <div className="bg-white rounded-lg shadow-md p-4 mb-4">
     <div className="flex justify-between items-start mb-2">
-      <span className="font-semibold text-black-600">{lesson.day}</span>
-      <span className="text-gray-600">{lesson.time}</span>
+      <span className="font-semibold text-black">{lesson.day}</span>
+      <span className="text-black">{lesson.time}</span>
     </div>
-    <h3 className="text-lg font-semibold mb-1">{lesson.subject}</h3>
+    <h3 className="text-lg font-semibold mb-1 text-black">{lesson.subject}</h3>
     {!viewOnly && (
       <div className="flex space-x-2">
-        <button onClick={() => onEdit(lesson)} className="button bg-blue-500 hover:bg-blue-300 transition-colors">Edit</button>
-        <button onClick={() => onDelete(lesson.id)} className="button bg-red-500 hover:bg-red-300 transition-colors">Delete</button>
+        <button onClick={() => onEdit(lesson)} className="px-3 py-1 bg-black text-white rounded hover:bg-gray-800 transition-colors">Edit</button>
+        <button onClick={() => onDelete(lesson.id)} className="px-3 py-1 bg-black text-white rounded hover:bg-gray-800 transition-colors">Delete</button>
       </div>
     )}
   </div>
@@ -84,10 +84,10 @@ const StudentWeeklySchedule = ({ customClass = '', viewOnly = false, studentId }
   };
 
   return (
-    <div className={`bg-gray-50 p-4 rounded-lg ${customClass}`}>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="title">Расписание</h2>
-        <Calendar className="icon-small text-black-500" />
+    <div className={`bg-white p-6 rounded-lg shadow-md ${customClass}`}>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-black">Расписание</h2>
+        <Calendar className="text-black" size={24} />
       </div>
       <div className="space-y-4">
         {Array.isArray(lessons) && lessons.length > 0 ? (
@@ -101,20 +101,20 @@ const StudentWeeklySchedule = ({ customClass = '', viewOnly = false, studentId }
             />
           ))
         ) : (
-          <p>No lessons available</p>
+          <p className="text-black">No lessons available</p>
         )}
       </div>
       {!viewOnly && (
-        <div className="mt-4">
-          <h3 className="text-lg font-bold mb-2">{editingLesson ? 'Edit Lesson' : 'Add New Lesson'}</h3>
-          <div className="space-y-2">
+        <div className="mt-6 bg-gray-100 p-4 rounded-lg">
+          <h3 className="text-lg font-bold mb-4 text-black">{editingLesson ? 'Edit Lesson' : 'Add New Lesson'}</h3>
+          <div className="space-y-4">
             <div>
-              <label className="block text-gray-600">День</label>
+              <label className="block text-black mb-1">День</label>
               <select
                 name="day"
                 value={newLesson.day}
                 onChange={handleInputChange}
-                className="input"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-black focus:border-black text-black"
               >
                 <option value="">Выберите день</option>
                 {dayOrder.map(day => (
@@ -123,28 +123,28 @@ const StudentWeeklySchedule = ({ customClass = '', viewOnly = false, studentId }
               </select>
             </div>
             <div>
-              <label className="block text-gray-600">Время</label>
+              <label className="block text-black mb-1">Время</label>
               <input
                 type="time"
                 name="time"
                 value={newLesson.time}
                 onChange={handleInputChange}
-                className="input"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-black focus:border-black text-black"
               />
             </div>
             <div>
-              <label className="block text-gray-600">Урок</label>
+              <label className="block text-black mb-1">Урок</label>
               <input
                 type="text"
                 name="subject"
                 value={newLesson.subject}
                 onChange={handleInputChange}
-                className="input"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-black focus:border-black text-black"
               />
             </div>
             <button
               onClick={handleAddLesson}
-              className="button bg-black-500 hover:bg-black-300 transition-colors"
+              className="w-full bg-black text-white py-2 px-4 rounded-md hover:bg-gray-800 transition-colors"
             >
               {editingLesson ? 'Update Lesson' : 'Add Lesson'}
             </button>

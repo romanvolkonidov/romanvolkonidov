@@ -4,14 +4,12 @@ import Home from './components/Home';
 import MonthlyReport from './components/MonthlyReport';
 import StudentManagement from './components/StudentManagement';
 import StudentPage from './components/StudentPage';
-import EventsPage from './components/EventsPage';
 import Navbar from './components/Navbar';
 import { GlobalStateProvider } from './context/GlobalStateContext';
 import { VisibilityProvider } from './context/VisibilityContext'; // Import the VisibilityProvider
 import SVGInvoiceGenerator from './components/SVGInvoiceGenerator';
 import StudentDashboard from './components/StudentDashboard';
 import Progress from './components/Progress';
-import Test from './components/Test';
 import ViewOnlyProgressBars from './components/ViewOnlyProgressBars';
 import Library from './components/Library';
 import SetPassword from './components/SetPassword';
@@ -19,6 +17,7 @@ import Login from './components/Login'; // Import the Login component
 import AdminLogin from './components/AdminLogin'; // Import the AdminLogin component
 import ProtectedRoute from './components/ProtectedRoute'; // Import the ProtectedRoute component
 import ErrorBoundary from './components/ErrorBoundary'
+
 
 import './styles/App.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
@@ -76,12 +75,11 @@ function App() {
                 <Route path="/monthly-report" element={<MonthlyReport />} />
                 <Route path="/students" element={<StudentManagement />} />
                 <Route path="/student/:id" element={<StudentPage />} />
-                <Route path="/student-events" element={<EventsPage />} />
                 <Route path="/invoice-generator" element={<SVGInvoiceGenerator />} />
                 <Route path="/progress" element={<Progress />} />
-                <Route path="/test" element={<Test />} />
                 <Route path="/ViewOnlyProgressBars" element={<ViewOnlyProgressBars />} />
                 <Route path="/Library" element={<Library />} />
+
                 <Route path="/set-password" element={<SetPassword />} />
               </Route>
               <Route element={<ProtectedRoute adminOnly={true} />}>

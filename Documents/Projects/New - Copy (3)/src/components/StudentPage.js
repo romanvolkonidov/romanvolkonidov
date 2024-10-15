@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Bar } from 'react-chartjs-2';
 import { GlobalStateContext } from '../context/GlobalStateContext';
@@ -9,20 +9,24 @@ import { collection, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestor
 import TablePage from '@/components/TablePage';
 import StudentProgressBar from '@/components/ProgressBar/StudentProgressBar';
 import TeacherRecommendations from '@/components/TeacherRecommendations';
-import StudentProfile from '@/components/StudentProfile';
+import StudentProfile from './StudentProfile';
 import StudentFeedback from '@/components/StudentFeedback';
-import SetPassword from '@/components/SetPassword';
-import Visibility from '@/components/Visibility';
 import StudentWeeklySchedule from '@/components/StudentWeeklySchedule';
+import { 
+  BarChart2, 
+  FileText, 
+  List, 
+  DollarSign, 
+  BarChart, 
+  Table, 
+  MessageSquare, 
+  ThumbsUp, 
+  Calendar 
+} from 'lucide-react';
 
-
-
-
-
-
-
-
-
+const AdminProfileView = ({ studentId }) => {
+  return <StudentProfile studentId={studentId} showSetPassword={true} showVisibility={true} />;
+};
 
 const currencies = ['USD', 'KES', 'RUB', 'EUR'];
 
@@ -44,13 +48,26 @@ const StudentPage = () => {
   const [convertedTransactions, setConvertedTransactions] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState('');
-  const [progress, setProgress] = useState(0); // Add state for progress
+  const [progress, setProgress] = useState(0);
+  const [showPayments, setShowPayments] = useState(false);
+  const [showLessons, setShowLessons] = useState(false);
+
+  // New state variables for toggle buttons
+  const [showChartInfo, setShowChartInfo] = useState(false);
+  const [showForms, setShowForms] = useState(false);
+  const [showDropdowns, setShowDropdowns] = useState(false);
+  const [showTransactions, setShowTransactions] = useState(false);
+  const [showProgressBar, setShowProgressBar] = useState(false);
+  const [showTablePage, setShowTablePage] = useState(false);
+  const [showRecommendations, setShowRecommendations] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [showWeeklySchedule, setShowWeeklySchedule] = useState(false);
 
   useEffect(() => {
     const foundStudent = students.find(s => s.id === id);
     setStudent(foundStudent);
     if (foundStudent) {
-      setProgress(foundStudent.progress || 0); // Initialize progress from student data
+      setProgress(foundStudent.progress || 0);
     }
   }, [id, students]);
 
@@ -66,7 +83,7 @@ const StudentPage = () => {
         resetPaymentForm();
         setPopupMessage('Payment added successfully!');
         setShowPopup(true);
-        setTimeout(() => setShowPopup(false), 3000); // Hide popup after 3 seconds
+        setTimeout(() => setShowPopup(false), 3000);
       } catch (error) {
         setError("Error adding payment");
       }
@@ -87,7 +104,7 @@ const StudentPage = () => {
         resetLessonForm();
         setPopupMessage('Lesson added successfully!');
         setShowPopup(true);
-        setTimeout(() => setShowPopup(false), 3000); // Hide popup after 3 seconds
+        setTimeout(() => setShowPopup(false), 3000);
       } catch (error) {
         setError("Error adding lesson");
       }
@@ -140,7 +157,7 @@ const StudentPage = () => {
       resetPaymentForm();
       setPopupMessage('Payment updated successfully!');
       setShowPopup(true);
-      setTimeout(() => setShowPopup(false), 3000); // Hide popup after 3 seconds
+      setTimeout(() => setShowPopup(false), 3000);
     } catch (error) {
       setError("Error updating payment");
     }
@@ -156,7 +173,7 @@ const StudentPage = () => {
       resetLessonForm();
       setPopupMessage('Lesson updated successfully!');
       setShowPopup(true);
-      setTimeout(() => setShowPopup(false), 3000); // Hide popup after 3 seconds
+      setTimeout(() => setShowPopup(false), 3000);
     } catch (error) {
       setError("Error updating lesson");
     }
@@ -170,7 +187,7 @@ const StudentPage = () => {
       setProgress(newProgress);
       setPopupMessage('Progress updated successfully!');
       setShowPopup(true);
-      setTimeout(() => setShowPopup(false), 3000); // Hide popup after 3 seconds
+      setTimeout(() => setShowPopup(false), 3000);
     } catch (error) {
       setError("Error updating progress");
     }
@@ -221,7 +238,7 @@ const StudentPage = () => {
 
   const filteredTransactions = convertedTransactions
     .filter(transaction => transaction.category === student.name)
-    .sort((a, b) => new Date(b.date) - new Date(a.date)); // Sort by date in descending order
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
 
   const payments = filteredTransactions.filter(transaction => transaction.type === 'income');
   const lessons = filteredTransactions.filter(transaction => transaction.type === 'lesson');
@@ -264,158 +281,250 @@ const StudentPage = () => {
   const displayedTransactions = filter === 'All' ? filteredTransactions :
     filter === 'Payments' ? payments : lessons;
 
-  return (
-    <div className="student-page">
-      <StudentProfile studentId={id} />
+  const ToggleButton = ({ icon: Icon, label, isActive, onClick }) => (
+    <button
+      onClick={onClick}
+      className={`flex flex-col items-center justify-center p-4 rounded-lg shadow-md transition-all duration-300 ${
+        isActive ? 'bg-black text-white' : 'bg-black text-black hover:bg-gray-700'
+      }`}
+    >
+      <Icon size={24} className="mb-2" />
+      <span className="text-sm text-center">{label}</span>
+    </button>
+  );
 
-      <div className="chart-info-container">
-        <div className="student-info">
-          <h2></h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-            <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
-              <h3 className="text-lg font-semibold">Стоимость одного урока</h3>
-              <p className="text-2xl">{displayCurrency} {(convertToSelectedCurrency(student.price, student.currency)).toFixed(2)}</p>
-            </div>
-            <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
-              <h3 className="text-lg font-semibold">Оплаченные уроки</h3>
-              <p className="text-2xl">{totalPaidLessons.toFixed(2)}</p>
-            </div>
-            <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
-              <h3 className="text-lg font-semibold">Пройденные уроки</h3>
-              <p className="text-2xl">{completedLessons}</p>
-            </div>
-            <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
-              <h3 className="text-lg font-semibold">Осталось уроков</h3>
-              <p className="text-2xl">{positiveRemainingLessons}</p>
-            </div>
-            <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
-              <h3 className="text-lg font-semibold">Не оплаченные уроки</h3>
-              <p className="text-2xl">{debtLessons}</p>
+  return (
+    <div className="student-page p-6">
+      <div className="side-by-side-container mb-6">
+        <AdminProfileView studentId={id} />
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+        <ToggleButton
+          icon={BarChart2}
+          label="Chart & Info"
+          isActive={showChartInfo}
+          onClick={() => setShowChartInfo(!showChartInfo)}
+        />
+        <ToggleButton
+          icon={FileText}
+          label="Forms"
+          isActive={showForms}
+          onClick={() => setShowForms(!showForms)}
+        />
+        
+        <ToggleButton
+          icon={DollarSign}
+          label="Transactions"
+          isActive={showTransactions}
+          onClick={() => setShowTransactions(!showTransactions)}
+        />
+        <ToggleButton
+          icon={BarChart}
+          label="Progress Bar"
+          isActive={showProgressBar}
+          onClick={() => setShowProgressBar(!showProgressBar)}
+        />
+        <ToggleButton
+          icon={Table}
+          label="Table Page"
+          isActive={showTablePage}
+          onClick={() => setShowTablePage(!showTablePage)}
+        />
+        <ToggleButton
+          icon={MessageSquare}
+          label="Recommendations"
+          isActive={showRecommendations}
+          onClick={() => setShowRecommendations(!showRecommendations)}
+        />
+        <ToggleButton
+          icon={ThumbsUp}
+          label="Feedback"
+          isActive={showFeedback}
+          onClick={() => setShowFeedback(!showFeedback)}
+        />
+        <ToggleButton
+          icon={Calendar}
+          label="Weekly Schedule"
+          isActive={showWeeklySchedule}
+          onClick={() => setShowWeeklySchedule(!showWeeklySchedule)}
+        />
+      </div>
+
+      {showChartInfo && (
+        <div className="chart-info-container">
+          <div className="student-info">
+            <h2></h2>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+              <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
+                <h3 className="text-lg font-semibold">Стоимость одного урока</h3>
+                
+                <p className="text-lg">
+                  {student.currency} {student.price.toFixed(2)}
+                </p>
+              </div>
+              <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
+                <h3 className="text-lg font-semibold">Оплаченные уроки</h3>
+                <p className="text-2xl">{totalPaidLessons.toFixed(2)}</p>
+              </div>
+              <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
+                <h3 className="text-lg font-semibold">Пройденные уроки</h3>
+                <p className="text-2xl">{completedLessons}</p>
+              </div>
+              <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
+                <h3 className="text-lg font-semibold">Осталось уроков</h3>
+                <p className="text-2xl">{positiveRemainingLessons.toFixed(2)}</p>
+              </div>
+              <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
+                <h3 className="text-lg font-semibold">Не оплаченные уроки</h3>
+                <p className="text-2xl">{debtLessons.toFixed(2)}</p>
+              </div>
             </div>
           </div>
+          <div className="my-8">
+            <Bar data={barData} options={barOptions} />
+          </div>
         </div>
-        <div className="my-8">
-          <Bar data={barData} options={barOptions} />
-        </div>
-      </div>
+      )}
+
       {error && <p className="error-message">{error}</p>}
       {showPopup && <div className="popup">{popupMessage}</div>}
-      <div className="forms-container">
-        <form onSubmit={editingPaymentId ? handleUpdatePayment : handleAddPayment}>
-          <h3>{editingPaymentId ? 'Edit Payment' : 'Add Payment'}</h3>
-          <div>
-            <label htmlFor="amount">Amount:</label>
-            <input type="number" id="amount" value={amount} onChange={(e) => setAmount(e.target.value)} required />
-            <select id="currency" value={currency} onChange={(e) => setCurrency(e.target.value)} required>
+
+      {showForms && (
+        <div className="forms-container">
+          <form onSubmit={editingPaymentId ? handleUpdatePayment : handleAddPayment}>
+            <h3>{editingPaymentId ? 'Edit Payment' : 'Add Payment'}</h3>
+            <div>
+              <label htmlFor="amount">Amount:</label>
+              <input type="number" id="amount" value={amount} onChange={(e) => setAmount(e.target.value)} required />
+              <select id="currency" value={currency} onChange={(e) => setCurrency(e.target.value)} required>
+                {currencies.map(curr => (
+                  <option key={curr} value={curr}>{curr}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="date">Date:</label>
+              <input type="date" id="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+            </div>
+            <button type="submit" className="add-payment-button">{editingPaymentId ? 'Update Payment' : 'Add Payment'}</button>
+            {editingPaymentId && <button type="button" onClick={resetPaymentForm} className="cancel-button">Cancel</button>}
+          </form>
+          <form onSubmit={editingLessonId ? handleUpdateLesson : handleAddLesson}>
+            <h3>{editingLessonId ? 'Edit Lesson' : 'Add Lesson'}</h3>
+            <div>
+              <label htmlFor="lessonDescription">Lesson Description:</label>
+              <input type="text" id="lessonDescription" value={lessonDescription} onChange={(e) => setLessonDescription(e.target.value)} />
+            </div>
+            <div>
+              <label htmlFor="lessonDate">Lesson Date:</label>
+              <input type="date" id="lessonDate" value={lessonDate} onChange={(e) => setLessonDate(e.target.value)} required />
+            </div>
+            <div>
+              <label htmlFor="selectedSubject">Subject:</label>
+              <select id="selectedSubject" value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)} required>
+                <option value="English">English</option>
+                <option value="IT">IT</option>
+              </select>
+            </div>
+            <button type="submit" className="add-lesson-button">{editingLessonId ? 'Update Lesson' : 'Add Lesson'}</button>
+            {editingLessonId && <button type="button" onClick={resetLessonForm} className="cancel-button">Cancel</button>}
+          </form>
+        </div>
+      )}
+
+      {showDropdowns && (
+        <div>
+          <div className="dropdown">
+            <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+              <option value="All">All Transactions</option>
+              <option value="Payments">Payments</option>
+              <option value="Lessons">Completed Lessons</option>
+            </select>
+          </div>
+          <div className="dropdown">
+            <select value={displayCurrency} onChange={(e) => setDisplayCurrency(e.target.value)}>
               {currencies.map(curr => (
                 <option key={curr} value={curr}>{curr}</option>
               ))}
             </select>
           </div>
-          <div>
-            <label htmlFor="date">Date:</label>
-            <input type="date" id="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+        </div>
+      )}
+
+      {showTransactions && (
+        <div className="transactions-container">
+          <div className="transactions-list">
+            <h3>Payments</h3>
+            <button onClick={() => setShowPayments(!showPayments)}>
+              {showPayments ? 'Hide Payments' : 'Show Payments'}
+            </button>
+            {showPayments && (
+              <ul>
+                {payments.map(transaction => (
+                  <li key={transaction.id} className="transaction-item">
+                    Payment of {transaction.amount.toFixed(2)} {transaction.currency} on {transaction.date}
+                    <div className="button-group">
+                      <button onClick={() => handleEditPayment(transaction.id)}>Edit</button>
+                      <button onClick={() => handleRemoveTransaction(transaction.id)} className="remove-button">Remove</button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
-          <button type="submit" className="add-payment-button">{editingPaymentId ? 'Update Payment' : 'Add Payment'}</button>
-          {editingPaymentId && <button type="button" onClick={resetPaymentForm} className="cancel-button">Cancel</button>}
-        </form>
-        <form onSubmit={editingLessonId ? handleUpdateLesson : handleAddLesson}>
-          <h3>{editingLessonId ? 'Edit Lesson' : 'Add Lesson'}</h3>
-          <div>
-            <label htmlFor="lessonDescription">Lesson Description:</label>
-            <input type="text" id="lessonDescription" value={lessonDescription} onChange={(e) => setLessonDescription(e.target.value)} />
-          </div>
-          <div>
-            <label htmlFor="lessonDate">Lesson Date:</label>
-            <input type="date" id="lessonDate" value={lessonDate} onChange={(e) => setLessonDate(e.target.value)} required />
-          </div>
-          <div>
-            <label htmlFor="selectedSubject">Subject:</label>
-            <select id="selectedSubject" value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)} required>
-              <option value="English">English</option>
-              <option value="IT">IT</option>
-            </select>
-          </div>
-          <button type="submit" className="add-lesson-button">{editingLessonId ? 'Update Lesson' : 'Add Lesson'}</button>
-          {editingLessonId && <button type="button" onClick={resetLessonForm} className="cancel-button">Cancel</button>}
-        </form>
-      </div>
-      <div className="dropdown">
-        <select value={filter} onChange={(e) => setFilter(e.target.value)}>
-          <option value="All">All Transactions</option>
-          <option value="Payments">Payments</option>
-          <option value="Lessons">Completed Lessons</option>
-        </select>
-      </div>
-      <div className="dropdown">
-        <select value={displayCurrency} onChange={(e) => setDisplayCurrency(e.target.value)}>
-          {currencies.map(curr => (
-            <option key={curr} value={curr}>{curr}</option>
-          ))}
-        </select>
-      </div>
-      <div className="transactions-container">
-        <div className="transactions-list">
-          <h3>Payments</h3>
-          <ul>
-            {payments.map(transaction => (
-              <li key={transaction.id} className="transaction-item">
-                Payment of {transaction.amount.toFixed(2)} {transaction.currency} on {transaction.date}
-                <div className="button-group">
-                  <button onClick={() => handleEditPayment(transaction.id)}>Edit</button>
-                  <button onClick={() => handleRemoveTransaction(transaction.id)} className="remove-button">Remove</button>
+          <div className="transactions-list completed-lessons">
+            <h3>Completed Lessons</h3>
+            <button onClick={() => setShowLessons(!showLessons)}>
+              {showLessons ? 'Hide Lessons' : 'Show Lessons'}
+            </button>
+            {showLessons && (
+              <>
+                <div className="subject-list">
+                  <h4>English</h4>
+                  <ul>
+                    {englishLessons.map(transaction => (
+                      <li key={transaction.id} className="transaction-item">
+                        {transaction.description} on {transaction.date}
+                        <div className="button-group">
+                          <button onClick={() => handleEditLesson(transaction.id)}>Edit</button>
+                          <button onClick={() => handleRemoveTransaction(transaction.id)} className="remove-button">Remove</button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="transactions-list completed-lessons">
-          <h3>Completed Lessons</h3>
-          <div className="subject-list">
-            <h4>English</h4>
-            <ul>
-              {englishLessons.map(transaction => (
-                <li key={transaction.id} className="transaction-item">
-                  {transaction.description} on {transaction.date}
-                  <div className="button-group">
-                    <button onClick={() => handleEditLesson(transaction.id)}>Edit</button>
-                    <button onClick={() => handleRemoveTransaction(transaction.id)} className="remove-button">Remove</button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="subject-list">
-            <h4>IT</h4>
-            <ul>
-              {itLessons.map(transaction => (
-                <li key={transaction.id} className="transaction-item">
-                  {transaction.description} on {transaction.date}
-                  <div className="button-group">
-                    <button onClick={() => handleEditLesson(transaction.id)}>Edit</button>
-                    <button onClick={() => handleRemoveTransaction(transaction.id)} className="remove-button">Remove</button>
-                  </div>
-                </li>
-              ))}
-            </ul>
+                <div className="subject-list">
+                  <h4>IT</h4>
+                  <ul>
+                    {itLessons.map(transaction => (
+                      <li key={transaction.id} className="transaction-item">
+                        {transaction.description} on {transaction.date}
+                        <div className="button-group">
+                          <button onClick={() => handleEditLesson(transaction.id)}>Edit</button>
+                          <button onClick={() => handleRemoveTransaction(transaction.id)} className="remove-button">Remove</button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </>
+            )}
           </div>
         </div>
-      </div>
-      <TablePage studentId={id} />
-      <StudentProgressBar  studentId={id} />
-      <div className="side-by-side-container">
-        <TeacherRecommendations studentId={id} />
-        <StudentFeedback studentId={id} />
-      </div>
-      <SetPassword studentId={id} />
+      )}
 
-      <Visibility studentId={id} />
-      <StudentWeeklySchedule studentId={id} />
+      {showProgressBar && <StudentProgressBar studentId={id} />}
 
+      {showTablePage && <TablePage readOnly={false} studentId={id} />}
+
+      {showRecommendations && <TeacherRecommendations studentId={id} />}
+
+      {showFeedback && <StudentFeedback studentId={id} />}
+
+      {showWeeklySchedule && <StudentWeeklySchedule studentId={id} />}
     </div>
-    
-    
-   );
-}
+  );
+};
 
 export default StudentPage;

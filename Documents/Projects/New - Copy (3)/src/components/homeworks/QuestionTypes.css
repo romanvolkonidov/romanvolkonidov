@@ -1,0 +1,8 @@
+.b {
+  color: black!important;
+  background-color: white;
+}
+.b:hover {
+  color: white!important;
+  background-color: black;
+}
