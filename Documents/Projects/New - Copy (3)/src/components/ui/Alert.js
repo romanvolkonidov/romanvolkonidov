@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Alert = ({ children, type = 'info' }) => {
+export const Alert = ({ children, type = 'info' }) => {
   const alertTypeClasses = {
     info: 'bg-blue-100 text-blue-700',
     success: 'bg-green-100 text-green-700',

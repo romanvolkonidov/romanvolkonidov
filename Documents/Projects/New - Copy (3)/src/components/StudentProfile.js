@@ -11,7 +11,8 @@ import SetPassword from './SetPassword';
 import Visibility from './Visibility';
 import { VisibilityContext } from '../context/VisibilityContext';
 import { GlobalStateContext } from '../context/GlobalStateContext';
-
+import '../styles/StudentProfile.css';
+import NotificationManager from './NotificationManager';
 const DEFAULT_PROFILE_PIC = '/icons/profile.png';
 
 const StudentProfile = ({ studentId, showSetPassword = true, showVisibility = false, isInferiorView = false }) => {
@@ -23,7 +24,8 @@ const StudentProfile = ({ studentId, showSetPassword = true, showVisibility = fa
   const [image, setImage] = useState(DEFAULT_PROFILE_PIC);
   const [hasCustomImage, setHasCustomImage] = useState(false);
   const [imageError, setImageError] = useState(false);
-  
+  const [selectedStudentId, setSelectedStudentId] = useState(null);
+  const isAdminView = location.pathname.startsWith('/student/');
   const { isFinancialSectionVisible } = useContext(VisibilityContext);
   const { students, setStudents } = useContext(GlobalStateContext);
 
@@ -203,13 +205,24 @@ const StudentProfile = ({ studentId, showSetPassword = true, showVisibility = fa
             )}
           </div>
         </div>
-        
-        {showSetPassword && <SetPassword studentId={studentId} allowEditing={!isInferiorView} />}
-        
+
+        <div className="settings-container">
+  {showSetPassword && <SetPassword studentId={studentId} allowEditing={!isInferiorView} />}
+  {studentId && (
+        <NotificationManager 
+          studentId={studentId} 
+          isAdminView={isAdminView} 
+        />
+      )}  <div className="settings-container">
+        </div></div>
+
+
         {showVisibility && !isInferiorView && <Visibility />}
-        
+        <div className="mt-6">
+</div>
         {isFinancialSectionVisible && (
           <div className="mt-6">
+            {/* Add financial section content here */}
           </div>
         )}
       </CardContent>

@@ -1,6 +1,19 @@
 {
   "short_name": "RV",
   "name": "RV",
+  "screenshots": [
+  {
+    "src": "screenshot-wide.png",
+    "sizes": "1280x720",
+    "type": "image/png",
+    "form_factor": "wide"
+  },
+  {
+    "src": "screenshot-mobile.png",
+    "sizes": "750x1334",
+    "type": "image/png"
+  }
+],
   "icons": [
     {
       "src": "icons/icon-192x192.png",
@@ -23,8 +36,9 @@
       "type": "image/png"
     }
   ],
-  "start_url": ".",
+  "start_url": "/login",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000"
+  
 }

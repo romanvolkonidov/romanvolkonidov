@@ -1,0 +1,11 @@
+.settings-container {
+  display: flex;
+  justify-content: space-between; /* Adds space between the two components */
+  align-items: flex-start; /* Aligns them at the top */
+  gap: 20px; /* Adds spacing between components */
+}
+
+.settings-container > * {
+  flex: 1; /* Ensures both components take up equal width */
+  max-width: 48%; /* Optionally limit the width */
+}

@@ -1,8 +1,11 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useContext } from 'react';
 import { collection, getDocs, addDoc, updateDoc, doc, getDoc, deleteDoc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 const GlobalStateContext = createContext();
+
+export const useGlobalState = () => useContext(GlobalStateContext);
+
 
 const GlobalStateProvider = ({ children }) => {
   const [transactions, setTransactions] = useState([]);

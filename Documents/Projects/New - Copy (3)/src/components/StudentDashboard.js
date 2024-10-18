@@ -12,6 +12,9 @@ import StudentProfile from './StudentProfile';
 import StudentFeedback from '@/components/StudentFeedback';
 import StudentWeeklySchedule from '@/components/StudentWeeklySchedule';
 import WebApp from '@twa-dev/sdk';
+import { auth } from '../firebase';
+import { onMessageListener } from '../firebase';
+import NotificationManager from './NotificationManager';
 
 const ProfileView = ({ studentId }) => {
   return <StudentProfile studentId={studentId} isInferiorView={true} />;
@@ -27,6 +30,10 @@ const StudentDashboard = () => {
   const [progress, setProgress] = useState(0);
   const [showFinancialSection, setShowFinancialSection] = useState(false);
   const navigate = useNavigate();
+  const [studentId, setStudentId] = useState(null);
+
+
+  
 
   useEffect(() => {
     WebApp.ready();
@@ -53,6 +60,36 @@ const StudentDashboard = () => {
       }
     }
   }, [id, students]);
+  
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setStudentId(user.uid);
+      } else {
+        setStudentId(null);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const handleMessage = (payload) => {
+      console.log('Received foreground message:', payload);
+      // Handle the message here, e.g., show a notification or update UI
+    };
+
+    const messageUnsubscribe = onMessageListener(handleMessage);
+
+    return () => {
+      if (typeof messageUnsubscribe === 'function') {
+        messageUnsubscribe();
+      }
+    };
+  }, []);
+
+
+
 
   const handleButtonClick = () => {
     WebApp.showPopup({
@@ -121,21 +158,23 @@ const StudentDashboard = () => {
   return (
     
     <div className="student-page">
-      
+
       
 
       <div className="side-by-side-container">
   <ProfileView studentId={id} />
 </div>
-  
+
       {isFinancialSectionVisible && (
         <div>
+
           <button onClick={() => setShowFinancialSection(!showFinancialSection)}>
             Баланс
           </button>
           {showFinancialSection && (
             <div>
               <div className="chart-info-container">
+                <div class='onesignal-customlink-container'></div>
                 <div className="student-info-bar-container">
                   <div className="student-info">
                     <h2></h2>
@@ -176,14 +215,16 @@ const StudentDashboard = () => {
       <TablePage studentId={id} readOnly={true} className="table-left" />
       <div className="side-by-side-container">
       <StudentWeeklySchedule viewOnly={true} studentId={id} />
-
-        <TeacherRecommendations isViewOnly={true} studentId={id} />
+    
+               <TeacherRecommendations isViewOnly={true} studentId={id} />
         <StudentFeedback studentId={id} />
-
+        
       
       </div>
+      
 
     </div>
+    
     
   );
 }

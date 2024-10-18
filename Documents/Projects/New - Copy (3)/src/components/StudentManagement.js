@@ -34,9 +34,20 @@ const StudentManagement = () => {
             item.currency = 'USD';
             updateDoc(doc(db, 'students', item.id), { currency: 'USD' });
           }
+          // Ensure the item has a name property
+          if (!item.name) {
+            item.name = 'Unnamed Student';
+          }
           return item;
         });
-        setStudents(updatedItems.sort((a, b) => a.name.localeCompare(b.name)));
+        // Sort the array, handling potential undefined names
+        const sortedItems = updatedItems.sort((a, b) => {
+          if (!a.name && !b.name) return 0;
+          if (!a.name) return 1;
+          if (!b.name) return -1;
+          return a.name.localeCompare(b.name);
+        });
+        setStudents(sortedItems);
       } catch (error) {
         setError("Error fetching student data");
         console.error("Error fetching Firestore data: ", error.message, error.stack);
@@ -154,7 +165,7 @@ const StudentManagement = () => {
   };
 
   const convertToSelectedCurrency = (amount, currency) => {
-    if (selectedCurrency === 'respective') {
+    if (selectedCurrency === 'respective' || !amount) {
       return amount;
     }
     if (!exchangeRates[currency]) {
@@ -169,9 +180,10 @@ const StudentManagement = () => {
     return amount * rate;
   };
 
-  const filteredStudents = students.filter(student =>
-    student.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredStudents = students.filter(student => {
+    if (!student || !student.name) return false;
+    return student.name.toLowerCase().includes((searchTerm || '').toLowerCase());
+  });
 
   const handleDeleteClick = (student) => {
     setStudentToDelete(student);
@@ -305,8 +317,7 @@ const StudentManagement = () => {
                 {student.name}
               </Link>
               <p className="text-sm text-black">
-                Subjects: {Object.keys(student.subjects).filter(subject => student.subjects[subject]).join(', ')}
-              </p>
+              Subjects: {Object.keys(student.subjects || {}).filter(subject => student.subjects[subject]).join(', ')}              </p>
               <p className="text-sm text-black">
                 Price: {selectedCurrency === 'respective' ? student.price : convertToSelectedCurrency(student.price, student.currency).toFixed(2)} {selectedCurrency === 'respective' ? student.currency : selectedCurrency}
               </p>

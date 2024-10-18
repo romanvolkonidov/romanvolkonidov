@@ -12,6 +12,7 @@ import TeacherRecommendations from '@/components/TeacherRecommendations';
 import StudentProfile from './StudentProfile';
 import StudentFeedback from '@/components/StudentFeedback';
 import StudentWeeklySchedule from '@/components/StudentWeeklySchedule';
+
 import { 
   BarChart2, 
   FileText, 
@@ -23,6 +24,7 @@ import {
   ThumbsUp, 
   Calendar 
 } from 'lucide-react';
+
 
 const AdminProfileView = ({ studentId }) => {
   return <StudentProfile studentId={studentId} showSetPassword={true} showVisibility={true} />;
@@ -297,6 +299,7 @@ const StudentPage = () => {
     <div className="student-page p-6">
       <div className="side-by-side-container mb-6">
         <AdminProfileView studentId={id} />
+
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
@@ -353,6 +356,7 @@ const StudentPage = () => {
 
       {showChartInfo && (
         <div className="chart-info-container">
+
           <div className="student-info">
             <h2></h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
@@ -511,6 +515,7 @@ const StudentPage = () => {
               </>
             )}
           </div>
+
         </div>
       )}
 

@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { X, ChevronRight, CheckCircle, AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import React, { useState, useEffect } from 'react';
+import { AlertCircle, CheckCircle, HelpCircle, ChevronRight, RotateCcw, X } from 'lucide-react';
 import Alert, { AlertDescription, AlertTitle } from '@/components/ui/Alert';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Progress } from '@/components/ui/Progress';
+import { Button } from '@/components/ui/Button';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
+import Tooltip from '@/components/ui/Tooltip';
 import confetti from 'canvas-confetti';
 import { 
   MultipleChoice, 
@@ -17,11 +19,12 @@ import {
   AudioQuestion, 
   SentenceCompletion, 
   ErrorCorrection,
-  VideoQuestion,
-  MediaContent
+  VideoQuestion  
 } from './QuestionTypes';
+// Assume questions is now a flat array of question objects
+import  questions  from './ReviewWhQ';
 
-const Homework = ({ studentId, homeworkData, questions, onClose, onComplete }) => {
+const ReviewWh = ({ studentId, onClose, onComplete }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState(() => new Array(questions.length).fill(''));
   const [score, setScore] = useState(null);
@@ -31,12 +34,28 @@ const Homework = ({ studentId, homeworkData, questions, onClose, onComplete }) =
   const [showHint, setShowHint] = useState({});
   const [showExplanation, setShowExplanation] = useState({});
 
-  const quizName = useMemo(() => {
-    if (questions.length > 0 && questions[0].category) {
-      return questions[0].category;
+  const CustomProgressBar = ({ value, max }) => {
+    const percentage = (value / max) * 100;
+    return (
+      <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+        <div 
+          className="bg-blue-600 h-2.5 rounded-full" 
+          style={{ width: `${percentage}%` }}
+        />
+      </div>
+    );
+  };
+  
+  const renderAnswer = (answer) => {
+    if (typeof answer === 'object' && answer !== null) {
+      if (Array.isArray(answer)) {
+        return answer.join(', ');
+      } else {
+        return Object.entries(answer).map(([key, value]) => `${key}: ${value}`).join(', ');
+      }
     }
-    return 'Домашняя работа';
-  }, [questions]);
+    return answer || 'No answer provided';
+  };
 
   useEffect(() => {
     const fetchStudentData = async () => {
@@ -75,8 +94,6 @@ const Homework = ({ studentId, homeworkData, questions, onClose, onComplete }) =
     });
   };
 
-
-
   const renderQuestion = (question, index) => {
     const value = answers[index];
     const handleChange = (newValue) => handleInputChange(newValue, index);
@@ -85,47 +102,37 @@ const Homework = ({ studentId, homeworkData, questions, onClose, onComplete }) =
       question: question.question,
       onChange: handleChange,
       value: value,
-      pictureUrl: question.pictureUrl,
-      audioUrl: question.audioUrl,
-      videoUrl: question.videoUrl,
-      className: "text-black text-sm"
-    };
-  
-    return renderQuestionContent(question, commonProps);
-  };
-  
-  const renderQuestionContent = (question, commonProps) => {
-    const mediaProps = {
-      pictureUrl: question.pictureUrl,
-      audioUrl: question.audioUrl,
-      videoUrl: question.videoUrl,
+      className: "text-black text-sm" // Reduced text size for better fit
     };
   
     switch (question.type) {
       case 'multipleChoice':
-        return <MultipleChoice {...commonProps} {...mediaProps} options={question.options} />;
+        return <MultipleChoice {...commonProps} options={question.options} />;
       case 'fillInTheBlank':
-        return <FillInTheBlank {...commonProps} {...mediaProps} />;
+        return <FillInTheBlank {...commonProps} placeholder="Type your answer here..." />;
       case 'trueFalse':
-        return <TrueFalse {...commonProps} {...mediaProps} />;
+        return <TrueFalse {...commonProps} />;
       case 'ordering':
-        return <Ordering {...commonProps} {...mediaProps} words={question.words} />;
+        return <Ordering {...commonProps} words={question.words} />;
       case 'matching':
-        return <Matching {...commonProps} {...mediaProps} pairs={question.pairs} />;
+        return <Matching {...commonProps} pairs={question.pairs} />;
       case 'imageQuestion':
-        return <ImageQuestion {...commonProps} {...mediaProps} />;
+        return <ImageQuestion {...commonProps} imageUrl={question.imageUrl} />;
       case 'dropdown':
-        return <Dropdown {...commonProps} {...mediaProps} options={question.options} />;
+        return <Dropdown {...commonProps} options={question.options} />;
+      case 'audioQuestion':
+        return <AudioQuestion {...commonProps} audioUrl={question.audioUrl} />;
       case 'sentenceCompletion':
-        return <SentenceCompletion {...commonProps} {...mediaProps} options={question.options} />;
-      case 'errorCorrection':
-        return <ErrorCorrection {...commonProps} {...mediaProps} />;
+        return <SentenceCompletion {...commonProps} options={question.options} />;
       case 'videoQuestion':
-        return <VideoQuestion {...commonProps} {...mediaProps} />;
+        return <VideoQuestion {...commonProps} videoUrl={question.videoUrl} />;
+      case 'errorCorrection':
+        return <ErrorCorrection {...commonProps} />;
       default:
-        return <MediaContent {...commonProps} {...mediaProps} />;
+        return null;
     }
   };
+
 
   const checkAnswers = async () => {
     try {
@@ -141,19 +148,23 @@ const Homework = ({ studentId, homeworkData, questions, onClose, onComplete }) =
       setShowFeedback(true);
       setIsSubmitted(true);
   
+      // Filter out any undefined values from the answers object
       const filteredAnswers = Object.fromEntries(
         Object.entries(answers).filter(([_, value]) => value !== undefined)
       );
   
+      // Update the database
       await updateDoc(doc(db, 'students', studentId), { 
-        [`homeworkScores.${quizName}`]: newScore,
+        'homeworkScores.ReviewWh': newScore,
         answers: filteredAnswers
       });
   
+      // Call the onComplete callback
       if (typeof onComplete === 'function') {
-        onComplete(newScore, quizName);
+        onComplete(newScore);
       }
   
+      // Trigger confetti for high scores
       if (newScore > 80) {
         confetti({
           particleCount: 100,
@@ -163,8 +174,11 @@ const Homework = ({ studentId, homeworkData, questions, onClose, onComplete }) =
       }
     } catch (error) {
       console.error('Error in checkAnswers:', error);
+      // Handle the error appropriately (e.g., show an error message to the user)
     }
   };
+
+    
 
   const nextQuestion = () => {
     if (currentQuestionIndex < questions.length - 1) {
@@ -208,16 +222,15 @@ const Homework = ({ studentId, homeworkData, questions, onClose, onComplete }) =
       case 'audioQuestion':
       case 'videoQuestion':
       case 'errorCorrection':
-      case 'imageQuestion':
         return userAnswer === correctAnswer;
-      case 'ordering':
-        if (typeof userAnswer === 'string') {
-          userAnswer = userAnswer.split(',').map(item => item.trim().toLowerCase());
-        }
-        if (typeof correctAnswer === 'string') {
-          correctAnswer = correctAnswer.split(',').map(item => item.trim().toLowerCase());
-        }
-        return JSON.stringify(userAnswer) === JSON.stringify(correctAnswer);
+        case 'ordering':
+          if (typeof userAnswer === 'string') {
+            userAnswer = userAnswer.split(',').map(item => item.trim().toLowerCase());
+          }
+          if (typeof correctAnswer === 'string') {
+            correctAnswer = correctAnswer.split(',').map(item => item.trim().toLowerCase());
+          }
+          return JSON.stringify(userAnswer) === JSON.stringify(correctAnswer);
       case 'matching':
         return JSON.stringify(userAnswer) === JSON.stringify(correctAnswer);
       case 'sentenceCompletion':
@@ -229,6 +242,8 @@ const Homework = ({ studentId, homeworkData, questions, onClose, onComplete }) =
     }
   };
 
+
+
   const retakeQuiz = async () => {
     setAnswers(new Array(questions.length).fill(''));
     setScore(null);
@@ -238,6 +253,17 @@ const Homework = ({ studentId, homeworkData, questions, onClose, onComplete }) =
     setShowHint({});
     setShowExplanation({});
     await updateDoc(doc(db, 'students', studentId), { answers: [], score: null });
+  };
+
+  const handleQuizComplete = (newScore) => {
+    // Update the state that holds the scores
+    setScores(prevScores => ({
+      ...prevScores,
+      [studentId]: {
+        ...prevScores[studentId],
+        ReviewWh: newScore
+      }
+    }));
   };
 
   const toggleHint = (index) => {
@@ -254,29 +280,6 @@ const Homework = ({ studentId, homeworkData, questions, onClose, onComplete }) =
     }));
   };
 
-  const renderAnswer = (answer) => {
-    if (typeof answer === 'object' && answer !== null) {
-      if (Array.isArray(answer)) {
-        return answer.join(', ');
-      } else {
-        return Object.entries(answer).map(([key, value]) => `${key}: ${value}`).join(', ');
-      }
-    }
-    return answer || 'No answer provided';
-  };
-
-  const CustomProgressBar = ({ value, max }) => {
-    const percentage = (value / max) * 100;
-    return (
-      <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
-        <div 
-          className="bg-blue-600 h-2.5 rounded-full" 
-          style={{ width: `${percentage}%` }}
-        />
-      </div>
-    );
-  };
-
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -288,14 +291,14 @@ const Homework = ({ studentId, homeworkData, questions, onClose, onComplete }) =
   return (
     <div className="relative w-full h-[600px] bg-white rounded-xl shadow-lg flex flex-col">
       <Button
-        onClick={onClose}
-        className="bg-black hover:bg-gray-800 text-white px-4 py-2"
-      >
-        <X className="mr-2 h-4 w-4" />
-        Close
-      </Button>
+  onClick={onClose}
+  className="bg-black hover:bg-gray-800 text-white px-4 py-2"
+>
+  <X className="mr-2 h-4 w-4" />
+  Close
+</Button>
       <div className="p-6 flex-grow overflow-y-auto pb-20">
-        <h1 className="text-3xl font-bold mb-4 text-center text-black">{quizName}</h1>
+        <h1 className="text-3xl font-bold mb-4 text-center text-black">Review Wh-Questions Quiz</h1>
   
         {!isSubmitted ? (
           <>
@@ -321,6 +324,7 @@ const Homework = ({ studentId, homeworkData, questions, onClose, onComplete }) =
               </CardContent>
             </Card>
           </>
+        
         ) : (
           <div className="space-y-6">
             <Alert variant={score > 70 ? "success" : "warning"}>
@@ -359,13 +363,13 @@ const Homework = ({ studentId, homeworkData, questions, onClose, onComplete }) =
                           <AlertCircle className="h-5 w-5 mr-2" />
                           Incorrect. The correct answer is: {renderAnswer(q.correctAnswer)}
                         </p>
-                      </div>
-                    )}
-                    {q.explanation && (
-                      <div className="mt-2 p-3 bg-blue-50 rounded-md">
-                        <p className="text-blue-800">
-                          <strong>Explanation:</strong> {q.explanation}
-                        </p>
+                        {q.explanation && (
+                          <div className="mt-2 p-3 bg-blue-50 rounded-md">
+                            <p className="text-blue-800">
+                              <strong>Explanation:</strong> {q.explanation}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     )}
                   </CardContent>
@@ -394,16 +398,20 @@ const Homework = ({ studentId, homeworkData, questions, onClose, onComplete }) =
             </Button>
           </>
         ) : (
-          <Button
-            onClick={retakeQuiz}
-            className="bg-black hover:bg-gray-800 text-white px-4 py-2"
-          >
-            Retake Quiz
-          </Button>
+          <>
+          
+            <Button
+              onClick={onClose}
+              className="bg-black hover:bg-gray-800 text-white px-4 py-2"
+            >
+              <X className="mr-2 h-4 w-4" />
+              Close
+            </Button>
+          </>
         )}
       </div>
     </div>
   );
 }
 
-export default Homework;
+export default ReviewWh;

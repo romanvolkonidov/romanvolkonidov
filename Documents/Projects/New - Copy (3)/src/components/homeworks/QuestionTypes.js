@@ -54,6 +54,17 @@ const getYouTubeEmbedUrl = (url) => {
   return null;
 };
 
+export const MediaWrapper = ({ pictureUrl, audioUrl, videoUrl }) => {
+  return (
+    <div className="media-wrapper mb-4">
+      {pictureUrl && (
+        <img src={pictureUrl} alt="Question visual" className="max-w-full h-auto mb-2 rounded-lg" />
+      )}
+      {audioUrl && <MediaContent audioUrl={audioUrl} />}
+      {videoUrl && <MediaContent videoUrl={videoUrl} />}
+    </div>
+  );
+};
 // Media component to be used in all question types
 export const MediaContent = ({ pictureUrl, audioUrl, videoUrl, question, onChange, value }) => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -198,6 +209,8 @@ export const MediaContent = ({ pictureUrl, audioUrl, videoUrl, question, onChang
 export const MultipleChoice = ({ question, options = [], onChange, value, pictureUrl, audioUrl, videoUrl }) => {
   return (
     <div className={commonStyles.container}>
+            <MediaWrapper pictureUrl={pictureUrl} audioUrl={audioUrl} videoUrl={videoUrl} />
+
       <fieldset>
         <legend className={commonStyles.question}>{question}</legend>
         {options.length === 0 ? (
@@ -244,6 +257,11 @@ export const FillInTheBlank = ({ question, onChange, value, error, pictureUrl, a
 
   return (
     <div className={commonStyles.container}>
+      <MediaWrapper
+        pictureUrl={pictureUrl}
+        audioUrl={audioUrl}
+        videoUrl={videoUrl}
+      />
       <p className={commonStyles.question}>{question}</p>
       <div className="space-y-3">
         <label htmlFor={inputId} className="block text-base font-medium text-gray-700">
@@ -285,6 +303,8 @@ export const FillInTheBlank = ({ question, onChange, value, error, pictureUrl, a
 export const TrueFalse = ({ question, onChange, value, pictureUrl, audioUrl, videoUrl }) => {
   return (
     <div className={commonStyles.container}>
+            <MediaWrapper pictureUrl={pictureUrl} audioUrl={audioUrl} videoUrl={videoUrl} />
+
       <p className={commonStyles.question}>{question}</p>
       <RadioGroup 
         onValueChange={onChange} 
@@ -418,6 +438,8 @@ export const Ordering = ({ question, words, onChange, pictureUrl, audioUrl, vide
 
   return (
     <div className={commonStyles.container}>
+            <MediaWrapper pictureUrl={pictureUrl} audioUrl={audioUrl} videoUrl={videoUrl} />
+
       <p className={commonStyles.question}>{question}</p>
       <DndContext
         sensors={sensors}
@@ -463,6 +485,8 @@ export const Matching = ({ question, pairs = [], onChange, value, pictureUrl, au
 
   return (
     <div className={commonStyles.container}>
+            <MediaWrapper pictureUrl={pictureUrl} audioUrl={audioUrl} videoUrl={videoUrl} />
+
       <p className={commonStyles.question}>{question}</p>
       {pairs.length > 0 ? (
         pairs.map(({ question: q, function: func }, index) => (
@@ -520,6 +544,8 @@ export const ImageQuestion = ({ question, pictureUrl, audioUrl, videoUrl, onChan
 
 export const Dropdown = ({ question, options, onChange, value, pictureUrl, audioUrl, videoUrl }) => (
   <div className={commonStyles.container}>
+          <MediaWrapper pictureUrl={pictureUrl} audioUrl={audioUrl} videoUrl={videoUrl} />
+
     <p className={commonStyles.question}>{question}</p>
     <Select onValueChange={onChange} value={value}>
       <SelectTrigger className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-150 b">
@@ -537,174 +563,7 @@ export const Dropdown = ({ question, options, onChange, value, pictureUrl, audio
 );
 
 
-export const AudioQuestion = ({ question, pictureUrl, audioUrl, videoUrl, onChange, value }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [error, setError] = useState(null);
-  const [duration, setDuration] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [volume, setVolume] = useState(1);
-  const [isLoading, setIsLoading] = useState(true);
-  const [audioInfo, setAudioInfo] = useState(null);
-  const audioRef = useRef(null);
 
-  useEffect(() => {
-    const audio = audioRef.current;
-    
-    const setAudioData = () => {
-      setDuration(audio.duration);
-      setIsLoading(false);
-      const audioDetails = {
-        duration: audio.duration,
-        type: audio.currentSrc.split('.').pop(), // Get file extension
-      };
-      setAudioInfo(audioDetails);
-      console.log("Audio Info:", audioDetails);
-    };
-
-    const updateTime = () => setCurrentTime(audio.currentTime);
-    const handleEnded = () => setIsPlaying(false);
-
-    audio.addEventListener('loadedmetadata', setAudioData);
-    audio.addEventListener('timeupdate', updateTime);
-    audio.addEventListener('ended', handleEnded);
-
-    audio.src = audioUrl;
-    audio.load();
-
-    return () => {
-      audio.removeEventListener('loadedmetadata', setAudioData);
-      audio.removeEventListener('timeupdate', updateTime);
-      audio.removeEventListener('ended', handleEnded);
-    };
-  }, [audioUrl]);
-
-  const togglePlayPause = () => {
-    const audio = audioRef.current;
-    if (audio.paused) {
-      audio.play().catch(handleAudioError);
-    } else {
-      audio.pause();
-    }
-    setIsPlaying(!audio.paused);
-  };
-
-  const handleVolumeChange = (newVolume) => {
-    const volumeValue = newVolume[0];
-    setVolume(volumeValue);
-    audioRef.current.volume = volumeValue;
-  };
-
-  const handleProgressChange = (newTime) => {
-    const timeValue = newTime[0];
-    audioRef.current.currentTime = timeValue;
-    setCurrentTime(timeValue);
-  };
-
-  const handleAudioError = (e) => {
-    console.error("Audio error:", e);
-    let errorMessage = "There was an error loading or playing the audio.";
-    if (e.type === 'error') {
-      const audio = audioRef.current;
-      switch (audio.error.code) {
-        case 1: errorMessage += " The audio fetching process aborted."; break;
-        case 2: errorMessage += " Network error occurred. The audio file might be inaccessible."; break;
-        case 3: errorMessage += " Audio decoding failed. The file might be corrupted or in an unsupported format."; break;
-        case 4: errorMessage += " Audio format not supported by your browser."; break;
-        default: errorMessage += " Unknown error occurred.";
-      }
-    }
-    setError(errorMessage);
-    setIsLoading(false);
-  };
-
-  const formatTime = (time) => {
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
-
-  const retryLoading = () => {
-    setIsLoading(true);
-    setError(null);
-    const audio = audioRef.current;
-    audio.load(); // Reload the audio
-  };
-
-  return (
-    <div className="space-y-4 p-4 bg-white rounded-lg shadow-md">
-      <h3 className="text-lg font-semibold">{question}</h3>
-      
-      <div className="space-y-2">
-        <div className="flex items-center space-x-2">
-          <Button onClick={togglePlayPause} variant="outline" size="icon" disabled={isLoading || !!error}>
-            {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-          </Button>
-          <div className="flex-grow">
-            <Slider
-              value={[currentTime]}
-              max={duration}
-              step={0.1}
-              onValueChange={handleProgressChange}
-              className="w-full"
-              disabled={isLoading || !!error}
-            />
-          </div>
-          <span className="text-sm">
-            {formatTime(currentTime)} / {formatTime(duration)}
-          </span>
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          <Volume2 className="h-4 w-4" />
-          <Slider
-            value={[volume]}
-            max={1}
-            step={0.01}
-            onValueChange={handleVolumeChange}
-            className="w-24"
-            disabled={isLoading || !!error}
-          />
-        </div>
-
-        <audio ref={audioRef} onError={handleAudioError} className="hidden">
-          Your browser does not support the audio element.
-        </audio>
-      </div>
-
-      <Input 
-        type="text"
-        onChange={(e) => onChange(e.target.value)}
-        value={value || ''}
-        placeholder="Enter your answer here"
-        aria-label="Answer input"
-        className={commonStyles.input}
-      />
-
-      {isLoading && (
-        <div className="flex items-center space-x-2">
-          <RefreshCw className="h-4 w-4 animate-spin" />
-          <span>Loading audio...</span>
-        </div>
-      )}
-
-      {error && (
-        <Alert variant="destructive" className="mt-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-          <Button onClick={retryLoading} variant="outline" size="sm" className="ml-2">
-            Retry
-          </Button>
-        </Alert>
-      )}
-
-      {audioInfo && (
-        <div className="text-sm text-gray-500">
-          Audio format: {audioInfo.type}, Duration: {formatTime(audioInfo.duration)}
-        </div>
-      )}
-    </div>
-  );
-};
 export const SentenceCompletion = React.memo(({ question, options, onChange, value, pictureUrl, audioUrl, videoUrl }) => {
   const [answers, setAnswers] = useState(value || new Array(options.length).fill(''));
   const inputRefs = useRef([]);
@@ -735,6 +594,8 @@ export const SentenceCompletion = React.memo(({ question, options, onChange, val
 
   return (
     <div className={commonStyles.container}>
+            <MediaWrapper pictureUrl={pictureUrl} audioUrl={audioUrl} videoUrl={videoUrl} />
+
       <label className={commonStyles.question}>{question}</label>
       {options.map((option, index) => (
         <div key={index} className="flex items-center space-x-2">
@@ -765,6 +626,8 @@ SentenceCompletion.propTypes = {
 
 export const ErrorCorrection = ({ question, onChange, value, pictureUrl, audioUrl, videoUrl }) => (
   <div className={commonStyles.container}>
+          <MediaWrapper pictureUrl={pictureUrl} audioUrl={audioUrl} videoUrl={videoUrl} />
+
     <p className={commonStyles.question}>{question}</p>
     <Input type="text" onChange={(e) => onChange(e.target.value)} value={value || ''} className={commonStyles.input} />
   </div>
@@ -803,6 +666,7 @@ export const VideoQuestion = ({ question, pictureUrl, audioUrl, videoUrl, onChan
 
   return (
 <section aria-labelledby="question-title" className={commonStyles.container}>
+  
 <h2 id="question-title" className={commonStyles.question}>{question}</h2>
       {isLoading && <p>Loading video...</p>}
       {error && <p>Error loading video: {error}</p>}
