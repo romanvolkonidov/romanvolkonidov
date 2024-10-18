@@ -15,6 +15,7 @@ import '../styles/StudentProfile.css';
 import NotificationManager from './NotificationManager';
 const DEFAULT_PROFILE_PIC = '/icons/profile.png';
 
+
 const StudentProfile = ({ studentId, showSetPassword = true, showVisibility = false, isInferiorView = false }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState('');
