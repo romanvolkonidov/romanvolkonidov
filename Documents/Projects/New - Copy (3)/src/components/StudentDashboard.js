@@ -14,7 +14,7 @@ import StudentWeeklySchedule from '@/components/StudentWeeklySchedule';
 import WebApp from '@twa-dev/sdk';
 import { auth } from '../firebase';
 import { onMessageListener } from '../firebase';
-import NotificationManager from './NotificationManager';
+import OneSignalComponent from './OneSignalComponent';
 
 const ProfileView = ({ studentId }) => {
   return <StudentProfile studentId={studentId} isInferiorView={true} />;
@@ -164,7 +164,7 @@ const StudentDashboard = () => {
       <div className="side-by-side-container">
   <ProfileView studentId={id} />
 </div>
-
+<OneSignalComponent studentId={id} studentName={selectedStudent?.name} />
       {isFinancialSectionVisible && (
         <div>
 
@@ -215,7 +215,6 @@ const StudentDashboard = () => {
       <TablePage studentId={id} readOnly={true} className="table-left" />
       <div className="side-by-side-container">
       <StudentWeeklySchedule viewOnly={true} studentId={id} />
-    
                <TeacherRecommendations isViewOnly={true} studentId={id} />
         <StudentFeedback studentId={id} />
         

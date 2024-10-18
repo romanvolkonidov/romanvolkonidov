@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Switch = ({ id, checked, onCheckedChange }) => {
+export const Switch = ({ id, checked, onCheckedChange }) => {
   return (
     <label htmlFor={id} className="flex items-center cursor-pointer">
       <div className="relative">

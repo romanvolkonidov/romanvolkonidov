@@ -12,7 +12,6 @@ import Visibility from './Visibility';
 import { VisibilityContext } from '../context/VisibilityContext';
 import { GlobalStateContext } from '../context/GlobalStateContext';
 import '../styles/StudentProfile.css';
-import NotificationManager from './NotificationManager';
 const DEFAULT_PROFILE_PIC = '/icons/profile.png';
 
 
@@ -209,12 +208,8 @@ const StudentProfile = ({ studentId, showSetPassword = true, showVisibility = fa
 
         <div className="settings-container">
   {showSetPassword && <SetPassword studentId={studentId} allowEditing={!isInferiorView} />}
-  {studentId && (
-        <NotificationManager 
-          studentId={studentId} 
-          isAdminView={isAdminView} 
-        />
-      )}  <div className="settings-container">
+  
+        <div className="settings-container">
         </div></div>
 
 

@@ -1,10 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { onMessageListener } from '../firebase';
-
+import { onMessageListener, requestNotificationPermission } from '../firebase';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import * as serviceWorkerRegistration from '../serviceWorkerRegistration';
 import { useGlobalState } from '../context/GlobalStateContext';
-import { onMessage, getMessaging, getToken } from 'firebase/messaging';
 import Navbar from './Navbar';
 import Home from './Home';
 import MonthlyReport from './MonthlyReport';
@@ -27,16 +24,21 @@ function AppContent() {
   const [notificationStatus, setNotificationStatus] = useState('idle');
 
   useEffect(() => {
-    serviceWorkerRegistration.register({
-      onSuccess: (registration) => {
-        console.log('Service Worker registered successfully', registration);
-      },
-      onUpdate: (registration) => {
-        console.log('New content is available; please refresh', registration);
-        toast.info('New content is available. Please refresh the page.');
-      },
-    });
-  }, []);
+    if (authenticatedStudent) {
+      requestNotificationPermission(authenticatedStudent.id)
+        .then((token) => {
+          if (token) {
+            setNotificationStatus('granted');
+          } else {
+            setNotificationStatus('denied');
+          }
+        })
+        .catch((error) => {
+          console.error('Error requesting notification permission:', error);
+          setNotificationStatus('error');
+        });
+    }
+  }, [authenticatedStudent]);
 
   const handleMessage = useCallback((payload) => {
     console.log('Received foreground message:', payload);
@@ -57,15 +59,10 @@ function AppContent() {
     };
   }, [handleMessage]);
 
-  const handleNotificationStatusChange = (status) => {
-    setNotificationStatus(status);
-  };
-
   return (
     <>
       <Navbar />
       <div className="app main-content">
-       
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/admin-login" element={<AdminLogin />} />
@@ -89,7 +86,6 @@ function AppContent() {
         </Routes>
         
         <InstallPWA />
-
       </div>
     </>
   );

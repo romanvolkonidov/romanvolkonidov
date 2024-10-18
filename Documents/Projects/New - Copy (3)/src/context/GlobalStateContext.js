@@ -21,14 +21,14 @@ const GlobalStateProvider = ({ children }) => {
 
 
   const fetchExchangeRates = async () => {
-    const response = await fetch('https://apilayer.net/api/live?access_key=08439dfc1bdd063f9bd949a703aef93b&currencies=EUR,KES,RUB&source=USD&format=1');
+    const response = await fetch('https://v6.exchangerate-api.com/v6/6b336656e6740660a26b073d/latest/USD');
     if (!response.ok) throw new Error('Failed to fetch exchange rates');
     const data = await response.json();
     return {
       USD: 1,
-      EUR: data.quotes.USDEUR,
-      KES: data.quotes.USDKES,
-      RUB: data.quotes.USDRUB,
+      EUR: data.conversion_rates.EUR,
+      KES: data.conversion_rates.KES,
+      RUB: data.conversion_rates.RUB,
     };
   };
 
@@ -40,12 +40,12 @@ const GlobalStateProvider = ({ children }) => {
       const transactionSnapshot = await getDocs(collection(db, 'transactions'));
       const fetchedTransactions = transactionSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setTransactions(fetchedTransactions);
-
+  
       // Fetch students
       const studentSnapshot = await getDocs(collection(db, 'students'));
       const fetchedStudents = studentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setStudents(fetchedStudents);
-
+  
       // Fetch expected income
       const incomeDocRef = doc(db, 'settings', 'expectedIncome');
       const incomeDocSnap = await getDoc(incomeDocRef);
@@ -53,7 +53,7 @@ const GlobalStateProvider = ({ children }) => {
         const { amount, currency } = incomeDocSnap.data();
         setExpectedIncome({ amount, currency });
       }
-
+  
       // Fetch debt
       const debtDocRef = doc(db, 'settings', 'debt');
       const debtDocSnap = await getDoc(debtDocRef);
@@ -61,45 +61,40 @@ const GlobalStateProvider = ({ children }) => {
         const { amount, currency } = debtDocSnap.data();
         setDebt({ amount, currency });
       }
-
+  
       // Check if we need to fetch new exchange rates
-      const lastFetch = localStorage.getItem('lastFetch');
+      const ratesDocRef = doc(db, 'settings', 'exchangeRates');
+      const ratesDocSnap = await getDoc(ratesDocRef);
       const now = new Date().getTime();
       const oneDay = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-
-      if (!lastFetch || now - lastFetch > oneDay) {
+  
+      if (!ratesDocSnap.exists() || now - ratesDocSnap.data().lastFetch > oneDay) {
         try {
           // Fetch new exchange rates
           const relevantRates = await fetchExchangeRates();
           setExchangeRates(relevantRates);
-          localStorage.setItem('exchangeRates', JSON.stringify(relevantRates));
-          localStorage.setItem('lastFetch', now);
+          await setDoc(ratesDocRef, {
+            rates: relevantRates,
+            lastFetch: now
+          });
         } catch (error) {
           console.error("Error fetching exchange rates: ", error);
           // If fetching rates fails, use stored rates if available
-          const storedRates = JSON.parse(localStorage.getItem('exchangeRates'));
-          if (storedRates) {
-            setExchangeRates(storedRates);
+          if (ratesDocSnap.exists()) {
+            setExchangeRates(ratesDocSnap.data().rates);
           }
         }
       } else {
         // Use stored rates
-        const storedRates = JSON.parse(localStorage.getItem('exchangeRates'));
-        setExchangeRates(storedRates);
+        setExchangeRates(ratesDocSnap.data().rates);
       }
     } catch (error) {
       setError("Error fetching data");
       console.error("Error fetching data: ", error);
-      // Use stored rates if available
-      const storedRates = JSON.parse(localStorage.getItem('exchangeRates'));
-      if (storedRates) {
-        setExchangeRates(storedRates);
-      }
     } finally {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     fetchData();
   }, []);

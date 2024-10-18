@@ -1,7 +1,5 @@
-// public/service-worker.js
-
-importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.5.0/firebase-messaging-compat.js');
 
 // Initialize Firebase
 firebase.initializeApp({
@@ -15,7 +13,21 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-const CACHE_NAME = 'student-dashboard-v1';
+// Firebase background message handler
+messaging.onBackgroundMessage((payload) => {
+  console.log('Received background message:', payload);
+  const notificationTitle = payload.notification.title;
+  const notificationOptions = {
+    body: payload.notification.body,
+    icon: '/icons/icon-512x512.png',
+    data: payload.data
+  };
+
+  return self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+// Main service worker code
+const CACHE_NAME = 'tracking-budget-app-v1';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -33,8 +45,11 @@ self.addEventListener('install', (event) => {
   console.log('Service Worker installing.');
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(urlsToCache))
-      .then(() => self.skipWaiting()) // Ensure the new service worker takes over immediately
+      .then((cache) => {
+        console.log('Opened cache');
+        return cache.addAll(urlsToCache);
+      })
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -50,7 +65,10 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
-    }).then(() => self.clients.claim()) // Take control of all clients immediately
+    }).then(() => {
+      console.log('Service Worker: Claiming clients for version', CACHE_NAME);
+      return self.clients.claim();
+    })
   );
 });
 
@@ -81,45 +99,11 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-self.addEventListener('push', (event) => {
-  console.log('Push notification received:', event);
-  if (event.data) {
-    const data = event.data.json();
-    const options = {
-      body: data.notification.body,
-      icon: '/icons/icon-512x512.png',
-      badge: '/icons/icon-512x512.png',
-      data: {
-        url: data.data?.url || '/'
-      }
-    };
-
-    event.waitUntil(
-      self.registration.showNotification(data.notification.title, options)
-    );
-  } else {
-    console.log('Push event received but no data.');
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('Service Worker: Skipping waiting');
+    self.skipWaiting();
   }
 });
 
-self.addEventListener('notificationclick', (event) => {
-  console.log('Notification clicked:', event);
-  event.notification.close();
-  event.waitUntil(
-    clients.openWindow(event.notification.data.url)
-  );
-});
-
-messaging.onBackgroundMessage((payload) => {
-  console.log('Received background message:', payload);
-  const notificationTitle = payload.notification.title;
-  const notificationOptions = {
-    body: payload.notification.body,
-    icon: '/icons/icon-512x512.png',
-    data: payload.data
-  };
-
-  return self.registration.showNotification(notificationTitle, notificationOptions);
-});
-
-console.log('Service Worker loaded successfully.');
+console.log('Combined service worker (main + Firebase) loaded successfully.');
