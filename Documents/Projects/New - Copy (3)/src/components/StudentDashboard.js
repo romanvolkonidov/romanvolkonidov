@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { GlobalStateContext } from '../context/GlobalStateContext';
 import { VisibilityContext } from '../context/VisibilityContext'; // Import the VisibilityContext
 import { useNavigate, useParams } from 'react-router-dom';
@@ -14,7 +14,6 @@ import StudentWeeklySchedule from '@/components/StudentWeeklySchedule';
 import WebApp from '@twa-dev/sdk';
 import { auth } from '../firebase';
 import { onMessageListener } from '../firebase';
-import OneSignalComponent from './OneSignalComponent';
 
 const ProfileView = ({ studentId }) => {
   return <StudentProfile studentId={studentId} isInferiorView={true} />;
@@ -23,17 +22,18 @@ const ProfileView = ({ studentId }) => {
 const currencies = ['USD', 'KES', 'RUB', 'EUR'];
 
 const StudentDashboard = () => {
+  const { id } = useParams();
   const { students, transactions, exchangeRates, authenticatedStudent } = useContext(GlobalStateContext);
   const { isFinancialSectionVisible } = useContext(VisibilityContext); // Consume the VisibilityContext
-  const { id } = useParams(); // Get the student ID from the URL
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [progress, setProgress] = useState(0);
   const [showFinancialSection, setShowFinancialSection] = useState(false);
   const navigate = useNavigate();
   const [studentId, setStudentId] = useState(null);
-
+  
 
   
+
 
   useEffect(() => {
     WebApp.ready();
@@ -78,6 +78,8 @@ const StudentDashboard = () => {
       console.log('Received foreground message:', payload);
       // Handle the message here, e.g., show a notification or update UI
     };
+
+   
 
     const messageUnsubscribe = onMessageListener(handleMessage);
 
@@ -164,7 +166,7 @@ const StudentDashboard = () => {
       <div className="side-by-side-container">
   <ProfileView studentId={id} />
 </div>
-<OneSignalComponent studentId={id} studentName={selectedStudent?.name} />
+
       {isFinancialSectionVisible && (
         <div>
 

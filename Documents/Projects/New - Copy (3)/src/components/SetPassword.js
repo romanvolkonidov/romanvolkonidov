@@ -2,6 +2,11 @@ import React, { useState, useContext, useEffect } from 'react';
 import { GlobalStateContext } from '../context/GlobalStateContext';
 import { db } from '../firebase';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const SetPassword = ({ studentId, allowEditing = true }) => {
   const { students, setStudents } = useContext(GlobalStateContext);
@@ -10,8 +15,6 @@ const SetPassword = ({ studentId, allowEditing = true }) => {
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
@@ -25,6 +28,7 @@ const SetPassword = ({ studentId, allowEditing = true }) => {
         }
       } catch (error) {
         console.error("Error fetching student credentials:", error);
+        toast.error('Не удалось загрузить данные студента');
       }
     };
 
@@ -33,8 +37,7 @@ const SetPassword = ({ studentId, allowEditing = true }) => {
 
   const handleSetCredentials = async () => {
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
-      setSuccess('');
+      toast.error('Пароли не совпадают');
       return;
     }
 
@@ -54,116 +57,101 @@ const SetPassword = ({ studentId, allowEditing = true }) => {
       setStudents(updatedStudents);
       setUsername(updatedUsername);
       setPassword(updatedPassword);
-      setSuccess('Credentials updated successfully');
-      setError('');
+      toast.success('Учетные данные успешно обновлены');
       setIsEditing(false);
       setNewUsername('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (error) {
-      setError('Error updating credentials');
-      setSuccess('');
       console.error("Error updating credentials:", error);
+      toast.error('Ошибка при обновлении учетных данных');
     }
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md mt-6">
-      <h3 className="text-2xl font-bold text-black mb-4"></h3>
-      {username && password ? (
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-black mb-1">Логин</label>
-            <p className="text-black font-semibold">{username}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-black mb-1">Пароль</label>
-            <p className="text-black font-semibold">{password}</p>
-          </div>
-          {allowEditing && !isEditing && (
-            <button 
-              onClick={() => setIsEditing(true)}
-              className="w-full bg-black text-white py-2 px-4 rounded-md hover:bg-gray-800 transition-colors"
-            >
-              Change Credentials
-            </button>
+    <>
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Учетные данные</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {username && password ? (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Логин</label>
+                <p className="font-semibold">{username}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Пароль</label>
+                <p className="font-semibold">{password}</p>
+              </div>
+              {allowEditing && !isEditing && (
+                <Button 
+                  onClick={() => setIsEditing(true)}
+                  className="w-full"
+                >
+                  Изменить учетные данные
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <p className="mb-2">Учетные данные еще не установлены.</p>
+              {allowEditing && (
+                <Button 
+                  onClick={() => setIsEditing(true)}
+                  className="w-full"
+                >
+                  Установить начальные учетные данные
+                </Button>
+              )}
+            </div>
           )}
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <p className="text-black mb-2">No credentials set yet.</p>
-          {allowEditing && (
-            <button 
-              onClick={() => setIsEditing(true)}
-              className="w-full bg-black text-white py-2 px-4 rounded-md hover:bg-gray-800 transition-colors"
-            >
-              Set Initial Credentials
-            </button>
+          
+          {allowEditing && isEditing && (
+            <div className="space-y-4 mt-4">
+              <Input
+                type="text"
+                placeholder={username ? 'Новый логин' : 'Логин'}
+                value={newUsername}
+                onChange={(e) => setNewUsername(e.target.value)}
+              />
+              <Input
+                type="password"
+                placeholder={password ? 'Новый пароль' : 'Пароль'}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+              <Input
+                type="password"
+                placeholder="Подтвердите пароль"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+              <Button 
+                onClick={handleSetCredentials}
+                className="w-full"
+              >
+                {username && password ? 'Обновить учетные данные' : 'Установить учетные данные'}
+              </Button>
+              <Button 
+                onClick={() => {
+                  setIsEditing(false);
+                  setNewUsername('');
+                  setNewPassword('');
+                  setConfirmPassword('');
+                }}
+                variant="secondary"
+                className="w-full"
+              >
+                Отмена
+              </Button>
+            </div>
           )}
-        </div>
-      )}
-      
-      {allowEditing && isEditing && (
-        <div className="space-y-4 mt-4">
-          <div>
-            <label htmlFor="newUsername" className="block text-sm font-medium text-black mb-1">
-              {username ? 'New Username' : 'Username'}
-            </label>
-            <input
-              type="text"
-              id="newUsername"
-              placeholder={username ? 'New Username' : 'Username'}
-              value={newUsername}
-              onChange={(e) => setNewUsername(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-black focus:border-black text-black"
-            />
-          </div>
-          <div>
-            <label htmlFor="newPassword" className="block text-sm font-medium text-black mb-1">
-              {password ? 'New Password' : 'Password'}
-            </label>
-            <input
-              type="password"
-              id="newPassword"
-              placeholder={password ? 'New Password' : 'Password'}
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-black focus:border-black text-black"
-            />
-          </div>
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-black mb-1">Confirm Password</label>
-            <input
-              type="password"
-              id="confirmPassword"
-              placeholder="Confirm Password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-black focus:border-black text-black"
-            />
-          </div>
-          <button 
-            onClick={handleSetCredentials}
-            className="w-full bg-black text-white py-2 px-4 rounded-md hover:bg-gray-800 transition-colors"
-          >
-            {username && password ? 'Update Credentials' : 'Set Credentials'}
-          </button>
-          <button 
-            onClick={() => {
-              setIsEditing(false);
-              setNewUsername('');
-              setNewPassword('');
-              setConfirmPassword('');
-            }}
-            className="w-full bg-gray-300 text-black py-2 px-4 rounded-md hover:bg-gray-400 transition-colors"
-          >
-            Cancel
-          </button>
-        </div>
-      )}
-      {error && <p className="text-red-500 mt-2">{error}</p>}
-      {success && <p className="text-green-500 mt-2">{success}</p>}
-    </div>
+        </CardContent>
+      </Card>
+      <ToastContainer position="bottom-right" />
+    </>
   );
 };
 
