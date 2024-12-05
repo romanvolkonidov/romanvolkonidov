@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Роман Волконидов - Full Stack Developer</title>
+    <style>
+        :root {
+            --primary: #4338ca;
+            --accent: #f97316;
+            --text: #374151;
+            --bg: #F0F9FF;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            line-height: 1.5;
+            color: var(--text);
+            background: var(--bg);
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: var(--primary);
+            color: white;
+            display: grid;
+            padding: 2rem 4rem 3rem 2rem;
+            gap: 2rem;
+            align-items: flex-start;
+            grid-template-columns: minmax(auto, 180px) 1fr;
+        }
+
+        .profile-img {
+            width: 200px;
+            transform: translateX(-1rem);
+            height: 200px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--accent);
+        }
+
+        .name {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: white;
+        }
+
+        .title {
+            font-size: 1.5rem;
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+
+        .contact {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .main {
+            padding: 3rem;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 3rem;
+        }
+
+        .section {
+            margin-bottom: 2rem;
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .skill {
+            background: var(--primary);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 100px;
+            font-size: 0.9rem;
+        }
+
+        .project {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--bg);
+            border-radius: 8px;
+        }
+
+        .project a {
+            color: var(--accent);
+            text-decoration: none;
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
+
+        ul {
+            padding-left: 1.5rem;
+        }
+
+        .right-column ul {
+            list-style: none;
+            padding-left: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <img src="https://firebasestorage.googleapis.com/v0/b/tracking-budget-app.appspot.com/o/bucket%2F111111111111.jpg?alt=media&token=fb4ef6c4-cfdc-4b8c-b2ab-414f2b4b0c91" alt="Роман Волконидов" class="profile-img">
+            <div>
+                <h1 class="name">Роман Волконидов</h1>
+                <div class="title">Full Stack Developer</div>
+                <div class="contact">
+                    <p>📍 Ставрополь</p>
+                    <p>📅 27.05.1989</p>
+                    <p>📧 romanvolkonidov@gmail.com</p>
+                </div>
+            </div>
+        </header>
+
+        <main class="main">
+            <div class="left-column">
+                <section class="section">
+                    <h2>Обо мне</h2>
+                    <p>Full Stack разработчик с глубоким пониманием современных веб-технологий. Специализируюсь на создании масштабируемых веб-приложений с использованием React, Firebase и других современных технологий. Опыт в разработке образовательных платформ и систем управления обучением.</p>
+                </section>
+
+                <section class="section">
+                    <h2>Проекты</h2>
+                    <div class="project">
+                        <h3>Renovation Website (2024)</h3>
+                        <a href="https://renovation-beta.vercel.app" target="_blank">renovation-beta.vercel.app</a>
+                        <ul>
+                            <li>Разработал полноценный многоязычный сайт на Next.js с поддержкой 5 языков</li>
+                            <li>Реализовал сложные анимации интерфейса используя Framer Motion</li>
+                            <li>Создал адаптивный дизайн с использованием Tailwind CSS</li>
+                            <li>Внедрил доступные компоненты с помощью Radix UI</li>
+                            <li>Оптимизировал производительность и SEO</li>
+                        </ul>
+                    </div>
+
+                    <div class="project">
+                        <h3>Educational Platform (2024)</h3>
+                        <ul>
+                            <li>Разработал полнофункциональную LMS на React с Firebase</li>
+                            <li>Реализовал систему проверки домашних заданий с автоматизированной оценкой</li>
+                            <li>Внедрил real-time обновления и систему уведомлений</li>
+                            <li>Интегрировал облачные функции для email-рассылок</li>
+                            <li>Создал панель администратора для управления контентом и пользователями</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="project">
+                        <h3>Finance Tracker</h3>
+                        <ul>
+                            <li>Разработал приложение для учета финансов с поддержкой нескольких валют</li>
+                            <li>Внедрил интерактивные графики и визуализацию данных с Recharts</li>
+                            <li>Реализовал формирование отчетов и аналитику</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <h2>Технический стек</h2>
+                    <div class="skills">
+                        <span class="skill">Next.js</span>
+                        <span class="skill">React</span>
+                        <span class="skill">Firebase</span>
+                        <span class="skill">TypeScript</span>
+                        <span class="skill">Node.js</span>
+                        <span class="skill">Tailwind CSS</span>
+                        <span class="skill">Framer Motion</span>
+                        <span class="skill">Radix UI</span>
+                        <span class="skill">Cloud Functions</span>
+                        <span class="skill">Git</span>
+                        <span class="skill">RESTful APIs</span>
+                    </div>
+                </section>
+            </div>
+
+            <div class="right-column">
+                <section class="section">
+                    <h2>Ключевые навыки</h2>
+                    <ul>
+                        <li>✦ Разработка веб-приложений</li>
+                        <li>✦ Проектирование баз данных</li>
+                        <li>✦ UI/UX дизайн</li>
+                        <li>✦ Оптимизация производительности</li>
+                        <li>✦ Автоматизация процессов</li>
+                        <li>✦ Работа с API</li>
+                    </ul>
+                </section>
+
+                <section class="section">
+                    <h2>Достижения</h2>
+                    <ul>
+                        <li>🏆 Разработал и запустил образовательную платформу</li>
+                        <li>🏆 Создал систему автоматизированной проверки заданий</li>
+                        <li>🏆 Оптимизировал процессы обучения</li>
+                    </ul>
+                </section>
+
+                <section class="section">
+                    <h2>Дополнительно</h2>
+                    <ul>
+                        <li>🔸 Опыт удаленной работы</li>
+                        <li>🔸 Непрерывное обучение</li>
+                        <li>🔸 Навыки коммуникации</li>
+                    </ul>
+                </section>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
