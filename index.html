@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Роман Волконидов - Full Stack Developer</title>
+    <title>Roman Volkonidov - Full Stack Developer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
             --primary: #4338ca;
@@ -33,6 +34,38 @@
             border-radius: 16px;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
             overflow: hidden;
+            position: relative;
+        }
+
+        /* Enhanced Language switcher styles */
+        .lang-switch {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 100px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .lang-switch:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .lang-switch:active {
+            transform: translateY(0);
+        }
+
+        .lang-switch i {
+            font-size: 1rem;
         }
 
         .header {
@@ -126,17 +159,52 @@
             list-style: none;
             padding-left: 0;
         }
+
+        [data-lang] {
+            display: none;
+        }
+
+        [data-lang].active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .main {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                grid-template-columns: 1fr;
+                text-align: center;
+                padding: 2rem;
+            }
+
+            .profile-img {
+                transform: none;
+                margin: 0 auto;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <button class="lang-switch" onclick="toggleLanguage()">
+            <i class="fas fa-globe"></i>
+            <span class="lang-text">RU</span>
+        </button>
         <header class="header">
-            <img src="https://firebasestorage.googleapis.com/v0/b/tracking-budget-app.appspot.com/o/bucket%2F111111111111.jpg?alt=media&token=fb4ef6c4-cfdc-4b8c-b2ab-414f2b4b0c91" alt="Роман Волконидов" class="profile-img">
+            <img src="https://firebasestorage.googleapis.com/v0/b/tracking-budget-app.appspot.com/o/bucket%2F111111111111.jpg?alt=media&token=fb4ef6c4-cfdc-4b8c-b2ab-414f2b4b0c91" alt="Roman Volkonidov" class="profile-img">
             <div>
-                <h1 class="name">Роман Волконидов</h1>
+                <h1 class="name">
+                    <span data-lang="ru">Роман Волконидов</span>
+                    <span data-lang="en" class="active">Roman Volkonidov</span>
+                </h1>
                 <div class="title">Full Stack Developer</div>
                 <div class="contact">
-                    <p>📍 Ставрополь</p>
+                    <p>📍 
+                        <span data-lang="ru">Ставрополь</span>
+                        <span data-lang="en" class="active">Stavropol</span>
+                    </p>
                     <p>📅 27.05.1989</p>
                     <p>📧 romanvolkonidov@gmail.com</p>
                 </div>
@@ -146,47 +214,97 @@
         <main class="main">
             <div class="left-column">
                 <section class="section">
-                    <h2>Обо мне</h2>
-                    <p>Full Stack разработчик с глубоким пониманием современных веб-технологий. Специализируюсь на создании масштабируемых веб-приложений с использованием React, Firebase и других современных технологий. Опыт в разработке образовательных платформ и систем управления обучением.</p>
+                    <h2>
+                        <span data-lang="ru">Обо мне</span>
+                        <span data-lang="en" class="active">About Me</span>
+                    </h2>
+                    <p>
+                        <span data-lang="ru">Full Stack разработчик с глубоким пониманием современных веб-технологий. Специализируюсь на создании масштабируемых веб-приложений с использованием React, Firebase и других современных технологий. Опыт в разработке образовательных платформ и систем управления обучением.</span>
+                        <span data-lang="en" class="active">Full Stack developer with a deep understanding of modern web technologies. Specializing in building scalable web applications using React, Firebase, and other modern technologies. Experienced in developing educational platforms and learning management systems.</span>
+                    </p>
                 </section>
 
                 <section class="section">
-                    <h2>Проекты</h2>
+                    <h2>
+                        <span data-lang="ru">Проекты</span>
+                        <span data-lang="en" class="active">Projects</span>
+                    </h2>
                     <div class="project">
                         <h3>Renovation Website (2024)</h3>
-                        <a href="https://renovation-beta.vercel.app" target="_blank">renovation-beta.vercel.app</a>
-                        <ul>
-                            <li>Разработал полноценный многоязычный сайт на Next.js с поддержкой 5 языков</li>
-                            <li>Реализовал сложные анимации интерфейса используя Framer Motion</li>
-                            <li>Создал адаптивный дизайн с использованием Tailwind CSS</li>
-                            <li>Внедрил доступные компоненты с помощью Radix UI</li>
-                            <li>Оптимизировал производительность и SEO</li>
+                        <a href="https://renovation-beta.vercel.app" target="_blank" rel="noopener noreferrer">renovation-beta.vercel.app</a>                        <ul>
+                            <li>
+                                <span data-lang="ru">Разработал полноценный многоязычный сайт на Next.js с поддержкой 5 языков</span>
+                                <span data-lang="en" class="active">Developed a full-featured multilingual website using Next.js with support for 5 languages</span>
+                            </li>
+                            <li>
+                                <span data-lang="ru">Реализовал сложные анимации интерфейса используя Framer Motion</span>
+                                <span data-lang="en" class="active">Implemented complex interface animations using Framer Motion</span>
+                            </li>
+                            <li>
+                                <span data-lang="ru">Создал адаптивный дизайн с использованием Tailwind CSS</span>
+                                <span data-lang="en" class="active">Created responsive design using Tailwind CSS</span>
+                            </li>
+                            <li>
+                                <span data-lang="ru">Внедрил доступные компоненты с помощью Radix UI</span>
+                                <span data-lang="en" class="active">Integrated accessible components using Radix UI</span>
+                            </li>
+                            <li>
+                                <span data-lang="ru">Оптимизировал производительность и SEO</span>
+                                <span data-lang="en" class="active">Optimized performance and SEO</span>
+                            </li>
                         </ul>
                     </div>
 
                     <div class="project">
                         <h3>Educational Platform (2024)</h3>
                         <ul>
-                            <li>Разработал полнофункциональную LMS на React с Firebase</li>
-                            <li>Реализовал систему проверки домашних заданий с автоматизированной оценкой</li>
-                            <li>Внедрил real-time обновления и систему уведомлений</li>
-                            <li>Интегрировал облачные функции для email-рассылок</li>
-                            <li>Создал панель администратора для управления контентом и пользователями</li>
+                            <li>
+                                <span data-lang="ru">Разработал полнофункциональную LMS на React с Firebase</span>
+                                <span data-lang="en" class="active">Developed a full-featured LMS using React with Firebase</span>
+                            </li>
+                            <li>
+                                <span data-lang="ru">Реализовал систему проверки домашних заданий с автоматизированной оценкой</span>
+                                <span data-lang="en" class="active">Implemented homework checking system with automated assessment</span>
+                            </li>
+                            <li>
+                                <span data-lang="ru">Внедрил real-time обновления и систему уведомлений</span>
+                                <span data-lang="en" class="active">Integrated real-time updates and notification system</span>
+                            </li>
+                            <li>
+                                <span data-lang="ru">Интегрировал облачные функции для email-рассылок</span>
+                                <span data-lang="en" class="active">Integrated cloud functions for email newsletters</span>
+                            </li>
+                            <li>
+                                <span data-lang="ru">Создал панель администратора для управления контентом и пользователями</span>
+                                <span data-lang="en" class="active">Created admin panel for content and user management</span>
+                            </li>
                         </ul>
                     </div>
                     
                     <div class="project">
                         <h3>Finance Tracker</h3>
                         <ul>
-                            <li>Разработал приложение для учета финансов с поддержкой нескольких валют</li>
-                            <li>Внедрил интерактивные графики и визуализацию данных с Recharts</li>
-                            <li>Реализовал формирование отчетов и аналитику</li>
+                            <li>
+                                <span data-lang="ru">Разработал приложение для учета финансов с поддержкой нескольких валют</span>
+                                <span data-lang="en" class="active">Developed a finance tracking application with multi-currency support</span>
+                            </li>
+                            <li>
+                                <span data-lang="ru">Внедрил интерактивные графики и визуализацию данных с Recharts</span>
+                                <span data-lang="en" class="active">Implemented interactive charts and data visualization using Recharts</span>
+                            </li>
+                            <li>
+                                <span data-lang="ru">Реализовал формирование отчетов и аналитику</span>
+                                <span data-lang="en" class="active">Implemented report generation and analytics</span>
+                            </li>
                         </ul>
                     </div>
                 </section>
 
                 <section class="section">
-                    <h2>Технический стек</h2>
+                    <h2>
+                        <span data-lang="ru">Технический стек</span>
+                        <span data-lang="en" class="active">Tech Stack</span>
+                    </h2>
                     <div class="skills">
                         <span class="skill">Next.js</span>
                         <span class="skill">React</span>
@@ -205,36 +323,108 @@
 
             <div class="right-column">
                 <section class="section">
-                    <h2>Ключевые навыки</h2>
+                    <h2>
+                        <span data-lang="ru">Ключевые навыки</span>
+                        <span data-lang="en" class="active">Key Skills</span>
+                    </h2>
                     <ul>
-                        <li>✦ Разработка веб-приложений</li>
-                        <li>✦ Проектирование баз данных</li>
-                        <li>✦ UI/UX дизайн</li>
-                        <li>✦ Оптимизация производительности</li>
-                        <li>✦ Автоматизация процессов</li>
-                        <li>✦ Работа с API</li>
+                        <li>✦ 
+                            <span data-lang="ru">Разработка веб-приложений</span>
+                            <span data-lang="en" class="active">Web Application Development</span>
+                        </li>
+                        <li>✦ 
+                            <span data-lang="ru">Проектирование баз данных</span>
+                            <span data-lang="en" class="active">Database Design</span>
+                        </li>
+                        <li>✦ UI/UX 
+                            <span data-lang="ru">дизайн</span>
+                            <span data-lang="en" class="active">Design</span>
+                        </li>
+                        <li>✦ 
+                            <span data-lang="ru">Оптимизация производительности</span>
+                            <span data-lang="en" class="active">Performance Optimization</span>
+                        </li>
+                        <li>✦ 
+                            <span data-lang="ru">Автоматизация процессов</span>
+                            <span data-lang="en" class="active">Process Automation</span>
+                        </li>
+                        <li>✦ 
+                            <span data-lang="ru">Работа с API</span>
+                            <span data-lang="en" class="active">API Integration</span>
+                        </li>
                     </ul>
                 </section>
 
                 <section class="section">
-                    <h2>Достижения</h2>
+                    <h2>
+                        <span data-lang="ru">Достижения</span>
+                        <span data-lang="en" class="active">Achievements</span>
+                    </h2>
                     <ul>
-                        <li>🏆 Разработал и запустил образовательную платформу</li>
-                        <li>🏆 Создал систему автоматизированной проверки заданий</li>
-                        <li>🏆 Оптимизировал процессы обучения</li>
+                        <li>🏆 
+yyy                            <span data-lang="ru">Разработал и запустил образовательную платформу</span>
+                            <span data-lang="en" class="active">Developed and launched an educational platform</span>
+                        </li>
+                        <li>🏆 
+                            <span data-lang="ru">Создал систему автоматизированной проверки заданий</span>
+                            <span data-lang="en" class="active">Created an automated assignment checking system</span>
+                        </li>
+                        <li>🏆 
+                            <span data-lang="ru">Оптимизировал процессы обучения</span>
+                            <span data-lang="en" class="active">Optimized learning processes</span>
+                        </li>
                     </ul>
                 </section>
 
                 <section class="section">
-                    <h2>Дополнительно</h2>
+                    <h2>
+                        <span data-lang="ru">Дополнительно</span>
+                        <span data-lang="en" class="active">Additional</span>
+                    </h2>
                     <ul>
-                        <li>🔸 Опыт удаленной работы</li>
-                        <li>🔸 Непрерывное обучение</li>
-                        <li>🔸 Навыки коммуникации</li>
+                        <li>🔸 
+                            <span data-lang="ru">Опыт удаленной работы</span>
+                            <span data-lang="en" class="active">Remote work experience</span>
+                        </li>
+                        <li>🔸 
+                            <span data-lang="ru">Непрерывное обучение</span>
+                            <span data-lang="en" class="active">Continuous learning</span>
+                        </li>
+                        <li>🔸 
+                            <span data-lang="ru">Навыки коммуникации</span>
+                            <span data-lang="en" class="active">Communication skills</span>
+                        </li>
                     </ul>
                 </section>
             </div>
         </main>
     </div>
+
+    <script>
+        let currentLang = 'en';
+
+        function toggleLanguage() {
+            const newLang = currentLang === 'ru' ? 'en' : 'ru';
+            const button = document.querySelector('.lang-switch .lang-text');
+            const html = document.documentElement;
+            
+            // Update active language elements
+            document.querySelectorAll(`[data-lang="${currentLang}"]`).forEach(el => {
+                el.classList.remove('active');
+            });
+            document.querySelectorAll(`[data-lang="${newLang}"]`).forEach(el => {
+                el.classList.add('active');
+            });
+            
+            // Update button text
+            button.textContent = currentLang.toUpperCase();
+            
+            // Update HTML lang attribute
+            html.setAttribute('lang', newLang);
+            
+            // Update current language
+            currentLang = newLang;
+        }
+    </script>
 </body>
 </html>
